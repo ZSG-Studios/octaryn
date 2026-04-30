@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\octaryn-engine\source\api\Octaryn.Engine.Api.csproj" />
+    <ProjectReference Include="..\old-architecture\source\api\Octaryn.Engine.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octaryn.Engine.Api", "octaryn-engine\source\api\Octaryn.Engine.Api.csproj", "{B1E6055B-22D6-452B-9B92-E4EB0F61A184}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octaryn.Engine.Api", "old-architecture\source\api\Octaryn.Engine.Api.csproj", "{B1E6055B-22D6-452B-9B92-E4EB0F61A184}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octaryn.Game", "octaryn-basegame\Octaryn.Game.csproj", "{0C068046-1121-4ABA-8B6C-A6218E5C4D87}"
 EndProject

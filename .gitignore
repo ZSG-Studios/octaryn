@@ -3,6 +3,16 @@
 /.octaryn-cache/
 /.octaryn-toolchain/
 /refrances/
+/old-architecture/build/
+/old-architecture/logs/
+/old-architecture/.octaryn-cache/
+/old-architecture/.octaryn-toolchain/
+/.codex/
+/.claude/
+/.claude.json
+/.mcp.json
+/.agents/
+/.cursor/
 
 bin/
 obj/
@@ -10,3 +20,4 @@ obj/
 *.suo
 *.tmp
 *.log
+*.tracy

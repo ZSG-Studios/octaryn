@@ -4,10 +4,10 @@ Octaryn Engine is a root-level SDL3 GPU voxel engine with a modern C++ runtime, 
 
 ## Active Layout
 
-- `octaryn-engine/`: native engine project, CMake presets, runtime source, shaders, and engine icons
-- `octaryn-engine/source/app/`, `octaryn-engine/source/core/`, `octaryn-engine/source/render/`, `octaryn-engine/source/world/`: active runtime source
-- `octaryn-engine/source/shaders/`: shader sources, with active runtime stages authored in GLSL
-- `octaryn-engine/source/api/`: C# engine API project
+- `old-architecture/`: old native engine architecture, CMake presets, runtime source, shaders, and engine icons
+- `old-architecture/source/app/`, `old-architecture/source/core/`, `old-architecture/source/render/`, `old-architecture/source/world/`: old runtime source
+- `old-architecture/source/shaders/`: old shader sources, with active runtime stages authored in GLSL
+- `old-architecture/source/api/`: C# engine API project
 - `octaryn-basegame/`: C# base game project
 - `octaryn-client/`: client project root
 - `octaryn-server/`: server project root

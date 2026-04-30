@@ -6,7 +6,12 @@
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <BaseOutputPath>$(MSBuildThisFileDirectory)build\dotnet\bin\$(MSBuildProjectName)\</BaseOutputPath>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)build\dotnet\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OctarynBuildOwner>shared</OctarynBuildOwner>
+    <OctarynBuildOwner Condition="'$(MSBuildProjectName)' == 'Octaryn.Game'">basegame</OctarynBuildOwner>
+    <OctarynBuildOwner Condition="'$(MSBuildProjectName)' == 'Octaryn.Client'">client</OctarynBuildOwner>
+    <OctarynBuildOwner Condition="'$(MSBuildProjectName)' == 'Octaryn.Server'">server</OctarynBuildOwner>
+    <OctarynBuildOwner Condition="'$(MSBuildProjectName)' == 'Octaryn.Engine.Api'">old-architecture</OctarynBuildOwner>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)build\$(OctarynBuildOwner)\dotnet\bin\$(MSBuildProjectName)\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)build\$(OctarynBuildOwner)\dotnet\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
   </PropertyGroup>
 </Project>
