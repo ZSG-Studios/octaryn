@@ -5,7 +5,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/layout.sh"
 
 workspace_root="$(octaryn_workspace_root)"
-log_dir="${workspace_root}/tools/logs/engine_control"
+log_dir="${workspace_root}/logs/engine_control"
 log_path="${log_dir}/renderdoc.log"
 source_root="$(octaryn_shared_cpm_cache_dir)/renderdoc"
 tag="${OCTARYN_RENDERDOC_TAG:-v1.43}"

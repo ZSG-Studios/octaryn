@@ -1,8 +1,8 @@
 /build/
+/logs/
 /.octaryn-cache/
 /.octaryn-toolchain/
 /refrances/
-/tools/logs/
 
 bin/
 obj/

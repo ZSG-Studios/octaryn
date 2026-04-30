@@ -5,8 +5,8 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/layout.sh"
 
 workspace_root="$(octaryn_workspace_root)"
-log_dir="${workspace_root}/tools/logs/engine_control"
-capture_root="${workspace_root}/tools/logs/tracy"
+log_dir="${workspace_root}/logs/engine_control"
+capture_root="${workspace_root}/logs/tracy"
 capture_dir="${capture_root}/captures"
 export_dir="${capture_root}/exports"
 build_root="$(octaryn_product_build_root)/tools"
@@ -175,7 +175,7 @@ main() {
     return "$capture_status"
   fi
 
-  local runtime_log="${OCTARYN_TRACY_RUNTIME_LOG:-${workspace_root}/build/octaryn-engine/linux-debug/logs/runtime-session.log}"
+  local runtime_log="${OCTARYN_TRACY_RUNTIME_LOG:-${workspace_root}/logs/octaryn-engine/linux-debug/runtime-session.log}"
   {
     printf '[real_submitted_fps]\n'
     printf 'source=%s\n' "$runtime_log"

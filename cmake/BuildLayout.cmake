@@ -15,9 +15,10 @@ if(NOT DEFINED OCTARYN_DEPENDENCY_BUCKET_NAME)
 endif()
 
 set(OCTARYN_REPO_BUILD_ROOT "${OCTARYN_WORKSPACE_ROOT_DIR}/build")
+set(OCTARYN_LOG_ROOT "${OCTARYN_WORKSPACE_ROOT_DIR}/logs")
 set(OCTARYN_SHARED_BUILD_ROOT "${OCTARYN_REPO_BUILD_ROOT}/shared")
 set(OCTARYN_SHARED_DEPS_ROOT "${OCTARYN_SHARED_BUILD_ROOT}/deps/${OCTARYN_DEPENDENCY_BUCKET_NAME}")
-set(OCTARYN_SHARED_DEPS_LOG_DIR "${OCTARYN_SHARED_DEPS_ROOT}/logs")
+set(OCTARYN_SHARED_DEPS_LOG_DIR "${OCTARYN_LOG_ROOT}/deps/${OCTARYN_DEPENDENCY_BUCKET_NAME}")
 set(OCTARYN_SHARED_DEPS_EXPORT_DIR "${OCTARYN_SHARED_DEPS_ROOT}/exports")
 set(OCTARYN_SHARED_DEPS_INSTALL_DIR "${OCTARYN_SHARED_DEPS_ROOT}/install")
 get_filename_component(OCTARYN_WORKSPACE_CMAKE_STATE_DIR "${CMAKE_BINARY_DIR}" ABSOLUTE)
@@ -30,6 +31,7 @@ file(MAKE_DIRECTORY
   "${OCTARYN_SHARED_BUILD_ROOT}"
   "${OCTARYN_CPM_CACHE_DIR}"
   "${OCTARYN_SHARED_DEPS_ROOT}"
+  "${OCTARYN_LOG_ROOT}"
   "${OCTARYN_SHARED_DEPS_LOG_DIR}"
   "${OCTARYN_SHARED_DEPS_EXPORT_DIR}"
   "${OCTARYN_SHARED_DEPS_INSTALL_DIR}"
@@ -61,7 +63,7 @@ function(octaryn_apply_build_layout target_name)
   octaryn_product_shared_root(product_shared_root "${OCTARYN_LAYOUT_PRODUCT}")
   octaryn_product_stage_root(product_stage_root "${OCTARYN_LAYOUT_PRODUCT}")
 
-  set(product_log_dir "${product_preset_root}/logs")
+  set(product_log_dir "${OCTARYN_LOG_ROOT}/${OCTARYN_LAYOUT_PRODUCT}/${OCTARYN_BUILD_PRESET_NAME}")
   set(product_generated_dir "${product_preset_root}/generated")
   set(product_runtime_dir "${product_preset_root}/runtime")
   set(product_world_dir "${product_runtime_dir}/world")

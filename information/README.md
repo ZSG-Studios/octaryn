@@ -95,7 +95,7 @@ Runtime saves are written under the configured save root as:
 - Product outputs live under `build/octaryn-engine/<preset>/`
 - Runtime binaries live under `build/octaryn-engine/<preset>/bin`
 - Runtime save/output data for scripted runs lives under `build/octaryn-engine/<preset>/runtime`
-- Build logs live under `build/octaryn-engine/<preset>/logs`
+- Logs live under `logs/`
 - CMake workspace files live under `build/shared/workspace/<preset>/cmake`
 - Shared third-party source and build caches live under `build/shared/`
 - `shaderc` is used for explicit GLSL shader compilation in the offline shader tool

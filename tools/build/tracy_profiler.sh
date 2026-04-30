@@ -5,7 +5,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/layout.sh"
 
 workspace_root="$(octaryn_workspace_root)"
-log_dir="${workspace_root}/tools/logs/engine_control"
+log_dir="${workspace_root}/logs/engine_control"
 log_path="${log_dir}/tracy-profiler.log"
 build_dir="$(octaryn_product_build_root)/tools/tracy-profiler"
 binary_path="${build_dir}/tracy-profiler"

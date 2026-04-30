@@ -54,7 +54,7 @@ fi
 
 workspace_root="$(octaryn_workspace_root)"
 renderdoc_script="${workspace_root}/tools/build/renderdoc.sh"
-log_dir="${workspace_root}/tools/logs/renderdoc"
+log_dir="${workspace_root}/logs/renderdoc"
 capture_dir="${log_dir}/captures"
 mkdir -p "$log_dir" "$capture_dir"
 

@@ -33,6 +33,10 @@ octaryn_build_root() {
   printf '%s/build\n' "$(octaryn_workspace_root)"
 }
 
+octaryn_log_root() {
+  printf '%s/logs\n' "$(octaryn_workspace_root)"
+}
+
 octaryn_acquire_build_lock() {
   local label="${1:-build}"
   local lock_dir lock_file
@@ -86,7 +90,7 @@ octaryn_product_preset_dir() {
 }
 
 octaryn_product_log_dir() {
-  printf '%s/logs\n' "$(octaryn_product_preset_dir "$1")"
+  printf '%s/%s/%s\n' "$(octaryn_log_root)" "$(octaryn_product_name)" "$1"
 }
 
 octaryn_product_runtime_dir() {
@@ -130,7 +134,7 @@ octaryn_shared_deps_root() {
 }
 
 octaryn_shared_deps_log_dir() {
-  printf '%s/logs\n' "$(octaryn_shared_deps_root "$1")"
+  printf '%s/deps/%s\n' "$(octaryn_log_root)" "$(octaryn_dependency_bucket_name "$1")"
 }
 
 octaryn_shared_deps_export_dir() {
