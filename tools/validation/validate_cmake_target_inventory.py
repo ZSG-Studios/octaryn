@@ -35,6 +35,7 @@ REQUIRED_TARGETS = {
     "octaryn_client_hidden_block_uniforms",
     "octaryn_client_lighting_settings",
     "octaryn_client_render_distance",
+    "octaryn_client_shader_creation",
     "octaryn_client_shader_metadata_contract",
     "octaryn_client_visibility_flags",
     "octaryn_client_window_frame_statistics",
