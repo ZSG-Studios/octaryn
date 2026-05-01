@@ -37,3 +37,13 @@ if(TARGET mimalloc-static)
 elseif(TARGET mimalloc)
     target_link_libraries(octaryn_native_mimalloc INTERFACE mimalloc)
 endif()
+
+add_library(octaryn_native_tracy INTERFACE)
+add_library(octaryn::deps::tracy ALIAS octaryn_native_tracy)
+
+find_package(Tracy CONFIG QUIET)
+if(TARGET Tracy::TracyClient)
+    target_link_libraries(octaryn_native_tracy INTERFACE Tracy::TracyClient)
+elseif(TARGET TracyClient)
+    target_link_libraries(octaryn_native_tracy INTERFACE TracyClient)
+endif()

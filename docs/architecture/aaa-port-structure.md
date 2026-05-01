@@ -439,7 +439,7 @@ Native support landing zones:
 - `octaryn-shared/Source/Diagnostics/`
 - `octaryn-basegame/Source/Libraries/<ExactLibraryName>/` only for basegame-local native support that does not expose host internals.
 - `tools/<ExactToolName>/` for repo-wide developer tools that are not owned by a game/content package.
-- focused native support targets such as `octaryn_native_logging`, `octaryn_native_diagnostics`, `octaryn_native_memory`, and `octaryn_native_jobs`.
+- focused native support targets such as `octaryn_native_logging`, `octaryn_native_diagnostics`, `octaryn_native_memory`, `octaryn_native_profiling`, and `octaryn_native_jobs`.
 
 Port source candidates:
 
@@ -688,6 +688,7 @@ octaryn_module_sandbox_contracts
 octaryn_native_logging
 octaryn_native_diagnostics
 octaryn_native_memory
+octaryn_native_profiling
 octaryn_native_jobs
 ```
 

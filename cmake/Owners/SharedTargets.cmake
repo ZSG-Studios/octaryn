@@ -68,11 +68,33 @@ if(TARGET mimalloc-static OR TARGET mimalloc)
             OCTARYN_NATIVE_MEMORY_USE_MIMALLOC)
 endif()
 
+octaryn_add_native_static_library(
+    octaryn_native_profiling
+    shared
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeProfiling/octaryn_native_profile.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeProfiling"
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeLogging"
+    PRIVATE_LINKS
+        octaryn_native_logging)
+
+target_link_libraries(octaryn_native_profiling
+    PUBLIC
+        octaryn::deps::tracy)
+
+if(TARGET Tracy::TracyClient OR TARGET TracyClient)
+    target_compile_definitions(octaryn_native_profiling
+        PUBLIC
+            OCTARYN_NATIVE_PROFILING_USE_TRACY)
+endif()
+
 add_dependencies(octaryn_shared_native
     octaryn_shared_host_abi
     octaryn_native_logging
     octaryn_native_diagnostics
-    octaryn_native_memory)
+    octaryn_native_memory
+    octaryn_native_profiling)
 
 octaryn_add_dotnet_owner(
     octaryn_shared
