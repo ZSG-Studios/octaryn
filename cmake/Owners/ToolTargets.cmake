@@ -12,6 +12,12 @@ octaryn_owner_log_root(tool_client_log_root client)
 octaryn_owner_log_root(tool_server_log_root server)
 set(octaryn_tool_client_bundle_dir "${tool_client_build_root}/bundle")
 set(octaryn_tool_server_bundle_dir "${tool_server_build_root}/bundle")
+set(octaryn_tool_client_bundle_output "${octaryn_tool_client_bundle_dir}/Octaryn.Client.dll")
+set(octaryn_tool_client_bundle_runtime_config "${octaryn_tool_client_bundle_dir}/Octaryn.Client.runtimeconfig.json")
+set(octaryn_tool_client_bundle_deps "${octaryn_tool_client_bundle_dir}/Octaryn.Client.deps.json")
+set(octaryn_tool_server_bundle_output "${octaryn_tool_server_bundle_dir}/Octaryn.Server.dll")
+set(octaryn_tool_server_bundle_runtime_config "${octaryn_tool_server_bundle_dir}/Octaryn.Server.runtimeconfig.json")
+set(octaryn_tool_server_bundle_deps "${octaryn_tool_server_bundle_dir}/Octaryn.Server.deps.json")
 set(octaryn_tool_client_probe_log "${tool_client_log_root}/octaryn_client_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
 set(octaryn_tool_server_probe_log "${tool_server_log_root}/octaryn_server_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
 set(octaryn_tool_basegame_project "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Octaryn.Basegame.csproj")
@@ -155,6 +161,8 @@ add_custom_target(octaryn_validate_bundle_module_payload
         --module-id "octaryn.basegame"
         --expected-manifest "${octaryn_tool_basegame_manifest_json}"
     DEPENDS
+        "${octaryn_tool_client_bundle_output}"
+        "${octaryn_tool_server_bundle_output}"
         octaryn_client_bundle
         octaryn_server_bundle
         octaryn_validate_module_manifest_probe
@@ -259,6 +267,12 @@ if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
             --bundle-dir "${octaryn_tool_server_bundle_dir}"
             --bridge "$<TARGET_FILE:octaryn_server_managed_bridge>"
         DEPENDS
+            "${octaryn_tool_client_bundle_output}"
+            "${octaryn_tool_client_bundle_runtime_config}"
+            "${octaryn_tool_client_bundle_deps}"
+            "${octaryn_tool_server_bundle_output}"
+            "${octaryn_tool_server_bundle_runtime_config}"
+            "${octaryn_tool_server_bundle_deps}"
             octaryn_client_bundle
             octaryn_server_bundle
             octaryn_client_managed_bridge
@@ -278,6 +292,10 @@ if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
             --owner server
             --log-file "${octaryn_tool_server_probe_log}"
         DEPENDS
+            "${octaryn_tool_client_bundle_output}"
+            "${octaryn_tool_client_bundle_runtime_config}"
+            "${octaryn_tool_server_bundle_output}"
+            "${octaryn_tool_server_bundle_runtime_config}"
             octaryn_client_bundle
             octaryn_server_bundle
             octaryn_client_launch_probe

@@ -42,6 +42,19 @@ octaryn_add_native_static_library(
 add_dependencies(octaryn_client_native octaryn_client_render_distance)
 
 octaryn_add_native_static_library(
+    octaryn_client_app_settings
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/AppSettings/octaryn_client_app_settings.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/AppSettings"
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/RenderDistance"
+    PRIVATE_LINKS
+        octaryn_client_render_distance)
+
+add_dependencies(octaryn_client_native octaryn_client_app_settings)
+
+octaryn_add_native_static_library(
     octaryn_client_camera_matrix
     client
     SOURCES
