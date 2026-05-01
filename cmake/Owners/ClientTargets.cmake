@@ -42,6 +42,16 @@ octaryn_add_native_static_library(
 add_dependencies(octaryn_client_native octaryn_client_render_distance)
 
 octaryn_add_native_static_library(
+    octaryn_client_frame_metrics
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/FrameMetrics/octaryn_client_frame_metrics.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/FrameMetrics")
+
+add_dependencies(octaryn_client_native octaryn_client_frame_metrics)
+
+octaryn_add_native_static_library(
     octaryn_client_app_settings
     client
     SOURCES

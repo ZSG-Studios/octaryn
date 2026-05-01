@@ -31,6 +31,7 @@ REQUIRED_TARGETS = {
     "octaryn_client_display_menu",
     "octaryn_client_display_settings",
     "octaryn_client_fullscreen_display_mode",
+    "octaryn_client_frame_metrics",
     "octaryn_client_lighting_settings",
     "octaryn_client_render_distance",
     "octaryn_client_visibility_flags",
