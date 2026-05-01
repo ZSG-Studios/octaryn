@@ -55,6 +55,26 @@ octaryn_add_native_static_library(
 add_dependencies(octaryn_client_native octaryn_client_app_settings)
 
 octaryn_add_native_static_library(
+    octaryn_client_display_settings
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/DisplaySettings/octaryn_client_display_settings.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/DisplaySettings"
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/AppSettings"
+    PRIVATE_LINKS
+        octaryn_client_app_settings
+        octaryn::deps::sdl3)
+
+add_dependencies(octaryn_client_native octaryn_client_display_settings)
+
+if(TARGET SDL3::SDL3)
+    target_compile_definitions(octaryn_client_display_settings
+        PUBLIC
+            OCTARYN_CLIENT_DISPLAY_SETTINGS_USE_SDL3)
+endif()
+
+octaryn_add_native_static_library(
     octaryn_client_camera_matrix
     client
     SOURCES
