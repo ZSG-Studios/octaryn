@@ -40,6 +40,13 @@ add_custom_target(octaryn_validate_cmake_policy_separation
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)
 
+add_custom_target(octaryn_validate_cmake_dependency_aliases
+    COMMAND python3
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_cmake_dependency_aliases.py"
+        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
+    WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
+    VERBATIM)
+
 add_custom_target(octaryn_validate_package_policy_sync
     COMMAND python3
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_package_policy_sync.py"
@@ -316,6 +323,7 @@ endif()
 add_dependencies(octaryn_tools
     octaryn_validate_cmake_targets
     octaryn_validate_cmake_policy_separation
+    octaryn_validate_cmake_dependency_aliases
     octaryn_validate_package_policy_sync
     octaryn_validate_project_references
     octaryn_validate_module_manifest_packages

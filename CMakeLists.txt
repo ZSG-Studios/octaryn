@@ -38,6 +38,7 @@ add_custom_target(octaryn_validate_all
     DEPENDS
         octaryn_validate_cmake_targets
         octaryn_validate_cmake_policy_separation
+        octaryn_validate_cmake_dependency_aliases
         octaryn_validate_package_policy_sync
         octaryn_validate_project_references
         octaryn_validate_module_manifest_packages

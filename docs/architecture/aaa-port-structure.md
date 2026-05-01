@@ -577,7 +577,7 @@ Use these libraries for the cases they are intended for. Keep wrappers focused a
 | `octaryn::deps::taskflow` | Job scheduling graph and worker execution. | Native jobs support, coordinator-thread scheduling, scalable worker pool execution, client presentation work queues, server simulation jobs, and tool jobs. |
 | `octaryn::deps::unordered_dense` | High-performance hash maps and sets. | Owner-local implementation code that needs dense hash containers. |
 | `octaryn::deps::eigen` | Math and linear algebra. | Shared pure math/value code or owner-local math; rendering-only math stays client-owned. |
-| `octaryn::deps::glaze` | JSON and metadata serialization. | Shared contracts when pure, server persistence, basegame content tools, root tools. |
+| `octaryn::deps::glaze` | JSON and metadata serialization. | Shared contracts when pure, client settings persistence, server persistence, basegame content tools, root tools. |
 | `octaryn::deps::sdl3` | Windowing, input, SDL GPU, platform services, timers. | Client only, except isolated tool use when a tool truly needs SDL. |
 | `octaryn::deps::sdl3_image` | Image loading. | Client UI/assets and asset import tools. |
 | `octaryn::deps::sdl3_ttf` | Text rendering. | Client UI and overlays. |
