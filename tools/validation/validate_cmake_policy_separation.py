@@ -34,7 +34,6 @@ PLATFORM_FORBIDDEN = (
 )
 
 REQUIRED_TOOLCHAIN_SNIPPETS = {
-    "cmake/Toolchains/Linux/gcc.cmake": ("set(CMAKE_SYSTEM_NAME Linux)",),
     "cmake/Toolchains/Linux/clang.cmake": ("set(CMAKE_SYSTEM_NAME Linux)",),
     "cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake": (
         "set(CMAKE_SYSTEM_NAME Windows)",

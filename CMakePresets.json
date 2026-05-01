@@ -30,16 +30,6 @@
       }
     },
     {
-      "name": "debug-linux-gcc",
-      "displayName": "Debug Linux GCC",
-      "inherits": "debug",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/gcc.cmake",
-      "cacheVariables": {
-        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
-      }
-    },
-    {
       "name": "debug-linux-clang",
       "displayName": "Debug Linux Clang",
       "inherits": "debug",
@@ -70,16 +60,6 @@
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       },
-      "cacheVariables": {
-        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
-      }
-    },
-    {
-      "name": "release-linux-gcc",
-      "displayName": "Release Linux GCC",
-      "inherits": "release",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/gcc.cmake",
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
@@ -150,20 +130,6 @@
       ]
     },
     {
-      "name": "debug-linux-gcc",
-      "configurePreset": "debug-linux-gcc",
-      "targets": [
-        "octaryn_all"
-      ]
-    },
-    {
-      "name": "debug-linux-gcc-validate",
-      "configurePreset": "debug-linux-gcc",
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
       "name": "debug-linux-clang",
       "configurePreset": "debug-linux-clang",
       "targets": [
@@ -211,20 +177,6 @@
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       },
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "release-linux-gcc",
-      "configurePreset": "release-linux-gcc",
-      "targets": [
-        "octaryn_all"
-      ]
-    },
-    {
-      "name": "release-linux-gcc-validate",
-      "configurePreset": "release-linux-gcc",
       "targets": [
         "octaryn_validate_all"
       ]

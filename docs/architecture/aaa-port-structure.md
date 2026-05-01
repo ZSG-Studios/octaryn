@@ -499,7 +499,6 @@ cmake/
       MinGW/
         x86_64-w64-mingw32.cmake
     Linux/
-      gcc.cmake
       clang.cmake
     BSD/
       clang.cmake
@@ -543,7 +542,7 @@ Validation for CMake changes:
 - For structure-only CMake work, run `validate_cmake_target_inventory.py`; it verifies active target names, required owner/platform/dependency files, and absence of old generic product CMake paths.
 - For build policy changes, configure the smallest owner target that uses the changed policy.
 - For platform/toolchain changes, run targeted configure checks for the affected platform or toolchain when the host has that compiler/sysroot installed.
-- Active configure presets cover default debug/release, Linux GCC, Linux Clang, Windows MinGW, and macOS AppleClang. MinGW configure may disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are unavailable, but Linux host validation must still build and run those bridge/probe targets. macOS AppleClang configure/build validation belongs on Darwin hosts with the matching SDK and .NET target host pack.
+- Active configure presets cover default debug/release, Linux Clang, Windows MinGW, and macOS AppleClang. Linux native targeting is Clang-first; GCC is not an active preset lane. MinGW configure may disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are unavailable, but Linux host validation must still build and run those bridge/probe targets. macOS AppleClang configure/build validation belongs on Darwin hosts with the matching SDK and .NET target host pack.
 - Do not validate CMake work with smoke tests or `ctest` unless explicitly requested.
 
 ## Library Catalog
