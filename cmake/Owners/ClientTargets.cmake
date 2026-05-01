@@ -85,6 +85,24 @@ if(TARGET SDL3::SDL3)
 endif()
 
 octaryn_add_native_static_library(
+    octaryn_client_display_catalog
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/DisplayCatalog/octaryn_client_display_catalog.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/DisplayCatalog"
+    PRIVATE_LINKS
+        octaryn::deps::sdl3)
+
+add_dependencies(octaryn_client_native octaryn_client_display_catalog)
+
+if(TARGET SDL3::SDL3)
+    target_compile_definitions(octaryn_client_display_catalog
+        PUBLIC
+            OCTARYN_CLIENT_DISPLAY_CATALOG_USE_SDL3)
+endif()
+
+octaryn_add_native_static_library(
     octaryn_client_display_menu
     client
     SOURCES

@@ -27,6 +27,7 @@ REQUIRED_TARGETS = {
     "octaryn_client_asset_paths",
     "octaryn_client_app_settings",
     "octaryn_client_camera_matrix",
+    "octaryn_client_display_catalog",
     "octaryn_client_display_menu",
     "octaryn_client_display_settings",
     "octaryn_client_lighting_settings",
