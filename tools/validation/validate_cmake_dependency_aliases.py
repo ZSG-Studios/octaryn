@@ -12,18 +12,40 @@ REQUIRED_ALIASES = {
         "octaryn::deps::mimalloc",
         "octaryn::deps::tracy",
         "octaryn::deps::taskflow",
+        "octaryn::deps::eigen",
+        "octaryn::deps::unordered_dense",
+        "octaryn::deps::zlib",
+        "octaryn::deps::lz4",
+        "octaryn::deps::zstd",
     ),
     "cmake/Dependencies/ClientDependencies.cmake": (
         "octaryn::deps::sdl3",
         "octaryn::deps::openal",
         "octaryn::deps::miniaudio",
         "octaryn::deps::glaze",
+        "octaryn::deps::sdl3_image",
+        "octaryn::deps::sdl3_ttf",
+        "octaryn::deps::imgui",
+        "octaryn::deps::implot",
+        "octaryn::deps::implot3d",
+        "octaryn::deps::imgui_node_editor",
+        "octaryn::deps::imguizmo",
+        "octaryn::deps::imanim",
+        "octaryn::deps::imfiledialog",
+        "octaryn::deps::ozz_animation",
+    ),
+    "cmake/Dependencies/ServerDependencies.cmake": (
+        "octaryn::deps::fastnoise2",
+        "octaryn::deps::jolt",
     ),
     "cmake/Dependencies/ToolDependencies.cmake": (
         "octaryn::deps::shadercross",
         "octaryn::deps::shaderc",
         "octaryn::deps::spirv_tools",
         "octaryn::deps::spirv_cross",
+        "octaryn::deps::fastgltf",
+        "octaryn::deps::ktx",
+        "octaryn::deps::meshoptimizer",
     ),
 }
 
@@ -39,6 +61,13 @@ FORBIDDEN_OWNER_LINKS = (
     "SPIRV_Cross::",
     "SPIRV-Cross::",
     "SDL3_shadercross::",
+    "Eigen3::",
+    "ZLIB::",
+    "Jolt::",
+    "FastNoise",
+    "KTX::",
+    "meshoptimizer",
+    "imgui",
 )
 
 
@@ -74,6 +103,9 @@ def validate(repo_root):
     for path in sorted(owners_dir.glob("*.cmake")):
         relative_path = path.relative_to(repo_root)
         text = path.read_text(encoding="utf-8")
+        for forbidden in FORBIDDEN_OWNER_LINKS:
+            if forbidden in text:
+                errors.append(f"{relative_path}: owner module must not reference upstream dependency target {forbidden}")
         for block in cmake_command_blocks(text, "target_link_libraries"):
             for forbidden in FORBIDDEN_OWNER_LINKS:
                 if forbidden in block:

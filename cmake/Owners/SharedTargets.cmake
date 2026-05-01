@@ -27,7 +27,7 @@ octaryn_add_native_static_library(
     PRIVATE_LINKS
         octaryn::deps::spdlog)
 
-if(TARGET spdlog::spdlog_header_only OR TARGET spdlog::spdlog)
+if(OCTARYN_NATIVE_SPDLOG_AVAILABLE)
     target_compile_definitions(octaryn_native_logging
         PRIVATE
             OCTARYN_NATIVE_LOGGING_USE_SPDLOG)
@@ -44,7 +44,7 @@ octaryn_add_native_static_library(
         octaryn_native_logging
         octaryn::deps::cpptrace)
 
-if(TARGET cpptrace::cpptrace)
+if(OCTARYN_NATIVE_CPPTRACE_AVAILABLE)
     target_compile_definitions(octaryn_native_diagnostics
         PRIVATE
             OCTARYN_NATIVE_DIAGNOSTICS_USE_CPPTRACE)
@@ -62,7 +62,7 @@ octaryn_add_native_static_library(
         octaryn_native_logging
         octaryn::deps::mimalloc)
 
-if(TARGET mimalloc-static OR TARGET mimalloc)
+if(OCTARYN_NATIVE_MIMALLOC_AVAILABLE)
     target_compile_definitions(octaryn_native_memory
         PRIVATE
             OCTARYN_NATIVE_MEMORY_USE_MIMALLOC)
@@ -83,7 +83,7 @@ target_link_libraries(octaryn_native_profiling
     PUBLIC
         octaryn::deps::tracy)
 
-if(TARGET Tracy::TracyClient OR TARGET TracyClient)
+if(OCTARYN_NATIVE_TRACY_AVAILABLE)
     target_compile_definitions(octaryn_native_profiling
         PUBLIC
             OCTARYN_NATIVE_PROFILING_USE_TRACY)

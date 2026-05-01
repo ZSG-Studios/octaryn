@@ -82,6 +82,11 @@ REQUIRED_PLATFORM_FILE_SNIPPETS = {
 }
 
 REQUIRED_DEPENDENCY_SNIPPETS = {
+    "cmake/Dependencies/SourceDependencyCache.cmake": (
+        "OCTARYN_DEPENDENCY_BUILD_ROOT",
+        "FETCHCONTENT_BASE_DIR",
+        "octaryn_fetch_source_dependency",
+    ),
     "cmake/Dependencies/DotNetHosting.cmake": (
         "Microsoft.NETCore.App.Host.${OCTARYN_TARGET_DOTNET_RID}",
         "runtimes/${OCTARYN_TARGET_DOTNET_RID}/native",

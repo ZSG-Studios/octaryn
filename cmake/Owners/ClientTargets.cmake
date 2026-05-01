@@ -23,7 +23,7 @@ octaryn_add_native_static_library(
     PRIVATE_LINKS
         octaryn::deps::sdl3)
 
-if(TARGET SDL3::SDL3)
+if(OCTARYN_CLIENT_SDL3_AVAILABLE)
     target_compile_definitions(octaryn_client_asset_paths
         PRIVATE
             OCTARYN_CLIENT_ASSET_PATHS_USE_SDL3)
@@ -88,7 +88,7 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_display_settings)
 
-if(TARGET SDL3::SDL3)
+if(OCTARYN_CLIENT_SDL3_AVAILABLE)
     target_compile_definitions(octaryn_client_display_settings
         PUBLIC
             OCTARYN_CLIENT_DISPLAY_SETTINGS_USE_SDL3)
@@ -106,7 +106,7 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_display_catalog)
 
-if(TARGET SDL3::SDL3)
+if(OCTARYN_CLIENT_SDL3_AVAILABLE)
     target_compile_definitions(octaryn_client_display_catalog
         PUBLIC
             OCTARYN_CLIENT_DISPLAY_CATALOG_USE_SDL3)
@@ -124,7 +124,7 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_fullscreen_display_mode)
 
-if(TARGET SDL3::SDL3)
+if(OCTARYN_CLIENT_SDL3_AVAILABLE)
     target_compile_definitions(octaryn_client_fullscreen_display_mode
         PUBLIC
             OCTARYN_CLIENT_FULLSCREEN_DISPLAY_MODE_USE_SDL3)
@@ -204,7 +204,7 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_shader_creation)
 
-if(TARGET SDL3::SDL3)
+if(OCTARYN_CLIENT_SDL3_AVAILABLE)
     target_compile_definitions(octaryn_client_shader_creation
         PUBLIC
             OCTARYN_CLIENT_SHADER_CREATION_USE_SDL3)
