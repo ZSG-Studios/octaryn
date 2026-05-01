@@ -1,0 +1,93 @@
+#include "octaryn_client_asset_path.h"
+
+#include <cstdio>
+#include <cstring>
+
+#if defined(OCTARYN_CLIENT_ASSET_PATHS_USE_SDL3)
+#include <SDL3/SDL.h>
+#elif defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+namespace {
+
+constexpr const char* AssetRoot = "Assets/";
+
+bool executable_directory(char* output, size_t output_size)
+{
+    if (output == nullptr || output_size == 0)
+    {
+        return false;
+    }
+
+#if defined(OCTARYN_CLIENT_ASSET_PATHS_USE_SDL3)
+    const char* base_path = SDL_GetBasePath();
+    if (base_path == nullptr)
+    {
+        return false;
+    }
+
+    const int written = std::snprintf(output, output_size, "%s", base_path);
+    return written > 0 && static_cast<size_t>(written) < output_size;
+#elif defined(_WIN32)
+    const DWORD written = GetModuleFileNameA(nullptr, output, static_cast<DWORD>(output_size));
+    if (written == 0 || static_cast<size_t>(written) >= output_size)
+    {
+        return false;
+    }
+#else
+    const ssize_t written = readlink("/proc/self/exe", output, output_size - 1u);
+    if (written <= 0 || static_cast<size_t>(written) >= output_size)
+    {
+        return false;
+    }
+
+    output[written] = '\0';
+#endif
+
+#if !defined(OCTARYN_CLIENT_ASSET_PATHS_USE_SDL3)
+    char* last_separator = std::strrchr(output, '/');
+#if defined(_WIN32)
+    char* last_backslash = std::strrchr(output, '\\');
+    if (last_backslash != nullptr && (last_separator == nullptr || last_backslash > last_separator))
+    {
+        last_separator = last_backslash;
+    }
+#endif
+
+    if (last_separator == nullptr)
+    {
+        return false;
+    }
+
+    last_separator[1] = '\0';
+#endif
+    return true;
+}
+
+} // namespace
+
+bool octaryn_client_asset_path_build(char* output, size_t output_size, const char* relative_path)
+{
+    if (output == nullptr || output_size == 0 || relative_path == nullptr)
+    {
+        return false;
+    }
+
+    char base_path[4096] = {};
+    if (!executable_directory(base_path, sizeof(base_path)))
+    {
+        return false;
+    }
+
+    const int written = std::snprintf(output, output_size, "%s%s%s", base_path, AssetRoot, relative_path);
+    return written > 0 && static_cast<size_t>(written) < output_size;
+}

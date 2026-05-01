@@ -41,7 +41,14 @@ octaryn_add_native_static_library(
     PUBLIC_INCLUDE_DIRS
         "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeCrashDiagnostics"
     PRIVATE_LINKS
-        octaryn_native_logging)
+        octaryn_native_logging
+        octaryn::deps::cpptrace)
+
+if(TARGET cpptrace::cpptrace)
+    target_compile_definitions(octaryn_native_diagnostics
+        PRIVATE
+            OCTARYN_NATIVE_DIAGNOSTICS_USE_CPPTRACE)
+endif()
 
 add_dependencies(octaryn_shared_native
     octaryn_shared_host_abi

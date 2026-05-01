@@ -31,7 +31,10 @@ def validate(owner, log_file):
         return [f"{log_file}: missing owner launch probe log"]
 
     actual = [line.strip() for line in log_file.read_text(encoding="utf-8").splitlines() if line.strip()]
-    expected = list(EXPECTED_LINES[owner])
+    if not actual or not actual[0].startswith("crash_marker=/tmp/octaryn-crash-"):
+        return [f"{log_file}: missing crash diagnostics marker line, actual {actual}"]
+
+    expected = [actual[0], *EXPECTED_LINES[owner]]
     if actual != expected:
         return [f"{log_file}: expected {expected}, actual {actual}"]
 

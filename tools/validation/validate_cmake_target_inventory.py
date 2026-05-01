@@ -21,6 +21,7 @@ REQUIRED_TARGETS = {
     "octaryn_server_launch_probe",
     "octaryn_client_managed",
     "octaryn_client_native",
+    "octaryn_client_asset_paths",
     "octaryn_client_managed_bridge",
     "octaryn_client_launch_probe",
     "octaryn_client_bundle",

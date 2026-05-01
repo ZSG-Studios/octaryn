@@ -19,3 +19,11 @@ elseif(TARGET spdlog::spdlog)
 else()
     message(STATUS "Target-compatible spdlog package unavailable; octaryn_native_logging will use stdio fallback for this configure.")
 endif()
+
+add_library(octaryn_native_cpptrace INTERFACE)
+add_library(octaryn::deps::cpptrace ALIAS octaryn_native_cpptrace)
+
+find_package(cpptrace CONFIG QUIET)
+if(TARGET cpptrace::cpptrace)
+    target_link_libraries(octaryn_native_cpptrace INTERFACE cpptrace::cpptrace)
+endif()

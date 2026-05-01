@@ -1,4 +1,5 @@
 #include "octaryn_server_host_exports.h"
+#include "octaryn_native_crash_diagnostics.h"
 
 #include <stdio.h>
 
@@ -57,6 +58,9 @@ int main(void)
     if (s_log == NULL) {
         return 2;
     }
+
+    octaryn_native_crash_diagnostics_init("server-launch-probe");
+    fprintf(s_log, "crash_marker=%s\n", octaryn_native_crash_diagnostics_marker_path());
 
     octaryn_server_native_host_api api = {0};
     api.version = 1u;

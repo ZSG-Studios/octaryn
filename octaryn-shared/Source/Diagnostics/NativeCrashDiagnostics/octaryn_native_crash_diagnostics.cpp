@@ -19,7 +19,7 @@
 #include <unistd.h>
 #endif
 
-#if __has_include(<cpptrace/cpptrace.hpp>)
+#if defined(OCTARYN_NATIVE_DIAGNOSTICS_USE_CPPTRACE)
 #include <cpptrace/cpptrace.hpp>
 #define OCTARYN_NATIVE_HAS_CPPTRACE 1
 #else

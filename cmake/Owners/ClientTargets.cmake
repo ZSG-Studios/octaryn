@@ -13,6 +13,24 @@ set(octaryn_client_bundle_output "${octaryn_client_bundle_dir}/Octaryn.Client.dl
 octaryn_add_native_owner(octaryn_client_native)
 add_dependencies(octaryn_client_native octaryn_shared_native)
 
+octaryn_add_native_static_library(
+    octaryn_client_asset_paths
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/AssetPaths/octaryn_client_asset_path.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/AssetPaths"
+    PRIVATE_LINKS
+        octaryn::deps::sdl3)
+
+if(TARGET SDL3::SDL3)
+    target_compile_definitions(octaryn_client_asset_paths
+        PRIVATE
+            OCTARYN_CLIENT_ASSET_PATHS_USE_SDL3)
+endif()
+
+add_dependencies(octaryn_client_native octaryn_client_asset_paths)
+
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge
@@ -41,8 +59,10 @@ if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
         PUBLIC_INCLUDE_DIRS
             "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/ClientHostAbi"
             "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Native/HostAbi"
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeCrashDiagnostics"
         PRIVATE_LINKS
-            octaryn_client_managed_bridge)
+            octaryn_client_managed_bridge
+            octaryn_native_diagnostics)
 
     target_compile_definitions(octaryn_client_launch_probe
         PRIVATE
