@@ -35,20 +35,21 @@ PLATFORM_FORBIDDEN = (
 
 REQUIRED_TOOLCHAIN_SNIPPETS = {
     "cmake/Toolchains/Linux/clang.cmake": ("set(CMAKE_SYSTEM_NAME Linux)",),
-    "cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake": (
+    "cmake/Toolchains/Windows/clang.cmake": (
         "set(CMAKE_SYSTEM_NAME Windows)",
+        "x86_64-w64-mingw32-clang",
         "CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY",
     ),
-    "cmake/Toolchains/BSD/clang.cmake": ("set(CMAKE_SYSTEM_NAME FreeBSD)",),
-    "cmake/Toolchains/MacOS/apple-clang.cmake": ("set(CMAKE_SYSTEM_NAME Darwin)",),
+    "cmake/Toolchains/MacOS/clang.cmake": (
+        "set(CMAKE_SYSTEM_NAME Darwin)",
+        "OCTARYN_MACOS_CLANG_ROOT",
+        "o64-clang",
+    ),
 }
 
 REQUIRED_PLATFORM_SNIPPETS = (
     "include(Platforms/Linux/LinuxPlatform)",
     "include(Platforms/Windows/WindowsPlatform)",
-    "include(Platforms/Windows/MinGWPlatform)",
-    "include(Platforms/BSD/BSDPlatform)",
-    "include(Platforms/BSD/FreeBSDPlatform)",
     "include(Platforms/MacOS/MacOSPlatform)",
 )
 
@@ -64,19 +65,14 @@ REQUIRED_PLATFORM_FILE_SNIPPETS = {
         "OCTARYN_TARGET_DOTNET_RID",
         "arch-x64",
     ),
-    "cmake/Platforms/Windows/MinGWPlatform.cmake": (
+    "cmake/Platforms/Windows/WindowsPlatform.cmake": (
         "OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT",
         "OCTARYN_TARGET_DOTNET_RID",
         "OCTARYN_TARGET_OBJDUMP",
     ),
-    "cmake/Platforms/BSD/BSDPlatform.cmake": (
-        "OCTARYN_BSD_PLATFORM_SCAFFOLD",
-    ),
-    "cmake/Platforms/BSD/FreeBSDPlatform.cmake": (
-        "OCTARYN_FREEBSD_PLATFORM_SCAFFOLD",
-    ),
     "cmake/Platforms/MacOS/MacOSPlatform.cmake": (
         "OCTARYN_MACOS_PLATFORM_SCAFFOLD",
+        "OCTARYN_TARGET_DOTNET_RID",
     ),
 }
 

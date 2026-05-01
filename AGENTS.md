@@ -83,16 +83,17 @@
 
 ## Build And Log Layout
 
-- Build outputs are generated and ignored. Keep them organized under `build/<owner>/`.
-- Use `build/client/` for client builds, generated client assets, and client native artifacts.
-- Use `build/server/` for dedicated server builds and server native artifacts.
-- Use `build/basegame/` for basegame managed/content build outputs.
-- Use `build/shared/` for shared API/contract builds only.
-- Use `build/old-architecture/` only for old architecture builds while porting.
-- Use `build/tools/` for repo-wide tool builds and `build/dependencies/` for dependency caches when they are not owner-specific.
+- Build outputs are generated and ignored. Keep active new-architecture builds organized under `build/<preset>/<owner>/`.
+- Use `build/<preset>/client/` for client builds, generated client assets, bundles, and client native artifacts.
+- Use `build/<preset>/server/` for dedicated server builds, bundles, and server native artifacts.
+- Use `build/<preset>/basegame/` for basegame managed/content build outputs.
+- Use `build/<preset>/shared/` for shared API/contract builds only.
+- Use `build/<preset>/tools/` for repo-wide tool builds, `build/<preset>/deps/` for dependency build/stamp outputs, and `build/dependencies/` for shared third-party source/download caches.
+- Core managed outputs belong directly under `build/<preset>/<owner>/managed/`, and core managed intermediates belong directly under `build/<preset>/<owner>/managed-obj/`. Tool managed outputs belong under `build/<preset>/tools/<tool-project>/managed/`, with tool intermediates under `build/<preset>/tools/<tool-project>/managed-obj/`.
+- Native outputs belong under `build/<preset>/<owner>/native/bin/` and `build/<preset>/<owner>/native/lib/`.
 - Logs are generated and ignored. Keep them organized under `logs/<owner>/`.
-- Use `logs/client/`, `logs/server/`, `logs/basegame/`, `logs/shared/`, `logs/build/`, `logs/tools/`, and `logs/old-architecture/` instead of dumping logs at root.
-- Old architecture scripts must write to `build/old-architecture/` and `logs/old-architecture/`.
+- Use `logs/client/`, `logs/server/`, `logs/basegame/`, `logs/shared/`, `logs/build/`, and `logs/tools/` instead of dumping logs at root.
+- Old architecture scripts are source material only and must not create active build outputs unless intentionally ported to the new preset layout.
 - Active root `cmake/` and `tools/` should stay clean for new architecture support only; do not leave old-engine scripts there.
 
 ## CMake And Platform Build Rules
@@ -100,14 +101,15 @@
 - Keep root `cmake/` split by responsibility: `Shared/` for repo-wide build policy, `Owners/` for owner target construction, `Dependencies/` for dependency aliases/groups, `Platforms/` for host/platform facts, and `Toolchains/` for compiler/target files.
 - Do not copy old monolithic CMake modules into root `cmake/`. Port old `old-architecture/cmake/` behavior by splitting it into shared policy, owner targets, dependency wrappers, platform modules, and toolchains.
 - Toolchain files must describe compilers, target triples, sysroots, find-root behavior, and target platform knobs only. They must not create Octaryn targets, fetch dependencies, or set gameplay/render/server policy.
-- Keep platform logic isolated: Windows policy under `cmake/Platforms/Windows/`, MinGW specifics under Windows/MinGW platform and toolchain files, Linux distro-family policy under `cmake/Platforms/Linux/`, BSD policy under `cmake/Platforms/BSD/`, and macOS SDK/framework/signing policy under `cmake/Platforms/MacOS/`.
+- Keep platform logic isolated: Windows policy under `cmake/Platforms/Windows/`, Linux distro-family policy under `cmake/Platforms/Linux/`, and macOS SDK/framework/signing metadata under `cmake/Platforms/MacOS/`.
 - Linux distro differences should be represented as family modules only when real package/tool behavior differs, such as Arch-family, Debian-family, and Fedora-family dependency hints.
-- Windows cross-builds from Linux must use explicit MinGW toolchains under `cmake/Toolchains/Windows/MinGW/`; do not hide MinGW behavior inside generic Windows or Linux logic.
+- Windows cross-builds from Linux must use the explicit Windows toolchain under `cmake/Toolchains/Windows/clang.cmake`; LLVM MinGW is an implementation detail of that toolchain, not a public platform folder or preset name.
+- Linux-hosted builds are Clang-only. Public presets are exactly `debug-linux`, `release-linux`, `debug-windows`, `release-windows`, `debug-macos`, and `release-macos`.
+- Cross-platform builds are expected to run from Linux/Arch first, with future Podman wrappers spinning up the correct Linux-hosted toolchain environment for Linux, Windows, and macOS targets.
 - Owner CMake modules may call shared helpers and dependency aliases, but must not contain host platform detection. Platform modules report capabilities; owner targets decide whether to use them.
 - New root presets must target owner outputs such as `octaryn_client_bundle`, `octaryn_server`, `octaryn_basegame`, `octaryn_shared`, and tools. Old `octaryn_engine_*` presets remain only under `old-architecture/` until retired.
-- Build and dependency outputs must stay owner-partitioned: owner builds under `build/<owner>/`, third-party caches under `build/dependencies/`, and logs under `logs/<owner>/` or `logs/build/`.
-- Active root `cmake/` placeholder folders are not implementation. Do not claim Windows, MinGW, Linux, BSD, macOS, owner target, dependency, or preset coverage until the concrete CMake module exists and has a targeted configure check when practical.
-- Native Windows/MSVC support is separate from MinGW cross-build support. Old Windows presets are MinGW cross-builds unless a native Windows preset/toolchain path is explicitly added.
+- Build outputs must stay preset-first and owner-partitioned: owner builds under `build/<preset>/<owner>/`, third-party build/stamp outputs under `build/<preset>/deps/`, shared third-party source/download caches under `build/dependencies/`, and logs under `logs/<owner>/` or `logs/build/`.
+- Active root `cmake/` placeholder folders are not implementation. Do not claim Windows, Linux, macOS, owner target, dependency, or preset coverage until the concrete CMake module exists and has a targeted configure check when practical.
 - Include distro-family modules only for real package/tool differences; current planned families include Arch, Debian, Fedora, and Suse/openSUSE because the old dependency installer has distinct logic for them.
 
 ## Multiplayer And C# Basegame API Direction
@@ -200,7 +202,7 @@ Before final response, confirm:
 - Old-architecture files touched in the task were mapped to explicit destination owners.
 - Old tools/CMake/build helpers stayed under `old-architecture/` unless intentionally ported.
 - CMake changes kept shared policy, owner targets, dependency wrappers, platform modules, and toolchains separate; placeholder folders were not counted as implemented support.
-- Build and log outputs are owner-partitioned under `build/<owner>/` and `logs/<owner>/`.
+- Build and log outputs are preset/owner-partitioned under `build/<preset>/<owner>/` and `logs/<owner>/`.
 - Behavior was preserved unless a necessary boundary/API change was explained.
 - Networking/multiplayer and C# basegame API boundaries were kept ready for future implementation.
 - Builds, targeted checks, profiling runs, or structure checks were executed when practical, or explain why not.

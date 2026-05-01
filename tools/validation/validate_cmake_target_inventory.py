@@ -6,6 +6,8 @@ import re
 import sys
 
 
+# Intentional inventory gate for active CMake targets. Add or remove entries
+# when the active owner/platform/tool target graph changes.
 REQUIRED_TARGETS = {
     "octaryn_shared",
     "octaryn_shared_native",
@@ -44,6 +46,7 @@ REQUIRED_TARGETS = {
     "octaryn_client_launch_probe",
     "octaryn_client_bundle",
     "octaryn_tools",
+    "octaryn_debug_tools",
     "octaryn_all",
     "octaryn_validate_all",
     "octaryn_validate_cmake_targets",
@@ -98,19 +101,20 @@ REQUIRED_CMAKE_STRUCTURE = (
     "cmake/Dependencies/ToolDependencies.cmake",
     "cmake/Platforms/PlatformDispatch.cmake",
     "cmake/Platforms/Windows/WindowsPlatform.cmake",
-    "cmake/Platforms/Windows/MinGWPlatform.cmake",
     "cmake/Platforms/Linux/LinuxPlatform.cmake",
     "cmake/Platforms/Linux/ArchFamily.cmake",
     "cmake/Platforms/Linux/DebianFamily.cmake",
     "cmake/Platforms/Linux/FedoraFamily.cmake",
     "cmake/Platforms/Linux/SuseFamily.cmake",
-    "cmake/Platforms/BSD/BSDPlatform.cmake",
-    "cmake/Platforms/BSD/FreeBSDPlatform.cmake",
     "cmake/Platforms/MacOS/MacOSPlatform.cmake",
     "cmake/Toolchains/Linux/clang.cmake",
-    "cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake",
-    "cmake/Toolchains/BSD/clang.cmake",
-    "cmake/Toolchains/MacOS/apple-clang.cmake",
+    "cmake/Toolchains/Windows/clang.cmake",
+    "cmake/Toolchains/MacOS/clang.cmake",
+    "tools/tooling/tool_environment.sh",
+    "tools/profiling/tracy_tool.sh",
+    "tools/capture/renderdoc_tool.sh",
+    "tools/bootstrap/workspace_bootstrap.sh",
+    "tools/ui/workspace_control_app.py",
 )
 
 FORBIDDEN_CMAKE_PATHS = (
@@ -120,79 +124,74 @@ FORBIDDEN_CMAKE_PATHS = (
 )
 
 REQUIRED_CONFIGURE_PRESETS = (
-    "debug",
-    "release",
-    "debug-linux-clang",
-    "debug-windows-mingw",
-    "debug-macos-apple-clang",
-    "release-linux-clang",
-    "release-macos-apple-clang",
-    "release-windows-mingw",
+    "debug-linux",
+    "release-linux",
+    "debug-windows",
+    "release-windows",
+    "debug-macos",
+    "release-macos",
 )
 
 REQUIRED_CONFIGURED_GRAPH_PRESETS = (
-    "debug",
-    "release",
-    "debug-linux-clang",
-    "debug-windows-mingw",
-    "release-linux-clang",
-    "release-windows-mingw",
+    "debug-linux",
+    "release-linux",
+    "debug-windows",
+    "release-windows",
+    "debug-macos",
+    "release-macos",
 )
+
+REQUIRED_CONFIGURE_PRESET_TOOLCHAINS = {
+    "debug-linux": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
+    "release-linux": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
+    "debug-windows": "${sourceDir}/cmake/Toolchains/Windows/clang.cmake",
+    "release-windows": "${sourceDir}/cmake/Toolchains/Windows/clang.cmake",
+    "debug-macos": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
+    "release-macos": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
+}
 
 REQUIRED_BUILD_PRESETS = (
-    "debug",
-    "debug-validate",
-    "release",
-    "release-validate",
-    "debug-linux-clang",
-    "debug-linux-clang-validate",
-    "debug-windows-mingw",
-    "debug-windows-mingw-validate",
-    "debug-macos-apple-clang",
-    "debug-macos-apple-clang-validate",
-    "release-linux-clang",
-    "release-linux-clang-validate",
-    "release-macos-apple-clang",
-    "release-macos-apple-clang-validate",
-    "release-windows-mingw",
-    "release-windows-mingw-validate",
+    "debug-linux",
+    "release-linux",
+    "debug-windows",
+    "release-windows",
+    "debug-macos",
+    "release-macos",
 )
 
-ALLOWED_BUILD_ROOTS = (
-    "basegame",
-    "client",
+STATIC_ALLOWED_BUILD_ROOTS = (
     "dependencies",
-    "old-architecture",
-    "server",
-    "shared",
-    "tools",
 )
 
 ALLOWED_LOG_ROOTS = (
     "basegame",
     "build",
     "client",
-    "old-architecture",
     "server",
     "shared",
     "tools",
 )
 
-FORBIDDEN_OWNER_BUILD_SUBROOT_NAMES = (
+FORBIDDEN_BUILD_SUBROOT_NAMES = (
     "_deps",
     "cpm-cache",
-    "deps",
 )
 
-ALLOWED_OWNER_BUILD_SUBROOTS = (
-    "local",
+ALLOWED_PRESET_SUBROOTS = (
+    "basegame",
+    "client",
+    "cmake",
+    "deps",
+    "server",
+    "shared",
+    "tools",
 )
 
 HOSTFXR_REAL_OUTPUTS = (
-    "liboctaryn_client_managed_bridge.so",
-    "liboctaryn_server_managed_bridge.so",
-    "bin/octaryn_client_launch_probe",
-    "bin/octaryn_server_launch_probe",
+    "client/native/lib/liboctaryn_client_managed_bridge.so",
+    "server/native/lib/liboctaryn_server_managed_bridge.so",
+    "client/native/bin/octaryn_client_launch_probe",
+    "server/native/bin/octaryn_server_launch_probe",
 )
 
 HOSTFXR_SKIP_MESSAGES = (
@@ -209,6 +208,7 @@ REQUIRED_BUILD_COMMAND_SNIPPETS = (
     "--expected-manifest",
     "validate_native_owner_boundaries.py",
     "validate_native_abi_contracts.py",
+    "octaryn_debug_tools",
 )
 
 
@@ -275,31 +275,35 @@ def validate_presets(repo_root):
     missing_configure = sorted(set(REQUIRED_CONFIGURE_PRESETS) - configure)
     if missing_configure:
         errors.append(f"missing required configure presets: {missing_configure}")
+    unexpected_configure = sorted(configure - set(REQUIRED_CONFIGURE_PRESETS))
+    if unexpected_configure:
+        errors.append(f"unexpected configure presets: {unexpected_configure}")
 
     missing_build = sorted(set(REQUIRED_BUILD_PRESETS) - build)
     if missing_build:
         errors.append(f"missing required build presets: {missing_build}")
+    unexpected_build = sorted(build - set(REQUIRED_BUILD_PRESETS))
+    if unexpected_build:
+        errors.append(f"unexpected build presets: {unexpected_build}")
 
     for preset in presets.get("configurePresets", []):
-        expected_binary_dir = "${sourceDir}/build/tools/cmake/${presetName}"
+        expected_binary_dir = "${sourceDir}/build/${presetName}/cmake"
         if preset.get("binaryDir") != expected_binary_dir:
             errors.append(
                 f"configure preset {preset['name']} must use binaryDir {expected_binary_dir}, got {preset.get('binaryDir')}")
+        expected_toolchain = REQUIRED_CONFIGURE_PRESET_TOOLCHAINS.get(preset["name"])
+        if expected_toolchain and preset.get("toolchainFile") != expected_toolchain:
+            errors.append(
+                f"configure preset {preset['name']} must use toolchainFile {expected_toolchain}, got {preset.get('toolchainFile')}")
 
     for preset in presets.get("buildPresets", []):
         configure_preset = preset.get("configurePreset")
         if configure_preset and configure_preset not in configure:
             errors.append(f"build preset {preset['name']} references missing configure preset {configure_preset}")
-        if preset["name"].endswith("-validate"):
-            targets = preset.get("targets", [])
-            if targets != ["octaryn_validate_all"]:
-                errors.append(
-                    f"validate build preset {preset['name']} must target only octaryn_validate_all, got {targets}")
-        else:
-            targets = preset.get("targets", [])
-            if targets != ["octaryn_all"]:
-                errors.append(
-                    f"build preset {preset['name']} must target only octaryn_all, got {targets}")
+        targets = preset.get("targets", [])
+        if targets != ["octaryn_all"]:
+            errors.append(
+                f"build preset {preset['name']} must target only octaryn_all, got {targets}")
 
     return errors
 
@@ -360,7 +364,9 @@ def validate_generated_layout(repo_root):
         preset_name
         for preset_name, _build_dir in configure_preset_build_dirs(repo_root)
     }
-    for root_name, allowed in (("build", ALLOWED_BUILD_ROOTS), ("logs", ALLOWED_LOG_ROOTS)):
+    allowed_build_roots = set(STATIC_ALLOWED_BUILD_ROOTS)
+    allowed_build_roots.update(configured_preset_names)
+    for root_name, allowed in (("build", allowed_build_roots), ("logs", ALLOWED_LOG_ROOTS)):
         root = repo_root / root_name
         if not root.exists():
             continue
@@ -393,34 +399,29 @@ def validate_generated_layout(repo_root):
 
     build_root = repo_root / "build"
     if build_root.exists():
-        forbidden_owner_subroots = []
-        stale_owner_subroots = []
-        for owner in ("basegame", "client", "server", "shared", "tools"):
-            owner_root = build_root / owner
-            if not owner_root.exists():
+        forbidden_build_subroots = []
+        stale_preset_subroots = []
+        for preset_name in configured_preset_names:
+            preset_root = build_root / preset_name
+            if not preset_root.exists():
                 continue
 
-            allowed_subroots = set(ALLOWED_OWNER_BUILD_SUBROOTS)
-            allowed_subroots.update(configured_preset_names)
-            if owner == "tools":
-                allowed_subroots.add("cmake")
+            for path in preset_root.rglob("*"):
+                if path.is_dir() and path.name in FORBIDDEN_BUILD_SUBROOT_NAMES:
+                    forbidden_build_subroots.append(path.relative_to(repo_root).as_posix())
 
-            for path in owner_root.rglob("*"):
-                if path.is_dir() and path.name in FORBIDDEN_OWNER_BUILD_SUBROOT_NAMES:
-                    forbidden_owner_subroots.append(path.relative_to(repo_root).as_posix())
+            for path in preset_root.iterdir():
+                if path.is_dir() and path.name not in ALLOWED_PRESET_SUBROOTS:
+                    stale_preset_subroots.append(path.relative_to(repo_root).as_posix())
 
-            for path in owner_root.iterdir():
-                if path.is_dir() and path.name not in allowed_subroots:
-                    stale_owner_subroots.append(path.relative_to(repo_root).as_posix())
-
-        if forbidden_owner_subroots:
+        if forbidden_build_subroots:
             errors.append(
-                "dependency/cache build roots must live under build/dependencies: "
-                f"{sorted(forbidden_owner_subroots)}")
-        if stale_owner_subroots:
+                "dependency build/stamp roots must live under build/<preset>/deps: "
+                f"{sorted(forbidden_build_subroots)}")
+        if stale_preset_subroots:
             errors.append(
-                "owner build roots must be configured presets or approved generated roots: "
-                f"{sorted(stale_owner_subroots)}")
+                "preset build roots must contain only approved owner/tool/dependency roots: "
+                f"{sorted(stale_preset_subroots)}")
 
     return errors
 

@@ -180,7 +180,7 @@ internal sealed class ServerHostScheduler : IHostScheduler, IDisposable
     {
         return Math.Max(
             HostSchedulingContract.MinimumWorkerThreads,
-            Environment.ProcessorCount - 2);
+            Environment.ProcessorCount);
     }
 
     private bool IsDeclaredWork(HostScheduledWork work)

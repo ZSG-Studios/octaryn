@@ -41,7 +41,7 @@ internal static class SchedulerProbe
         var scheduler = (IHostScheduler)disposable;
         var expected = Math.Max(
             HostSchedulingContract.MinimumWorkerThreads,
-            Environment.ProcessorCount - 2);
+            Environment.ProcessorCount);
         if (scheduler.WorkerThreadCapacity != expected)
         {
             throw new InvalidOperationException(

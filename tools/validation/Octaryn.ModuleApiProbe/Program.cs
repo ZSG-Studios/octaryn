@@ -985,9 +985,8 @@ internal static class ModuleApiProbe
             return null;
         }
 
-        var projectName = Path.GetFileNameWithoutExtension(projectFile);
         var repoRoot = FindRepoRoot(moduleRoot);
-        var candidate = Path.Combine(repoRoot, "build", "basegame", "local", "dotnet", "obj", projectName, "project.assets.json");
+        var candidate = Path.Combine(repoRoot, "build", "debug-linux", "basegame", "managed-obj", "project.assets.json");
         if (File.Exists(candidate))
         {
             return candidate;

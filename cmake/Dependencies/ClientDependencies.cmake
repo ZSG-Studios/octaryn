@@ -7,168 +7,106 @@ set(OCTARYN_CLIENT_DEPENDENCIES_SCAFFOLD ON)
 set(OCTARYN_CLIENT_SDL3_AVAILABLE OFF)
 
 octaryn_add_dependency_wrapper(octaryn_client_sdl3 octaryn::deps::sdl3)
-
-find_package(SDL3 CONFIG QUIET)
+octaryn_fetch_source_dependency(
+    SDL3
+    GITHUB_REPOSITORY libsdl-org/SDL
+    GIT_TAG release-3.4.4
+    OPTIONS
+        "SDL_SHARED OFF"
+        "SDL_STATIC ON"
+        "SDL_TEST_LIBRARY OFF"
+        "SDL_TESTS OFF")
 if(TARGET SDL3::SDL3)
     target_link_libraries(octaryn_client_sdl3 INTERFACE SDL3::SDL3)
     set(OCTARYN_CLIENT_SDL3_AVAILABLE ON)
-else()
-    octaryn_fetch_source_dependency(
-        SDL3
-        GITHUB_REPOSITORY libsdl-org/SDL
-        GIT_TAG release-3.4.4
-        OPTIONS
-            "SDL_SHARED OFF"
-            "SDL_STATIC ON"
-            "SDL_TEST_LIBRARY OFF"
-            "SDL_TESTS OFF")
-    if(TARGET SDL3::SDL3)
-        target_link_libraries(octaryn_client_sdl3 INTERFACE SDL3::SDL3)
-        set(OCTARYN_CLIENT_SDL3_AVAILABLE ON)
-    elseif(TARGET SDL3::SDL3-static)
-        target_link_libraries(octaryn_client_sdl3 INTERFACE SDL3::SDL3-static)
-        set(OCTARYN_CLIENT_SDL3_AVAILABLE ON)
-    endif()
+elseif(TARGET SDL3::SDL3-static)
+    target_link_libraries(octaryn_client_sdl3 INTERFACE SDL3::SDL3-static)
+    set(OCTARYN_CLIENT_SDL3_AVAILABLE ON)
 endif()
 
 if(NOT TARGET octaryn::deps::openal)
     octaryn_add_dependency_wrapper(octaryn_client_openal octaryn::deps::openal)
-
-    find_package(OpenAL CONFIG QUIET)
+    set(octaryn_openal_options
+        "ALSOFT_UTILS OFF"
+        "ALSOFT_EXAMPLES OFF"
+        "ALSOFT_TESTS OFF"
+        "LIBTYPE STATIC")
+    octaryn_fetch_source_dependency(
+        OpenALSoft
+        GITHUB_REPOSITORY kcat/openal-soft
+        GIT_TAG 1.25.1
+        OPTIONS ${octaryn_openal_options})
     if(TARGET OpenAL::OpenAL)
         target_link_libraries(octaryn_client_openal INTERFACE OpenAL::OpenAL)
     elseif(TARGET OpenAL)
         target_link_libraries(octaryn_client_openal INTERFACE OpenAL)
-    else()
-        find_package(OpenAL QUIET)
-        if(TARGET OpenAL::OpenAL)
-            target_link_libraries(octaryn_client_openal INTERFACE OpenAL::OpenAL)
-        elseif(OpenAL_FOUND)
-            target_include_directories(octaryn_client_openal SYSTEM INTERFACE "${OPENAL_INCLUDE_DIR}")
-            target_link_libraries(octaryn_client_openal INTERFACE "${OPENAL_LIBRARY}")
-        endif()
-    endif()
-
-    if(NOT TARGET OpenAL::OpenAL AND NOT TARGET OpenAL)
-        set(octaryn_openal_options
-            "ALSOFT_UTILS OFF"
-            "ALSOFT_EXAMPLES OFF"
-            "ALSOFT_TESTS OFF"
-            "LIBTYPE STATIC")
-        if(WIN32)
-            list(APPEND octaryn_openal_options
-                "ALSOFT_BACKEND_PIPEWIRE OFF"
-                "ALSOFT_BACKEND_PULSEAUDIO OFF"
-                "ALSOFT_BACKEND_JACK OFF"
-                "ALSOFT_BACKEND_PORTAUDIO OFF"
-                "ALSOFT_BACKEND_ALSA OFF"
-                "ALSOFT_BACKEND_OSS OFF")
-        endif()
-        octaryn_fetch_source_dependency(
-            OpenALSoft
-            GITHUB_REPOSITORY kcat/openal-soft
-            GIT_TAG 1.25.1
-            OPTIONS ${octaryn_openal_options})
-        if(TARGET OpenAL::OpenAL)
-            target_link_libraries(octaryn_client_openal INTERFACE OpenAL::OpenAL)
-        elseif(TARGET OpenAL)
-            target_link_libraries(octaryn_client_openal INTERFACE OpenAL)
-        endif()
     endif()
 endif()
 
 if(NOT TARGET octaryn::deps::miniaudio)
     octaryn_add_dependency_wrapper(octaryn_client_miniaudio octaryn::deps::miniaudio)
-
-    find_package(miniaudio CONFIG QUIET)
-    if(TARGET miniaudio::miniaudio)
-        target_link_libraries(octaryn_client_miniaudio INTERFACE miniaudio::miniaudio)
-    elseif(TARGET miniaudio)
-        target_link_libraries(octaryn_client_miniaudio INTERFACE miniaudio)
-    else()
-        find_path(OCTARYN_MINIAUDIO_INCLUDE_DIR miniaudio.h)
-        if(OCTARYN_MINIAUDIO_INCLUDE_DIR)
-            target_include_directories(octaryn_client_miniaudio SYSTEM INTERFACE "${OCTARYN_MINIAUDIO_INCLUDE_DIR}")
-        endif()
-    endif()
-
-    if(NOT TARGET miniaudio::miniaudio AND NOT TARGET miniaudio AND NOT OCTARYN_MINIAUDIO_INCLUDE_DIR)
-        octaryn_fetch_header_dependency(
-            miniaudio
-            miniaudio_source_dir
-            GITHUB_REPOSITORY mackron/miniaudio
-            GIT_TAG 0.11.25)
-        if(miniaudio_source_dir)
-            target_include_directories(octaryn_client_miniaudio SYSTEM INTERFACE "${miniaudio_source_dir}")
-        endif()
+    octaryn_fetch_header_dependency(
+        miniaudio
+        miniaudio_source_dir
+        GITHUB_REPOSITORY mackron/miniaudio
+        GIT_TAG 0.11.25)
+    if(miniaudio_source_dir)
+        target_include_directories(octaryn_client_miniaudio SYSTEM INTERFACE "${miniaudio_source_dir}")
     endif()
 endif()
 
 if(NOT TARGET octaryn::deps::glaze)
     octaryn_add_dependency_wrapper(octaryn_client_glaze octaryn::deps::glaze)
-
-    find_package(glaze CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        glaze
+        GITHUB_REPOSITORY stephenberry/glaze
+        GIT_TAG v7.4.0
+        OPTIONS
+            "glaze_BUILD_TESTS OFF")
     if(TARGET glaze::glaze)
         target_link_libraries(octaryn_client_glaze INTERFACE glaze::glaze)
-    else()
-        octaryn_fetch_source_dependency(
-            glaze
-            GITHUB_REPOSITORY stephenberry/glaze
-            GIT_TAG v7.4.0
-            OPTIONS
-                "glaze_BUILD_TESTS OFF")
-        if(TARGET glaze::glaze)
-            target_link_libraries(octaryn_client_glaze INTERFACE glaze::glaze)
-        endif()
     endif()
 endif()
 
 if(NOT TARGET octaryn::deps::sdl3_image)
     octaryn_add_dependency_wrapper(octaryn_client_sdl3_image octaryn::deps::sdl3_image)
-    find_package(SDL3_image CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        SDL3_image
+        URL https://github.com/libsdl-org/SDL_image/releases/download/release-3.4.2/SDL3_image-3.4.2.tar.gz
+        URL_HASH SHA256=82fdb88cf1a9cbdc1c77797aaa3292e6d22ce12586be718c8ea43530df1536b4
+        OPTIONS
+            "BUILD_SHARED_LIBS OFF"
+            "SDLIMAGE_AVIF OFF"
+            "SDLIMAGE_BACKEND_IMAGEIO OFF"
+            "SDLIMAGE_DEPS_SHARED OFF"
+            "SDLIMAGE_INSTALL OFF"
+            "SDLIMAGE_JPG OFF"
+            "SDLIMAGE_JXL OFF"
+            "SDLIMAGE_PNG OFF"
+            "SDLIMAGE_SAMPLES OFF"
+            "SDLIMAGE_TESTS OFF"
+            "SDLIMAGE_TIF OFF"
+            "SDLIMAGE_VENDORED ON"
+            "SDLIMAGE_WEBP OFF")
     octaryn_link_first_available_dependency(octaryn_client_sdl3_image sdl3_image_available SDL3_image::SDL3_image SDL3_image::SDL3_image-static)
-    if(NOT sdl3_image_available)
-        octaryn_fetch_source_dependency(
-            SDL3_image
-            URL https://github.com/libsdl-org/SDL_image/releases/download/release-3.4.2/SDL3_image-3.4.2.tar.gz
-            URL_HASH SHA256=82fdb88cf1a9cbdc1c77797aaa3292e6d22ce12586be718c8ea43530df1536b4
-            OPTIONS
-                "BUILD_SHARED_LIBS OFF"
-                "SDLIMAGE_AVIF OFF"
-                "SDLIMAGE_BACKEND_IMAGEIO OFF"
-                "SDLIMAGE_DEPS_SHARED OFF"
-                "SDLIMAGE_INSTALL OFF"
-                "SDLIMAGE_JPG OFF"
-                "SDLIMAGE_JXL OFF"
-                "SDLIMAGE_PNG OFF"
-                "SDLIMAGE_SAMPLES OFF"
-                "SDLIMAGE_TESTS OFF"
-                "SDLIMAGE_TIF OFF"
-                "SDLIMAGE_VENDORED ON"
-                "SDLIMAGE_WEBP OFF")
-        octaryn_link_first_available_dependency(octaryn_client_sdl3_image sdl3_image_available SDL3_image::SDL3_image SDL3_image::SDL3_image-static)
-    endif()
 endif()
 
 if(NOT TARGET octaryn::deps::sdl3_ttf)
     octaryn_add_dependency_wrapper(octaryn_client_sdl3_ttf octaryn::deps::sdl3_ttf)
-    find_package(SDL3_ttf CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        SDL3_ttf
+        GITHUB_REPOSITORY libsdl-org/SDL_ttf
+        GIT_TAG release-3.2.2
+        GIT_SUBMODULES external/freetype
+        OPTIONS
+            "BUILD_SHARED_LIBS OFF"
+            "SDLTTF_HARFBUZZ OFF"
+            "SDLTTF_INSTALL OFF"
+            "SDLTTF_PLUTOSVG OFF"
+            "SDLTTF_SAMPLES OFF"
+            "SDLTTF_TESTS OFF"
+            "SDLTTF_VENDORED ON")
     octaryn_link_first_available_dependency(octaryn_client_sdl3_ttf sdl3_ttf_available SDL3_ttf::SDL3_ttf SDL3_ttf::SDL3_ttf-static)
-    if(NOT sdl3_ttf_available)
-        octaryn_fetch_source_dependency(
-            SDL3_ttf
-            URL https://github.com/libsdl-org/SDL_ttf/releases/download/release-3.2.2/SDL3_ttf-3.2.2.tar.gz
-            URL_HASH SHA256=63547d58d0185c833213885b635a2c0548201cc8f301e6587c0be1a67e1e045d
-            OPTIONS
-                "BUILD_SHARED_LIBS OFF"
-                "SDLTTF_HARFBUZZ OFF"
-                "SDLTTF_INSTALL OFF"
-                "SDLTTF_PLUTOSVG OFF"
-                "SDLTTF_SAMPLES OFF"
-                "SDLTTF_TESTS OFF"
-                "SDLTTF_VENDORED OFF")
-        octaryn_link_first_available_dependency(octaryn_client_sdl3_ttf sdl3_ttf_available SDL3_ttf::SDL3_ttf SDL3_ttf::SDL3_ttf-static)
-    endif()
 endif()
 
 if(NOT TARGET octaryn::deps::imgui)
@@ -331,23 +269,19 @@ endif()
 
 if(NOT TARGET octaryn::deps::ozz_animation)
     octaryn_add_dependency_wrapper(octaryn_client_ozz_animation octaryn::deps::ozz_animation)
-    find_package(ozz CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        ozz_animation
+        GITHUB_REPOSITORY guillaumeblanc/ozz-animation
+        GIT_TAG 0.16.0
+        OPTIONS
+            "BUILD_SHARED_LIBS OFF"
+            "ozz_build_tools OFF"
+            "ozz_build_fbx OFF"
+            "ozz_build_gltf OFF"
+            "ozz_build_data OFF"
+            "ozz_build_samples OFF"
+            "ozz_build_howtos OFF"
+            "ozz_build_tests OFF"
+            "ozz_build_postfix OFF")
     octaryn_link_first_available_dependency(octaryn_client_ozz_animation ozz_animation_available ozz_animation)
-    if(NOT ozz_animation_available)
-        octaryn_fetch_source_dependency(
-            ozz_animation
-            GITHUB_REPOSITORY guillaumeblanc/ozz-animation
-            GIT_TAG 0.16.0
-            OPTIONS
-                "BUILD_SHARED_LIBS OFF"
-                "ozz_build_tools OFF"
-                "ozz_build_fbx OFF"
-                "ozz_build_gltf OFF"
-                "ozz_build_data OFF"
-                "ozz_build_samples OFF"
-                "ozz_build_howtos OFF"
-                "ozz_build_tests OFF"
-                "ozz_build_postfix OFF")
-        octaryn_link_first_available_dependency(octaryn_client_ozz_animation ozz_animation_available ozz_animation)
-    endif()
 endif()

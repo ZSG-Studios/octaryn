@@ -32,7 +32,8 @@ add_custom_target(octaryn_all
         octaryn_server_native
         octaryn_server_bundle
         octaryn_client_native
-        octaryn_client_bundle)
+        octaryn_client_bundle
+        octaryn_debug_tools)
 
 add_custom_target(octaryn_validate_all
     DEPENDS

@@ -70,6 +70,10 @@ FORBIDDEN_OWNER_LINKS = (
     "imgui",
 )
 
+ALLOWED_DEPENDENCY_FIND_PACKAGES = {
+    "cmake/Dependencies/NativeDependencyAliases.cmake": ("Threads",),
+}
+
 
 def cmake_command_blocks(text, command):
     pattern = re.compile(rf"{re.escape(command)}\s*\(", re.IGNORECASE)
@@ -98,6 +102,14 @@ def validate(repo_root):
         for alias in aliases:
             if alias not in text:
                 errors.append(f"{relative_path}: missing required dependency alias {alias}")
+        allowed_find_packages = ALLOWED_DEPENDENCY_FIND_PACKAGES.get(relative_path, ())
+        for block in cmake_command_blocks(text, "find_package"):
+            package_match = re.search(r"find_package\s*\(\s*([A-Za-z0-9_.+-]+)", block, re.IGNORECASE)
+            package_name = package_match.group(1) if package_match else ""
+            if package_name not in allowed_find_packages:
+                errors.append(
+                    f"{relative_path}: third-party dependency aliases must use workspace-managed sources, not find_package({package_name})"
+                )
 
     owners_dir = repo_root / "cmake" / "Owners"
     for path in sorted(owners_dir.glob("*.cmake")):

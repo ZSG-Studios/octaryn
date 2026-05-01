@@ -19,7 +19,8 @@
 - `octaryn-basegame/` contains the current managed game context and basegame module registration. The old gameplay migration map now lives under `docs/migration/` so active basegame source stays focused on content and gameplay implementation.
 - `octaryn-shared/` now contains timing/input-only host-frame contracts, a narrow request command contract, module manifests, dependency/content/asset/compatibility declaration records, exposed host API IDs, module capability IDs, module runtime/build package allowlists, framework API group allowlists, sandbox denied-group IDs, and manifest validation for duplicate, blank, unexposed API, unapproved capability, unapproved package, unapproved framework API group, and malformed declaration requests.
 - Root MSBuild policy rejects unknown project owners, package references in `octaryn-shared`, host-only packages outside client/server, unapproved direct module packages, analyzer packages with runtime assets, unapproved resolved runtime/analyzer packages for module owners, and unclassified packages in module `project.assets.json`.
-- Active `cmake/` has a concrete new-architecture scaffold: root `CMakeLists.txt`, root `CMakePresets.json`, owner CMake modules, dependency policy placeholders, platform modules, toolchain files, and new `tools/build` wrappers. It builds managed owner targets, native owner aggregates, hostfxr bridge facades, launch probes, bundles, and validation targets without porting the old monolith.
+- Active `cmake/` has a concrete new-architecture scaffold: root `CMakeLists.txt`, root `CMakePresets.json`, owner CMake modules, dependency policy placeholders, platform modules, toolchain files, and new `tools/build` wrappers. It builds managed owner targets, native owner aggregates, hostfxr bridge facades, launch probes, bundles, debug tool payloads, and validation targets without porting the old monolith.
+- Root debug tooling is first-class under `tools/`: `tools/ui/` owns the PySide workspace control app, `tools/profiling/` owns Tracy build/launch/capture, `tools/capture/` owns RenderDoc build/launch/capture, `tools/bootstrap/` owns clone and Podman Arch bootstrap entrypoints, and `tools/tooling/` owns shared shell helpers.
 - `information/` is a top-level informational/documentation-only folder. It is not a source, build, module, or runtime owner.
 - `old-architecture/.octaryn-cache/` may contain ignored generated/reference cache files. Do not treat cache content as tracked source material or a migration source unless it is explicitly promoted.
 - `old-architecture/tools/build/layout.sh` still points native builds at `old-architecture/`; active root `tools/build/` is reserved for intentionally ported new-architecture build helpers.
@@ -50,7 +51,7 @@ These are current transitional violations and hard blockers. Do not add or expan
 - Do not port by copying the monolith shape into a new name.
 - Do not rewrite behavior first; preserve behavior by moving it into the right owner.
 - Do not make root `cmake/` a dumping ground. Shared build policy, owner targets, dependencies, platform detection, and toolchains must stay in separate named folders.
-- Do not mix host platform logic with owner target definitions. Windows/MinGW, Linux distro families, BSD, and macOS platform logic must be isolated behind platform/toolchain modules.
+- Do not mix host platform logic with owner target definitions. Windows, Linux distro-family, and macOS platform logic must be isolated behind platform/toolchain modules.
 - Do not put networking packages in `octaryn-basegame`.
 - Do not put GPU upload, mesh upload, render descriptors, windowing, audio, or UI in server.
 - Do not put authoritative world edits, save ownership, or server simulation in client.
@@ -77,17 +78,16 @@ cmake/
   Platforms/
     Windows/
     Linux/
-    BSD/
     MacOS/
   Toolchains/
-    Windows/MinGW/
+    Windows/
     Linux/
-    BSD/
     MacOS/
 docs/
 refrances/
 old-architecture/
-build/<owner>/
+build/<preset>/<owner>/
+build/<preset>/deps/
 build/dependencies/
 logs/<owner>/
 ```
@@ -126,7 +126,7 @@ Validation requirements:
 - Source/API validation must reject raw threading and task scheduling from module code.
 - Module manifests must declare scheduled systems with phase, owner, resource reads/writes, ordering, flags, and commit barrier before a host can activate scheduled work.
 - Scheduler-facing systems must have targeted runtime/profiling validation through direct runs, Tracy captures, focused logs, or benchmarks. Do not use smoke tests or `ctest` as a substitute unless explicitly requested.
-- CMake and MSBuild owner targets must keep scheduler support owner-partitioned under `build/<owner>/` and `logs/<owner>/`.
+- CMake and MSBuild owner targets must keep scheduler support owner-partitioned under `build/<preset>/<owner>/` and `logs/<owner>/`.
 
 ## Client Ownership
 
@@ -401,7 +401,7 @@ Package validation currently has two layers:
 - `tools/validation/validate_module_manifest_packages.py` checks that module manifest requested package lists match the module project’s direct runtime/build `PackageReference`s.
 - `tools/validation/validate_module_manifest_files.py` checks that module manifest content/assets point at real module files and that non-placeholder `Data/`, `Assets/`, and `Shaders/` files are declared.
 - `octaryn-basegame/Data/Module/octaryn.basegame.module.json` is the checked-in bundled module package descriptor. It mirrors `BasegameModuleRegistration.Manifest`, is copied to client/server bundles, and is compared by `tools/validation/Octaryn.ModuleManifestProbe/` so package metadata can become the future discovery source without replacing the current in-process registration path yet.
-- `tools/validation/Octaryn.ModuleManifestProbe/` writes the generated validation manifest under `build/basegame/<preset>/generated/octaryn.basegame.manifest.json` for CMake/manual validation and compares the checked-in package descriptor with the code manifest.
+- `tools/validation/Octaryn.ModuleManifestProbe/` writes the generated validation manifest under `build/<preset>/basegame/generated/octaryn.basegame.manifest.json` for CMake/manual validation and compares the checked-in package descriptor with the code manifest.
 - `tools/validation/validate_all_project_reference_boundaries.py` discovers every active `.csproj` under shared, client, server, basegame, tools, games, modules, and mods, then applies `validate_project_reference_boundaries.py` so new projects cannot bypass owner-reference rules. Modules may reference shared contracts only.
 - `tools/validation/validate_dotnet_package_assets.py` is owner-aware. It parses module and host `project.assets.json` target graphs, rejects unclassified direct, runtime-transitive, build-direct, and build-transitive packages for modules, and rejects unclassified or unapproved direct packages in client/server host graphs. Shared and old-architecture projects stay outside resolved-package validation unless a future policy explicitly opts them in.
 - `tools/validation/Octaryn.ModuleApiProbe/` scans module C# source with Roslyn before compile and rejects denied filesystem, networking, process, reflection, native interop, console, environment, dynamic-loading, raw-threading APIs, transitive scheduler APIs, and unapproved shared networking contracts. Its denied groups must stay aligned with `DeniedFrameworkApiGroups`.
@@ -453,7 +453,7 @@ Port source candidates:
 
 Root `cmake/` owns only new-architecture build policy. Old CMake files stay under `old-architecture/cmake/` until intentionally ported into the structure below. Do not move old CMake modules wholesale; split them by responsibility first.
 
-The tree below is the required target structure. In the current workspace these paths are placeholders unless the named `.cmake` file exists. Do not describe Windows, Linux, BSD, macOS, owner target, dependency, or root preset support as implemented until the concrete module and a targeted configure check exist.
+The tree below is the required target structure. In the current workspace these paths are placeholders unless the named `.cmake` file exists. Do not describe Windows, Linux, macOS, owner target, dependency, or root preset support as implemented until the concrete module and a targeted configure check exist.
 
 ```text
 cmake/
@@ -482,28 +482,21 @@ cmake/
     PlatformDispatch.cmake
     Windows/
       WindowsPlatform.cmake
-      MinGWPlatform.cmake
     Linux/
       LinuxPlatform.cmake
       ArchFamily.cmake
       DebianFamily.cmake
       FedoraFamily.cmake
       SuseFamily.cmake
-    BSD/
-      BSDPlatform.cmake
-      FreeBSDPlatform.cmake
     MacOS/
       MacOSPlatform.cmake
   Toolchains/
     Windows/
-      MinGW/
-        x86_64-w64-mingw32.cmake
+      clang.cmake
     Linux/
       clang.cmake
-    BSD/
-      clang.cmake
     MacOS/
-      apple-clang.cmake
+      clang.cmake
 ```
 
 Layer responsibilities:
@@ -511,38 +504,38 @@ Layer responsibilities:
 - `cmake/Shared/` owns repo-wide CMake defaults: C/C++ standards, warning policy, output layout, build/log owner paths, shared helper functions, and naming rules.
 - `cmake/Owners/` owns target construction for client, server, shared contracts, basegame assets/modules, and tools. Owner modules may call shared helpers and dependency aliases, but must not contain platform detection.
 - `cmake/Dependencies/` owns dependency wrappers and allowed dependency aliases. Dependencies must be grouped by real owner need; do not recreate one old global dependency bag.
-- `cmake/Platforms/` owns host platform facts and distro-family policy: Windows, MinGW specifics, Linux family package hints, BSD differences, macOS SDK/signing/framework details, and platform capability checks.
+- `cmake/Platforms/` owns host platform facts and distro-family policy: Windows, Linux family package hints, macOS SDK/signing/framework metadata, and platform capability checks.
 - `cmake/Toolchains/` owns cross/native compiler toolchain files only. Toolchain files set compilers, sysroots, target triples, find-root behavior, and platform knobs; they must not create Octaryn targets or fetch dependencies.
-- `tools/build/` owns new developer-facing build commands that select presets/toolchains and write to `build/<owner>/` and `logs/<owner>/`.
+- `tools/build/` owns new developer-facing build commands that select presets/toolchains and write to `build/<preset>/<owner>/` and `logs/<owner>/`.
 
 Platform rules:
 
-- Windows cross-builds from Linux use explicit MinGW toolchain files under `cmake/Toolchains/Windows/MinGW/`; do not hide MinGW behavior inside generic Windows logic.
-- Native Windows policy belongs under `cmake/Platforms/Windows/`, but native MSVC Windows support is unimplemented until a native Windows preset/toolchain path exists. The old public Windows presets are MinGW cross-builds from Linux, not native Windows coverage.
+- Windows cross-builds from Linux use the explicit Windows Clang toolchain file under `cmake/Toolchains/Windows/clang.cmake`. LLVM MinGW is the implementation behind that toolchain, not a public platform folder or preset name.
+- Linux-hosted builds are Clang-only. Public presets are exactly `debug-linux`, `release-linux`, `debug-windows`, `release-windows`, `debug-macos`, and `release-macos`.
+- Cross-platform builds are designed to run from Linux/Arch first. Future Podman wrappers should spin up the correct Linux-hosted toolchain environment for Linux, Windows, and macOS targets instead of introducing separate host-specific build layouts.
 - Linux policy is split by distro family only when real package/tool behavior differs. Start with Arch, Debian, Fedora, and Suse/openSUSE because the old dependency installer already has distinct package-manager logic for those families.
-- BSD policy belongs under `cmake/Platforms/BSD/`, with FreeBSD-specific logic isolated from generic BSD checks. BSD is target coverage, not currently implemented old-CMake behavior.
-- macOS policy belongs under `cmake/Platforms/MacOS/`, including SDK, deployment target, frameworks, signing/notarization hooks, and AppleClang behavior. macOS has Darwin-only AppleClang presets; validate those on macOS hosts instead of faking AppleClang coverage from Linux.
+- macOS policy belongs under `cmake/Platforms/MacOS/`, including SDK, deployment target, frameworks, signing/notarization metadata, and the Linux-hosted macOS Clang lane. macOS Clang presets use a real Apple SDK from the checked GitHub SDK tree and are always driven from Linux/Arch, eventually through Podman wrappers.
 - Platform modules report capabilities; owner targets decide whether to use those capabilities. Platform modules must not own gameplay, rendering, server, basegame, or module-sandbox behavior.
 
 Port map for old CMake:
 
-- `old-architecture/cmake/BuildLayout.cmake` -> `cmake/Shared/OwnerBuildLayout.cmake`, after renaming away from engine product names and enforcing `build/<owner>/` and `logs/<owner>/`.
-- Old dependency cache paths such as `build/shared/deps/<bucket>` and `logs/deps/<bucket>` -> `build/dependencies/<bucket>`, with dependency logs kept under the same dependency build bucket unless a dependency is truly owner-local.
+- `old-architecture/cmake/BuildLayout.cmake` -> `cmake/Shared/OwnerBuildLayout.cmake`, after renaming away from engine product names and enforcing `build/<preset>/<owner>/` and `logs/<owner>/`.
+- Old dependency cache paths such as `build/shared/deps/<bucket>` and `logs/deps/<bucket>` -> shared dependency sources/downloads under `build/dependencies/`, with preset-specific dependency build trees and population stamps under `build/<preset>/deps/`.
 - `old-architecture/cmake/ProjectOptions.cmake` -> `cmake/Shared/ProjectDefaults.cmake` plus owner-specific options in `cmake/Owners/`.
 - `old-architecture/cmake/Dependencies.cmake` -> `cmake/Dependencies/`, split by dependency policy, alias creation, and owner-specific dependency groups.
 - `old-architecture/cmake/CPM.cmake` -> `cmake/Dependencies/` only if CPM remains the selected dependency mechanism.
-- `old-architecture/cmake/toolchains/windows-x64.cmake` -> `cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake` if it is actually a MinGW cross toolchain; otherwise create a correctly named native Windows toolchain.
+- `old-architecture/cmake/toolchains/windows-x64.cmake` -> `cmake/Toolchains/Windows/clang.cmake` only as a Windows Clang cross toolchain; GCC-based MinGW is not an active lane.
 - `old-architecture/CMakePresets.json` -> new root presets only after the owner/platform/toolchain split exists.
-- `old-architecture/tools/build/configure.sh`, `cmake_build.sh`, `build_all.sh`, and repair/install helpers -> `tools/build/` only after they select new owner presets, use the new platform/toolchain modules, and write outputs to `build/<owner>/`, `build/dependencies/`, `logs/<owner>/`, or `logs/build/`.
+- `old-architecture/tools/build/configure.sh`, `cmake_build.sh`, `build_all.sh`, and repair/install helpers -> `tools/build/` only after they select new owner presets, use the new platform/toolchain modules, and write outputs to `build/<preset>/<owner>/`, `build/<preset>/deps/`, `build/dependencies/`, `logs/<owner>/`, or `logs/build/`.
 - `old-architecture/tools/build/renderdoc.sh` and `tracy_capture.sh` -> focused profiling wrappers under root `tools/` only after logs are moved away from old `logs/engine_control`, `logs/tracy`, and `logs/octaryn-engine` paths.
-- Old architecture scripts that remain under `old-architecture/` must be corrected to write under `build/old-architecture/` and `logs/old-architecture/` before they are used as accepted validation paths.
+- Old architecture scripts that remain under `old-architecture/` are source material only and are not accepted validation paths until intentionally ported to the active preset layout.
 
 Validation for CMake changes:
 
 - For structure-only CMake work, run `validate_cmake_target_inventory.py`; it verifies active target names, required owner/platform/dependency files, and absence of old generic product CMake paths.
 - For build policy changes, configure the smallest owner target that uses the changed policy.
 - For platform/toolchain changes, run targeted configure checks for the affected platform or toolchain when the host has that compiler/sysroot installed.
-- Active configure presets cover default debug/release, Linux Clang, Windows MinGW, and macOS AppleClang. Linux native targeting is Clang-first; GCC is not an active preset lane. MinGW configure may disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are unavailable, but Linux host validation must still build and run those bridge/probe targets. macOS AppleClang configure/build validation belongs on Darwin hosts with the matching SDK and .NET target host pack.
+- Active configure presets cover Linux Clang convenience debug/release, explicit Linux Clang, Windows Clang, and Linux-hosted macOS Clang. Linux native targeting is Clang-only in active lanes; GCC is not an active preset lane. Windows Clang and macOS Clang configure may disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are unavailable, but Linux host validation must still build and run those bridge/probe targets.
 - Do not validate CMake work with smoke tests or `ctest` unless explicitly requested.
 
 ## Library Catalog
@@ -627,7 +620,7 @@ Old build helpers, old CMake modules, old desktop helper tools, and old profilin
 
 The old atlas builder is basegame-specific content tooling and belongs under `octaryn-basegame/Tools/AtlasBuilder/` or another focused basegame tool folder. Keep a one-file script only if it stays small and deliberately scoped.
 
-Active root `cmake/` and `tools/` are reserved for new architecture support only. Generated outputs should be owner-partitioned under `build/<owner>/` and `logs/<owner>/`.
+Active root `cmake/` and `tools/` are reserved for new architecture support only. Generated outputs should be owner-partitioned under `build/<preset>/<owner>/` and `logs/<owner>/`.
 
 ## Build Target Names
 

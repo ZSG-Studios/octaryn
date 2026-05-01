@@ -6,27 +6,60 @@ set(OCTARYN_TOOL_DEPENDENCIES_SCAFFOLD ON)
 
 if(NOT TARGET octaryn::deps::glaze)
     octaryn_add_dependency_wrapper(octaryn_tool_glaze octaryn::deps::glaze)
-
-    find_package(glaze CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        glaze
+        GITHUB_REPOSITORY stephenberry/glaze
+        GIT_TAG v7.4.0
+        OPTIONS
+            "glaze_BUILD_TESTS OFF")
     if(TARGET glaze::glaze)
         target_link_libraries(octaryn_tool_glaze INTERFACE glaze::glaze)
-    else()
-        octaryn_fetch_source_dependency(
-            glaze
-            GITHUB_REPOSITORY stephenberry/glaze
-            GIT_TAG v7.4.0
-            OPTIONS
-                "glaze_BUILD_TESTS OFF")
-        if(TARGET glaze::glaze)
-            target_link_libraries(octaryn_tool_glaze INTERFACE glaze::glaze)
-        endif()
     endif()
 endif()
 
 if(NOT TARGET octaryn::deps::shadercross)
     octaryn_add_dependency_wrapper(octaryn_tool_shadercross octaryn::deps::shadercross)
-
-    find_package(SDL3_shadercross CONFIG QUIET)
+    if(NOT TARGET octaryn::deps::spirv_cross)
+        octaryn_add_dependency_wrapper(octaryn_tool_spirv_cross octaryn::deps::spirv_cross)
+        octaryn_fetch_source_dependency(
+            SPIRV-Cross
+            GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
+            GIT_TAG vulkan-sdk-1.4.341.0
+            OPTIONS
+                "SPIRV_CROSS_CLI OFF"
+                "SPIRV_CROSS_ENABLE_TESTS OFF"
+                "SPIRV_CROSS_ENABLE_GLSL ON"
+                "SPIRV_CROSS_ENABLE_HLSL ON"
+                "SPIRV_CROSS_ENABLE_MSL ON"
+                "SPIRV_CROSS_ENABLE_REFLECT ON"
+                "SPIRV_CROSS_ENABLE_CPP OFF")
+        foreach(octaryn_spirv_cross_target
+            spirv-cross-core
+            spirv-cross-reflect
+            spirv-cross-msl
+            SPIRV-Cross::spirv-cross-core
+            SPIRV-Cross::spirv-cross-reflect
+            SPIRV-Cross::spirv-cross-msl)
+            if(TARGET "${octaryn_spirv_cross_target}")
+                target_link_libraries(octaryn_tool_spirv_cross INTERFACE "${octaryn_spirv_cross_target}")
+            endif()
+        endforeach()
+        if(TARGET spirv-cross-c AND NOT TARGET spirv_cross_c)
+            add_library(spirv_cross_c ALIAS spirv-cross-c)
+        endif()
+    endif()
+    octaryn_fetch_source_dependency(
+        SDL3_shadercross
+        GITHUB_REPOSITORY libsdl-org/SDL_shadercross
+        GIT_TAG 6b06e55c7c5d7e7a09a8a14f76e866dcfad5ab99
+        OPTIONS
+            "BUILD_SHARED_LIBS OFF"
+            "SDLSHADERCROSS_CLI OFF"
+            "SDLSHADERCROSS_DXC OFF"
+            "SDLSHADERCROSS_INSTALL OFF"
+            "SDLSHADERCROSS_SHARED OFF"
+            "SDLSHADERCROSS_SPIRVCROSS_SHARED OFF"
+            "SDLSHADERCROSS_STATIC ON")
     if(TARGET SDL3_shadercross::SDL3_shadercross)
         target_link_libraries(octaryn_tool_shadercross INTERFACE SDL3_shadercross::SDL3_shadercross)
     elseif(TARGET SDL3_shadercross-static)
@@ -36,8 +69,35 @@ endif()
 
 if(NOT TARGET octaryn::deps::shaderc)
     octaryn_add_dependency_wrapper(octaryn_tool_shaderc octaryn::deps::shaderc)
-
-    find_package(shaderc CONFIG QUIET)
+    octaryn_fetch_header_dependency(
+        SPIRV-Headers
+        spirv_headers_source_dir
+        GITHUB_REPOSITORY KhronosGroup/SPIRV-Headers
+        GIT_TAG vulkan-sdk-1.4.341.0)
+    octaryn_fetch_header_dependency(
+        SPIRV-Tools
+        spirv_tools_source_dir
+        GITHUB_REPOSITORY KhronosGroup/SPIRV-Tools
+        GIT_TAG vulkan-sdk-1.4.341.0)
+    octaryn_fetch_header_dependency(
+        glslang
+        glslang_source_dir
+        GITHUB_REPOSITORY KhronosGroup/glslang
+        GIT_TAG vulkan-sdk-1.4.341.0)
+    octaryn_fetch_source_dependency(
+        shaderc
+        FORCE_GIT
+        GITHUB_REPOSITORY google/shaderc
+        GIT_TAG v2026.2
+        OPTIONS
+            "BUILD_SHARED_LIBS OFF"
+            "SHADERC_SKIP_TESTS ON"
+            "SHADERC_SKIP_EXAMPLES ON"
+            "SHADERC_SKIP_COPYRIGHT_CHECK ON"
+            "SHADERC_SKIP_INSTALL ON"
+            "SHADERC_SPIRV_HEADERS_DIR ${spirv_headers_source_dir}"
+            "SHADERC_SPIRV_TOOLS_DIR ${spirv_tools_source_dir}"
+            "SHADERC_GLSLANG_DIR ${glslang_source_dir}")
     if(TARGET shaderc_combined)
         target_link_libraries(octaryn_tool_shaderc INTERFACE shaderc_combined)
     elseif(TARGET shaderc_shared)
@@ -49,8 +109,16 @@ endif()
 
 if(NOT TARGET octaryn::deps::spirv_tools)
     octaryn_add_dependency_wrapper(octaryn_tool_spirv_tools octaryn::deps::spirv_tools)
-
-    find_package(SPIRV-Tools CONFIG QUIET)
+    if(NOT TARGET SPIRV-Tools)
+        octaryn_fetch_source_dependency(
+            SPIRV-Tools
+            GITHUB_REPOSITORY KhronosGroup/SPIRV-Tools
+            GIT_TAG vulkan-sdk-1.4.341.0
+            OPTIONS
+                "SPIRV_SKIP_TESTS ON"
+                "SPIRV_SKIP_EXECUTABLES ON"
+                "SPIRV_TOOLS_BUILD_STATIC ON")
+    endif()
     if(TARGET SPIRV-Tools)
         target_link_libraries(octaryn_tool_spirv_tools INTERFACE SPIRV-Tools)
     elseif(TARGET SPIRV-Tools-static)
@@ -62,10 +130,18 @@ endif()
 
 if(NOT TARGET octaryn::deps::spirv_cross)
     octaryn_add_dependency_wrapper(octaryn_tool_spirv_cross octaryn::deps::spirv_cross)
-
-    find_package(spirv_cross_core CONFIG QUIET)
-    find_package(spirv_cross_reflect CONFIG QUIET)
-    find_package(spirv_cross_msl CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        SPIRV-Cross
+        GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
+        GIT_TAG vulkan-sdk-1.4.341.0
+        OPTIONS
+            "SPIRV_CROSS_CLI OFF"
+            "SPIRV_CROSS_ENABLE_TESTS OFF"
+            "SPIRV_CROSS_ENABLE_GLSL ON"
+            "SPIRV_CROSS_ENABLE_HLSL ON"
+            "SPIRV_CROSS_ENABLE_MSL ON"
+            "SPIRV_CROSS_ENABLE_REFLECT ON"
+            "SPIRV_CROSS_ENABLE_CPP OFF")
     foreach(octaryn_spirv_cross_target
         spirv-cross-core
         spirv-cross-reflect
@@ -81,49 +157,39 @@ endif()
 
 if(NOT TARGET octaryn::deps::fastgltf)
     octaryn_add_dependency_wrapper(octaryn_tool_fastgltf octaryn::deps::fastgltf)
-    find_package(fastgltf CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        fastgltf
+        GITHUB_REPOSITORY spnda/fastgltf
+        GIT_TAG v0.9.0
+        OPTIONS
+            "FASTGLTF_DOWNLOAD_SIMDJSON OFF"
+            "FASTGLTF_TESTS OFF")
     octaryn_link_first_available_dependency(octaryn_tool_fastgltf fastgltf_available fastgltf::fastgltf)
-    if(NOT fastgltf_available)
-        octaryn_fetch_source_dependency(
-            fastgltf
-            GITHUB_REPOSITORY spnda/fastgltf
-            GIT_TAG v0.9.0
-            OPTIONS
-                "FASTGLTF_DOWNLOAD_SIMDJSON OFF"
-                "FASTGLTF_TESTS OFF")
-        octaryn_link_first_available_dependency(octaryn_tool_fastgltf fastgltf_available fastgltf::fastgltf)
-    endif()
 endif()
 
 if(NOT TARGET octaryn::deps::ktx)
     octaryn_add_dependency_wrapper(octaryn_tool_ktx octaryn::deps::ktx)
-    find_package(KTX CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        KTX-Software
+        FORCE_GIT
+        NO_GIT_SUBMODULES
+        GITHUB_REPOSITORY KhronosGroup/KTX-Software
+        GIT_TAG v4.4.2
+        OPTIONS
+            "BUILD_SHARED_LIBS OFF"
+            "KTX_FEATURE_TESTS OFF"
+            "KTX_FEATURE_TOOLS OFF"
+            "KTX_FEATURE_LOADTEST_APPS OFF"
+            "KTX_FEATURE_GL_UPLOAD OFF"
+            "ASTCENC_INVARIANCE OFF")
     octaryn_link_first_available_dependency(octaryn_tool_ktx ktx_available KTX::ktx)
-    if(NOT ktx_available)
-        octaryn_fetch_source_dependency(
-            KTX-Software
-            GITHUB_REPOSITORY KhronosGroup/KTX-Software
-            GIT_TAG v4.4.2
-            OPTIONS
-                "BUILD_SHARED_LIBS OFF"
-                "KTX_FEATURE_TESTS OFF"
-                "KTX_FEATURE_TOOLS OFF"
-                "KTX_FEATURE_LOADTEST_APPS OFF"
-                "KTX_FEATURE_GL_UPLOAD OFF"
-                "ASTCENC_INVARIANCE OFF")
-        octaryn_link_first_available_dependency(octaryn_tool_ktx ktx_available KTX::ktx)
-    endif()
 endif()
 
 if(NOT TARGET octaryn::deps::meshoptimizer)
     octaryn_add_dependency_wrapper(octaryn_tool_meshoptimizer octaryn::deps::meshoptimizer)
-    find_package(meshoptimizer CONFIG QUIET)
+    octaryn_fetch_source_dependency(
+        meshoptimizer
+        GITHUB_REPOSITORY zeux/meshoptimizer
+        GIT_TAG v1.1.1)
     octaryn_link_first_available_dependency(octaryn_tool_meshoptimizer meshoptimizer_available meshoptimizer)
-    if(NOT meshoptimizer_available)
-        octaryn_fetch_source_dependency(
-            meshoptimizer
-            GITHUB_REPOSITORY zeux/meshoptimizer
-            GIT_TAG v1.1.1)
-        octaryn_link_first_available_dependency(octaryn_tool_meshoptimizer meshoptimizer_available meshoptimizer)
-    endif()
 endif()

@@ -2,6 +2,7 @@ include_guard(GLOBAL)
 
 function(octaryn_add_dotnet_owner target_name owner project_path)
     octaryn_owner_build_root(owner_build_root "${owner}")
+    octaryn_owner_managed_root(owner_managed_root "${owner}")
     octaryn_owner_log_root(owner_log_root "${owner}")
     get_filename_component(project_file_name "${project_path}" NAME)
     get_filename_component(project_dir "${project_path}" DIRECTORY)
@@ -10,9 +11,9 @@ function(octaryn_add_dotnet_owner target_name owner project_path)
     if(NOT dotnet_configuration)
         set(dotnet_configuration "Debug")
     endif()
-    set(stamp_dir "${owner_build_root}/dotnet/stamps")
+    set(stamp_dir "${owner_build_root}/stamps")
     set(stamp_file "${stamp_dir}/${target_name}.stamp")
-    set(output_dll "${owner_build_root}/dotnet/bin/${project_stem}/${dotnet_configuration}/net10.0/${project_stem}.dll")
+    set(output_dll "${owner_managed_root}/${project_stem}.dll")
     file(GLOB_RECURSE dotnet_source_inputs CONFIGURE_DEPENDS
         "${project_dir}/*.cs"
         "${project_dir}/*.csproj")
@@ -29,6 +30,7 @@ function(octaryn_add_dotnet_owner target_name owner project_path)
             "${DOTNET_EXECUTABLE}" build "${project_path}"
             --configuration "${dotnet_configuration}"
             --no-dependencies
+            -maxcpucount
             "-bl:${owner_log_root}/${target_name}-${OCTARYN_BUILD_PRESET_NAME}.binlog"
         COMMAND "${CMAKE_COMMAND}" -E touch "${stamp_file}"
         DEPENDS

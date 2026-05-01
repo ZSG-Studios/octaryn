@@ -10,6 +10,7 @@ This workspace is being ported into separate owner modules instead of a monolith
 - `octaryn-basegame/`: bundled default game module with high-level gameplay, content, data, assets, and basegame-specific tools.
 - `cmake/`: new-architecture CMake policy split into shared helpers, owner targets, dependency scaffolds, platform modules, and toolchains.
 - `tools/`: repo-wide developer tooling for the new architecture.
+- `tools/ui/workspace_control_app.py`: active Python workspace control UI for configure/build/validate/probe actions.
 - `old-architecture/`: old source material used during the port. It is not the destination layout.
 
 ## Build
@@ -17,38 +18,38 @@ This workspace is being ported into separate owner modules instead of a monolith
 Configure and build the new owner-target scaffold:
 
 ```sh
-cmake --preset debug
-cmake --build --preset debug
+cmake --preset debug-linux
+tools/build/cmake_build.sh debug-linux
 ```
 
 Build a specific owner target:
 
 ```sh
-cmake --build --preset debug --target octaryn_client_bundle
-cmake --build --preset debug --target octaryn_server
-cmake --build --preset debug --target octaryn_basegame
-cmake --build --preset debug --target octaryn_shared
+tools/build/cmake_build.sh debug-linux --target octaryn_client_bundle
+tools/build/cmake_build.sh debug-linux --target octaryn_server
+tools/build/cmake_build.sh debug-linux --target octaryn_basegame
+tools/build/cmake_build.sh debug-linux --target octaryn_shared
 ```
 
 The root helper scripts wrap the same presets:
 
 ```sh
-./tools/build/cmake_configure.sh debug
-./tools/build/cmake_build.sh debug --target octaryn_all
+./tools/build/cmake_configure.sh debug-linux
+./tools/build/cmake_build.sh debug-linux --target octaryn_all
 ```
 
 Run individual owner launch probes through the public helper targets:
 
 ```sh
-cmake --build --preset debug --target octaryn_run_client_launch_probe
-cmake --build --preset debug --target octaryn_run_server_launch_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_run_client_launch_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_run_server_launch_probe
 ```
 
 Managed projects can also be built directly:
 
 ```sh
 dotnet restore Octaryn.DotNet.sln
-dotnet build Octaryn.DotNet.sln --no-restore
+dotnet build Octaryn.DotNet.sln --no-restore -maxcpucount
 ```
 
 Run the managed validation probes directly when you need the same checks CMake runs:
@@ -61,12 +62,12 @@ dotnet run --project tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn
 
 ## Outputs
 
-- CMake driver state lives under `build/tools/cmake/<preset>/`.
-- Owner products from CMake live under `build/<owner>/<preset>/`.
-- Default direct MSBuild output lives under `build/<owner>/local/dotnet/`.
+- CMake driver state lives under `build/<preset>/cmake/`.
+- Owner products from CMake live under `build/<preset>/<owner>/`.
+- Default direct MSBuild output lives under `build/debug-linux/<owner>/managed/` and `build/debug-linux/<owner>/managed-obj/`.
 - Owner logs and CMake-driven binary logs live under `logs/<owner>/`.
 
-Old monolith outputs under `build/octaryn-engine/` and old target names under `old-architecture/` are transitional port artifacts only.
+Old monolith outputs under `build/octaryn-engine/` are not part of the active build layout. Old target names under `old-architecture/` are source material only until intentionally ported.
 
 ## Module Policy
 

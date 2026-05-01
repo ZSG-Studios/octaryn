@@ -7,10 +7,11 @@
   },
   "configurePresets": [
     {
-      "name": "debug",
-      "displayName": "Debug",
+      "name": "debug-linux",
+      "displayName": "Debug Linux",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_STANDARD": "17",
@@ -20,81 +21,52 @@
       }
     },
     {
-      "name": "release",
-      "displayName": "Release",
-      "inherits": "debug",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "name": "release-linux",
+      "displayName": "Release Linux",
+      "inherits": "debug-linux",
+      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
     },
     {
-      "name": "debug-linux-clang",
-      "displayName": "Debug Linux Clang",
-      "inherits": "debug",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
+      "name": "debug-windows",
+      "displayName": "Debug Windows",
+      "inherits": "debug-linux",
+      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Windows/clang.cmake",
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
     },
     {
-      "name": "debug-windows-mingw",
-      "displayName": "Debug Windows MinGW",
-      "inherits": "debug",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake",
+      "name": "release-windows",
+      "displayName": "Release Windows",
+      "inherits": "release-linux",
+      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Windows/clang.cmake",
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
     },
     {
-      "name": "debug-macos-apple-clang",
-      "displayName": "Debug macOS AppleClang",
-      "inherits": "debug",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/apple-clang.cmake",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
+      "name": "debug-macos",
+      "displayName": "Debug macOS",
+      "inherits": "debug-linux",
+      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
     },
     {
-      "name": "release-linux-clang",
-      "displayName": "Release Linux Clang",
-      "inherits": "release",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
-      "cacheVariables": {
-        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
-      }
-    },
-    {
-      "name": "release-macos-apple-clang",
-      "displayName": "Release macOS AppleClang",
-      "inherits": "release",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/apple-clang.cmake",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
-      }
-    },
-    {
-      "name": "release-windows-mingw",
-      "displayName": "Release Windows MinGW",
-      "inherits": "release",
-      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake",
+      "name": "release-macos",
+      "displayName": "Release macOS",
+      "inherits": "release-linux",
+      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
@@ -102,135 +74,45 @@
   ],
   "buildPresets": [
     {
-      "name": "debug",
-      "configurePreset": "debug",
+      "name": "debug-linux",
+      "configurePreset": "debug-linux",
       "targets": [
         "octaryn_all"
       ]
     },
     {
-      "name": "debug-validate",
-      "configurePreset": "debug",
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "release",
-      "configurePreset": "release",
+      "name": "release-linux",
+      "configurePreset": "release-linux",
       "targets": [
         "octaryn_all"
       ]
     },
     {
-      "name": "release-validate",
-      "configurePreset": "release",
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "debug-linux-clang",
-      "configurePreset": "debug-linux-clang",
+      "name": "debug-windows",
+      "configurePreset": "debug-windows",
       "targets": [
         "octaryn_all"
       ]
     },
     {
-      "name": "debug-linux-clang-validate",
-      "configurePreset": "debug-linux-clang",
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "debug-windows-mingw",
-      "configurePreset": "debug-windows-mingw",
+      "name": "release-windows",
+      "configurePreset": "release-windows",
       "targets": [
         "octaryn_all"
       ]
     },
     {
-      "name": "debug-windows-mingw-validate",
-      "configurePreset": "debug-windows-mingw",
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "debug-macos-apple-clang",
-      "configurePreset": "debug-macos-apple-clang",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
+      "name": "debug-macos",
+      "configurePreset": "debug-macos",
       "targets": [
         "octaryn_all"
       ]
     },
     {
-      "name": "debug-macos-apple-clang-validate",
-      "configurePreset": "debug-macos-apple-clang",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "release-linux-clang",
-      "configurePreset": "release-linux-clang",
+      "name": "release-macos",
+      "configurePreset": "release-macos",
       "targets": [
         "octaryn_all"
-      ]
-    },
-    {
-      "name": "release-linux-clang-validate",
-      "configurePreset": "release-linux-clang",
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "release-macos-apple-clang",
-      "configurePreset": "release-macos-apple-clang",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "targets": [
-        "octaryn_all"
-      ]
-    },
-    {
-      "name": "release-macos-apple-clang-validate",
-      "configurePreset": "release-macos-apple-clang",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "targets": [
-        "octaryn_validate_all"
-      ]
-    },
-    {
-      "name": "release-windows-mingw",
-      "configurePreset": "release-windows-mingw",
-      "targets": [
-        "octaryn_all"
-      ]
-    },
-    {
-      "name": "release-windows-mingw-validate",
-      "configurePreset": "release-windows-mingw",
-      "targets": [
-        "octaryn_validate_all"
       ]
     }
   ]

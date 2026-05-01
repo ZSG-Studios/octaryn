@@ -6,18 +6,54 @@ if(POLICY CMP0097)
     cmake_policy(SET CMP0097 NEW)
 endif()
 
-option(OCTARYN_ENABLE_SOURCE_DEPENDENCIES "Fetch approved third-party dependencies into build/dependencies when system packages are unavailable." ON)
+option(OCTARYN_ENABLE_SOURCE_DEPENDENCIES "Fetch approved third-party sources into build/dependencies and build them under build/<preset>/deps." ON)
+option(OCTARYN_USE_GITHUB_ARCHIVES_FOR_SOURCE_DEPENDENCIES "Download GitHub source dependencies as archives when submodules are not required." ON)
+option(OCTARYN_USE_GITHUB_ARCHIVES_FOR_HEADER_DEPENDENCIES "Download GitHub header-only dependencies as archives instead of cloning full repositories." ON)
 
 set(OCTARYN_SOURCE_DEPENDENCY_ROOT
-    "${OCTARYN_DEPENDENCY_BUILD_ROOT}/${OCTARYN_BUILD_PRESET_NAME}"
+    "${OCTARYN_DEPENDENCY_ROOT}"
     CACHE PATH
-    "Preset-scoped root for fetched third-party dependency sources and builds.")
+    "Shared root for fetched third-party dependency sources and downloads.")
 
-set(FETCHCONTENT_BASE_DIR "${OCTARYN_SOURCE_DEPENDENCY_ROOT}/fetchcontent" CACHE PATH "Octaryn FetchContent cache root." FORCE)
+set(OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT
+    "${OCTARYN_DEPENDENCY_SOURCE_ROOT}"
+    CACHE PATH
+    "Shared root for fetched third-party dependency source trees.")
+set(OCTARYN_SOURCE_DEPENDENCY_DOWNLOAD_ROOT
+    "${OCTARYN_DEPENDENCY_DOWNLOAD_ROOT}"
+    CACHE PATH
+    "Shared root for downloaded third-party dependency archives.")
+set(OCTARYN_SOURCE_DEPENDENCY_BUILD_ROOT
+    "${OCTARYN_DEPENDENCY_BUILD_ROOT}/build"
+    CACHE PATH
+    "Preset-scoped root for third-party dependency build trees.")
+set(OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT
+    "${OCTARYN_DEPENDENCY_BUILD_ROOT}/stamps"
+    CACHE PATH
+    "Preset-scoped root for third-party dependency population stamps.")
+
+set(FETCHCONTENT_BASE_DIR "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}" CACHE PATH "Octaryn FetchContent cache root." FORCE)
 set(FETCHCONTENT_QUIET OFF CACHE BOOL "Show FetchContent dependency progress." FORCE)
+set(CPM_SOURCE_CACHE "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}" CACHE PATH "Shared source cache for dependencies that use CPM internally." FORCE)
+set(CMAKE_SKIP_INSTALL_RULES ON CACHE BOOL "Workspace dependency builds do not generate install rules." FORCE)
 
 function(octaryn_dependency_github_url output_var repository)
     set(${output_var} "https://github.com/${repository}.git" PARENT_SCOPE)
+endfunction()
+
+function(octaryn_dependency_github_archive_url output_var repository reference)
+    set(${output_var} "https://github.com/${repository}/archive/${reference}.tar.gz" PARENT_SCOPE)
+endfunction()
+
+function(octaryn_use_existing_dependency_source dependency_name dependency_key)
+    set(dependency_source_dir "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}/${dependency_key}")
+    if(EXISTS "${dependency_source_dir}")
+        file(GLOB dependency_source_entries LIST_DIRECTORIES true "${dependency_source_dir}/*")
+        if(dependency_source_entries)
+            string(TOUPPER "${dependency_name}" dependency_name_upper)
+            set("FETCHCONTENT_SOURCE_DIR_${dependency_name_upper}" "${dependency_source_dir}" CACHE PATH "Existing source for ${dependency_name}." FORCE)
+        endif()
+    endif()
 endfunction()
 
 function(octaryn_add_dependency_wrapper wrapper_target alias_target)
@@ -50,7 +86,7 @@ function(octaryn_fetch_source_dependency dependency_name)
 
     cmake_parse_arguments(
         OCTARYN_FETCH
-        "NO_GIT_SUBMODULES"
+        "FORCE_GIT;NO_GIT_SUBMODULES"
         "GITHUB_REPOSITORY;GIT_REPOSITORY;GIT_TAG;URL;URL_HASH;VERSION;SOURCE_SUBDIR;GIT_SUBMODULES"
         "OPTIONS"
         ${ARGN})
@@ -66,16 +102,23 @@ function(octaryn_fetch_source_dependency dependency_name)
         endif()
     endforeach()
 
+    string(TOLOWER "${dependency_name}" dependency_key)
+    octaryn_use_existing_dependency_source("${dependency_name}" "${dependency_key}")
+
     if(OCTARYN_FETCH_URL)
-        set(declare_args URL "${OCTARYN_FETCH_URL}")
+        set(declare_args
+            URL "${OCTARYN_FETCH_URL}"
+            DOWNLOAD_DIR "${OCTARYN_SOURCE_DEPENDENCY_DOWNLOAD_ROOT}/${dependency_key}")
         if(OCTARYN_FETCH_URL_HASH)
             list(APPEND declare_args URL_HASH "${OCTARYN_FETCH_URL_HASH}")
         endif()
     else()
         if(OCTARYN_FETCH_GIT_REPOSITORY)
             set(dependency_repository "${OCTARYN_FETCH_GIT_REPOSITORY}")
+            set(dependency_github_repository "")
         elseif(OCTARYN_FETCH_GITHUB_REPOSITORY)
             octaryn_dependency_github_url(dependency_repository "${OCTARYN_FETCH_GITHUB_REPOSITORY}")
+            set(dependency_github_repository "${OCTARYN_FETCH_GITHUB_REPOSITORY}")
         else()
             message(FATAL_ERROR "Source dependency ${dependency_name} must declare URL, GIT_REPOSITORY, or GITHUB_REPOSITORY.")
         endif()
@@ -88,11 +131,24 @@ function(octaryn_fetch_source_dependency dependency_name)
             message(FATAL_ERROR "Source dependency ${dependency_name} must declare GIT_TAG or VERSION.")
         endif()
 
-        set(declare_args
-            GIT_REPOSITORY "${dependency_repository}"
-            GIT_TAG "${dependency_tag}"
-            GIT_SHALLOW TRUE
-            GIT_PROGRESS TRUE)
+        set(dependency_needs_git OFF)
+        if(OCTARYN_FETCH_FORCE_GIT OR OCTARYN_FETCH_GIT_SUBMODULES)
+            set(dependency_needs_git ON)
+        endif()
+
+        if(OCTARYN_USE_GITHUB_ARCHIVES_FOR_SOURCE_DEPENDENCIES AND dependency_github_repository AND NOT dependency_needs_git)
+            octaryn_dependency_github_archive_url(dependency_archive_url "${dependency_github_repository}" "${dependency_tag}")
+            set(declare_args
+                URL "${dependency_archive_url}"
+                DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+                DOWNLOAD_DIR "${OCTARYN_SOURCE_DEPENDENCY_DOWNLOAD_ROOT}/${dependency_key}")
+        else()
+            set(declare_args
+                GIT_REPOSITORY "${dependency_repository}"
+                GIT_TAG "${dependency_tag}"
+                GIT_SHALLOW TRUE
+                GIT_PROGRESS TRUE)
+        endif()
     endif()
 
     if(OCTARYN_FETCH_NO_GIT_SUBMODULES)
@@ -104,6 +160,11 @@ function(octaryn_fetch_source_dependency dependency_name)
     if(OCTARYN_FETCH_SOURCE_SUBDIR)
         list(APPEND declare_args SOURCE_SUBDIR "${OCTARYN_FETCH_SOURCE_SUBDIR}")
     endif()
+
+    list(APPEND declare_args
+        SOURCE_DIR "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}/${dependency_key}"
+        BINARY_DIR "${OCTARYN_SOURCE_DEPENDENCY_BUILD_ROOT}/${dependency_key}"
+        SUBBUILD_DIR "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}/${dependency_key}")
 
     FetchContent_Declare(${dependency_name} ${declare_args})
     FetchContent_MakeAvailable(${dependency_name})
@@ -124,8 +185,10 @@ function(octaryn_fetch_header_dependency dependency_name output_var)
 
     if(OCTARYN_FETCH_GIT_REPOSITORY)
         set(dependency_repository "${OCTARYN_FETCH_GIT_REPOSITORY}")
+        set(dependency_github_repository "")
     elseif(OCTARYN_FETCH_GITHUB_REPOSITORY)
         octaryn_dependency_github_url(dependency_repository "${OCTARYN_FETCH_GITHUB_REPOSITORY}")
+        set(dependency_github_repository "${OCTARYN_FETCH_GITHUB_REPOSITORY}")
     else()
         message(FATAL_ERROR "Header dependency ${dependency_name} must declare GIT_REPOSITORY or GITHUB_REPOSITORY.")
     endif()
@@ -138,12 +201,30 @@ function(octaryn_fetch_header_dependency dependency_name output_var)
         message(FATAL_ERROR "Header dependency ${dependency_name} must declare GIT_TAG or VERSION.")
     endif()
 
-    FetchContent_Declare(
-        ${dependency_name}
-        GIT_REPOSITORY "${dependency_repository}"
-        GIT_TAG "${dependency_tag}"
-        GIT_SHALLOW FALSE
-        GIT_PROGRESS TRUE)
+    string(TOLOWER "${dependency_name}" dependency_key)
+    octaryn_use_existing_dependency_source("${dependency_name}" "${dependency_key}")
+
+    if(OCTARYN_USE_GITHUB_ARCHIVES_FOR_HEADER_DEPENDENCIES AND dependency_github_repository)
+        octaryn_dependency_github_archive_url(dependency_archive_url "${dependency_github_repository}" "${dependency_tag}")
+        FetchContent_Declare(
+            ${dependency_name}
+            URL "${dependency_archive_url}"
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+            DOWNLOAD_DIR "${OCTARYN_SOURCE_DEPENDENCY_DOWNLOAD_ROOT}/${dependency_key}"
+            SOURCE_DIR "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}/${dependency_key}"
+            BINARY_DIR "${OCTARYN_SOURCE_DEPENDENCY_BUILD_ROOT}/${dependency_key}"
+            SUBBUILD_DIR "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}/${dependency_key}")
+    else()
+        FetchContent_Declare(
+            ${dependency_name}
+            GIT_REPOSITORY "${dependency_repository}"
+            GIT_TAG "${dependency_tag}"
+            GIT_SHALLOW TRUE
+            GIT_PROGRESS TRUE
+            SOURCE_DIR "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}/${dependency_key}"
+            BINARY_DIR "${OCTARYN_SOURCE_DEPENDENCY_BUILD_ROOT}/${dependency_key}"
+            SUBBUILD_DIR "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}/${dependency_key}")
+    endif()
 
     FetchContent_GetProperties(${dependency_name})
     if(NOT ${dependency_name}_POPULATED)
@@ -158,7 +239,7 @@ function(octaryn_fetch_header_dependency dependency_name output_var)
     endif()
 
     FetchContent_GetProperties(${dependency_name})
-    set(${output_var} "${${dependency_name}_SOURCE_DIR}" PARENT_SCOPE)
+    set(${output_var} "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}/${dependency_key}" PARENT_SCOPE)
 endfunction()
 
 function(octaryn_add_header_only_dependency wrapper_target include_dir)

@@ -37,7 +37,7 @@ def validate_scheduler(path, owner):
             "Thread _coordinatorThread",
             "Thread[] _workerThreads",
             "HostSchedulingContract.MinimumWorkerThreads",
-            "Environment.ProcessorCount - 2",
+            "Environment.ProcessorCount",
             "HostSchedulingContract.IsValidWorkerThreadCapacity",
             "internal HostSchedulerDiagnostics Diagnostics => new(",
             "_coordinatorThread.IsAlive",

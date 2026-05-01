@@ -8,8 +8,10 @@ add_custom_target(octaryn_tools)
 octaryn_owner_build_root(tool_client_build_root client)
 octaryn_owner_build_root(tool_server_build_root server)
 octaryn_owner_build_root(tool_basegame_build_root basegame)
+octaryn_owner_build_root(octaryn_debug_tool_root tools)
 octaryn_owner_log_root(tool_client_log_root client)
 octaryn_owner_log_root(tool_server_log_root server)
+octaryn_owner_log_root(octaryn_debug_tool_log_root tools)
 set(octaryn_tool_client_bundle_dir "${tool_client_build_root}/bundle")
 set(octaryn_tool_server_bundle_dir "${tool_server_build_root}/bundle")
 set(octaryn_tool_client_bundle_output "${octaryn_tool_client_bundle_dir}/Octaryn.Client.dll")
@@ -21,10 +23,59 @@ set(octaryn_tool_server_bundle_deps "${octaryn_tool_server_bundle_dir}/Octaryn.S
 set(octaryn_tool_client_probe_log "${tool_client_log_root}/octaryn_client_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
 set(octaryn_tool_server_probe_log "${tool_server_log_root}/octaryn_server_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
 set(octaryn_tool_basegame_project "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Octaryn.Basegame.csproj")
-set(octaryn_tool_client_assets "${tool_client_build_root}/dotnet/obj/Octaryn.Client/project.assets.json")
-set(octaryn_tool_server_assets "${tool_server_build_root}/dotnet/obj/Octaryn.Server/project.assets.json")
-set(octaryn_tool_basegame_assets "${tool_basegame_build_root}/dotnet/obj/Octaryn.Basegame/project.assets.json")
+set(octaryn_tool_client_assets "${tool_client_build_root}/managed-obj/project.assets.json")
+set(octaryn_tool_server_assets "${tool_server_build_root}/managed-obj/project.assets.json")
+set(octaryn_tool_basegame_assets "${tool_basegame_build_root}/managed-obj/project.assets.json")
 set(octaryn_tool_basegame_manifest_json "${tool_basegame_build_root}/generated/octaryn.basegame.manifest.json")
+
+set(octaryn_debug_tool_files
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/tooling/tool_environment.sh"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/profiling/tracy_tool.sh"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/capture/renderdoc_tool.sh"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/bootstrap/workspace_bootstrap.sh"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/ui/workspace_control_app.py")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_custom_target(octaryn_debug_tools
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "${octaryn_debug_tool_root}/tooling"
+            "${octaryn_debug_tool_root}/profiling"
+            "${octaryn_debug_tool_root}/capture"
+            "${octaryn_debug_tool_root}/bootstrap"
+            "${octaryn_debug_tool_root}/ui"
+            "${octaryn_debug_tool_log_root}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/tooling/tool_environment.sh"
+            "${octaryn_debug_tool_root}/tooling/tool_environment.sh"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/profiling/tracy_tool.sh"
+            "${octaryn_debug_tool_root}/profiling/tracy_tool.sh"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/capture/renderdoc_tool.sh"
+            "${octaryn_debug_tool_root}/capture/renderdoc_tool.sh"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/bootstrap/workspace_bootstrap.sh"
+            "${octaryn_debug_tool_root}/bootstrap/workspace_bootstrap.sh"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/ui/workspace_control_app.py"
+            "${octaryn_debug_tool_root}/ui/workspace_control_app.py"
+        COMMAND "${CMAKE_COMMAND}" -E env "OCTARYN_WORKSPACE_ROOT=${OCTARYN_WORKSPACE_ROOT_DIR}"
+            "${octaryn_debug_tool_root}/profiling/tracy_tool.sh"
+            --preset "${OCTARYN_BUILD_PRESET_NAME}"
+            build
+        COMMAND "${CMAKE_COMMAND}" -E env "OCTARYN_WORKSPACE_ROOT=${OCTARYN_WORKSPACE_ROOT_DIR}"
+            "${octaryn_debug_tool_root}/capture/renderdoc_tool.sh"
+            --preset "${OCTARYN_BUILD_PRESET_NAME}"
+            build
+        DEPENDS
+            ${octaryn_debug_tool_files}
+        WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
+        VERBATIM)
+else()
+    add_custom_target(octaryn_debug_tools
+        COMMAND "${CMAKE_COMMAND}" -E echo "Skipping debug tool staging for ${OCTARYN_BUILD_PRESET_NAME}: debug tools ship with Debug presets."
+        VERBATIM)
+endif()
 
 add_custom_target(octaryn_validate_cmake_targets
     COMMAND python3
@@ -119,7 +170,7 @@ add_custom_target(octaryn_validate_module_binary_sandbox
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --no-restore
-        -- --assembly "${tool_basegame_build_root}/dotnet/bin/Octaryn.Basegame/${CMAKE_BUILD_TYPE}/net10.0/Octaryn.Basegame.dll"
+        -- --assembly "${tool_basegame_build_root}/managed/Octaryn.Basegame.dll"
         --assets-file "${octaryn_tool_basegame_assets}"
     DEPENDS
         octaryn_basegame
@@ -194,7 +245,7 @@ if(OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT)
     add_custom_target(octaryn_validate_native_archive_format
         COMMAND python3
             "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_native_archive_format.py"
-            --archive "${OCTARYN_WORKSPACE_ROOT_DIR}/build/shared/${OCTARYN_BUILD_PRESET_NAME}/lib/liboctaryn_shared_host_abi.a"
+            --archive "${OCTARYN_WORKSPACE_ROOT_DIR}/build/${OCTARYN_BUILD_PRESET_NAME}/shared/native/lib/liboctaryn_shared_host_abi.a"
             --expected-format "${OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT}"
             --objdump "${OCTARYN_TARGET_OBJDUMP}"
         DEPENDS
@@ -321,6 +372,7 @@ else()
 endif()
 
 add_dependencies(octaryn_tools
+    octaryn_debug_tools
     octaryn_validate_cmake_targets
     octaryn_validate_cmake_policy_separation
     octaryn_validate_cmake_dependency_aliases
