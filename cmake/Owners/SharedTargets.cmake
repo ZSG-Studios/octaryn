@@ -33,9 +33,20 @@ if(TARGET spdlog::spdlog_header_only OR TARGET spdlog::spdlog)
             OCTARYN_NATIVE_LOGGING_USE_SPDLOG)
 endif()
 
+octaryn_add_native_static_library(
+    octaryn_native_diagnostics
+    shared
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeCrashDiagnostics/octaryn_native_crash_diagnostics.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeCrashDiagnostics"
+    PRIVATE_LINKS
+        octaryn_native_logging)
+
 add_dependencies(octaryn_shared_native
     octaryn_shared_host_abi
-    octaryn_native_logging)
+    octaryn_native_logging
+    octaryn_native_diagnostics)
 
 octaryn_add_dotnet_owner(
     octaryn_shared
