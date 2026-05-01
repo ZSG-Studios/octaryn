@@ -1,0 +1,7 @@
+{
+  "id": "octaryn.basegame.block.air",
+  "kind": "block",
+  "displayName": "Air",
+  "solid": false,
+  "visible": false
+}

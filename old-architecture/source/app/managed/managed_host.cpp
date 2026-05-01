@@ -55,7 +55,7 @@ bool managed_build_runtime_path(char* output, size_t output_size, const char* le
     {
         return false;
     }
-    const int written = SDL_snprintf(output, output_size, "%sdotnet/basegame/%s", base_path, leaf);
+    const int written = SDL_snprintf(output, output_size, "%sdotnet/client/%s", base_path, leaf);
     return written > 0 && static_cast<size_t>(written) < output_size;
 }
 
@@ -133,7 +133,7 @@ template <typename Fn>
 bool managed_load_game_export(managed_host_state_t* host, const char* assembly_path, const char* method_name, Fn* out_function)
 {
     void* function = nullptr;
-    constexpr const char_t* kGameExportType = "Octaryn.Game.GameExports, Octaryn.Game";
+    constexpr const char_t* kGameExportType = "Octaryn.Client.ClientHostExports, Octaryn.Client";
     const int32_t result = host->load_assembly_and_get_function_pointer(
         assembly_path,
         kGameExportType,
@@ -177,8 +177,8 @@ bool app_managed_host_startup(void)
 
     std::array<char, 4096> runtime_config_path = {};
     std::array<char, 4096> assembly_path = {};
-    if (!managed_build_runtime_path(runtime_config_path.data(), runtime_config_path.size(), "Octaryn.Game.runtimeconfig.json") ||
-        !managed_build_runtime_path(assembly_path.data(), assembly_path.size(), "Octaryn.Game.dll"))
+    if (!managed_build_runtime_path(runtime_config_path.data(), runtime_config_path.size(), "Octaryn.Client.runtimeconfig.json") ||
+        !managed_build_runtime_path(assembly_path.data(), assembly_path.size(), "Octaryn.Client.dll"))
     {
         oct_log_errorf("Failed to build managed game paths");
         return false;

@@ -1,0 +1,3 @@
+set(CMAKE_SYSTEM_NAME FreeBSD)
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)

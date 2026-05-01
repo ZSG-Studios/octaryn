@@ -1,107 +1,81 @@
-# Octaryn Engine
+# Octaryn Workspace
 
-Octaryn Engine is a root-level SDL3 GPU voxel engine with a modern C++ runtime, generated shader assets, Taskflow-driven world jobs, and JSON-backed persistence.
+This workspace is being ported into separate owner modules instead of a monolithic engine tree. The end goal is unchanged: native C/C++ core first, with C# ECS/gameplay and client/server networking intentionally used where they fit best.
 
 ## Active Layout
 
-- `old-architecture/`: old native engine architecture, CMake presets, runtime source, shaders, and engine icons
-- `old-architecture/source/app/`, `old-architecture/source/core/`, `old-architecture/source/render/`, `old-architecture/source/world/`: old runtime source
-- `old-architecture/source/shaders/`: old shader sources, with active runtime stages authored in GLSL
-- `old-architecture/source/api/`: C# engine API project
-- `octaryn-basegame/`: C# base game project
-- `octaryn-client/`: client project root
-- `octaryn-server/`: server project root
-- `cmake/`: workspace CMake modules and toolchains
-- `tools/`: workspace-level build, asset, profiling, and control tools
-- `tools/build/`: configure/build helper scripts
+- `octaryn-client/`: presentation, windowing, input, rendering, overlays, local prediction, and the managed host export edge.
+- `octaryn-server/`: authority, simulation, validation, persistence, networking host code, and server ticks.
+- `octaryn-shared/`: implementation-free contracts, IDs, snapshots, commands, manifests, capability IDs, and module validation policy.
+- `octaryn-basegame/`: bundled default game module with high-level gameplay, content, data, assets, and basegame-specific tools.
+- `cmake/`: new-architecture CMake policy split into shared helpers, owner targets, dependency scaffolds, platform modules, and toolchains.
+- `tools/`: repo-wide developer tooling for the new architecture.
+- `old-architecture/`: old source material used during the port. It is not the destination layout.
 
 ## Build
 
-Fresh Linux host setup:
+Configure and build the new owner-target scaffold:
 
 ```sh
-./tools/build/install_deps.sh --yes
+cmake --preset debug
+cmake --build --preset debug
 ```
 
-Build Linux and Windows debug profiles:
+Build a specific owner target:
 
 ```sh
-./tools/build/build_all.sh
+cmake --build --preset debug --target octaryn_client_bundle
+cmake --build --preset debug --target octaryn_server
+cmake --build --preset debug --target octaryn_basegame
+cmake --build --preset debug --target octaryn_shared
 ```
 
-Install packages first, then build Linux and Windows:
+The root helper scripts wrap the same presets:
 
 ```sh
-./tools/build/build_all.sh --install
+./tools/build/cmake_configure.sh debug
+./tools/build/cmake_build.sh debug --target octaryn_all
 ```
 
-Build Linux and Windows release profiles too:
+Run individual owner launch probes through the public helper targets:
 
 ```sh
-./tools/build/build_all.sh --release
+cmake --build --preset debug --target octaryn_run_client_launch_probe
+cmake --build --preset debug --target octaryn_run_server_launch_probe
 ```
 
-Helper-script Linux workflow:
+Managed projects can also be built directly:
 
 ```sh
-./tools/build/configure.sh --preset linux-debug
-./tools/build/cmake_build.sh --preset linux-debug --target octaryn_engine_runtime_bundle
+dotnet restore Octaryn.DotNet.sln
+dotnet build Octaryn.DotNet.sln --no-restore
 ```
 
-Windows cross-build from Linux:
+Run the managed validation probes directly when you need the same checks CMake runs:
 
 ```sh
-./tools/build/configure.sh --preset windows-debug
-./tools/build/cmake_build.sh --preset windows-debug --target octaryn_engine_runtime
+dotnet run --project tools/validation/Octaryn.ModuleManifestProbe/Octaryn.ModuleManifestProbe.csproj --configuration Debug -- octaryn-basegame
+dotnet run --project tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj --configuration Debug
+dotnet run --project tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj --configuration Debug
 ```
 
-Raw CMake workflow:
+## Outputs
 
-```sh
-cmake --preset linux-debug
-cmake --build --preset linux-debug --target octaryn_engine_runtime_bundle
-```
+- CMake driver state lives under `build/tools/cmake/<preset>/`.
+- Owner products from CMake live under `build/<owner>/<preset>/`.
+- Default direct MSBuild output lives under `build/<owner>/dotnet/`.
+- Owner logs and CMake-driven binary logs live under `logs/<owner>/`.
 
-## Shader Assets
+Old monolith outputs under `build/octaryn-engine/` and old target names under `old-architecture/` are transitional port artifacts only.
 
-- Active runtime shader sources use explicit GLSL suffixes such as `*.vert.glsl`, `*.frag.glsl`, and `*.comp.glsl`
-- Checked-in runtime shader sources now live on the GLSL path only
-- Generated runtime assets are built by `octaryn_engine_shader_assets`
-- The offline compiler is `octaryn-engine-shader-tool`
-- Generated shader outputs are staged into `assets/shaders/` next to the executable
-- Runtime textures are generated and staged into `assets/textures/`
-- Generated shader blobs are build outputs, not checked-in runtime artifacts
+## Module Policy
 
-## Texture Assets
+Game modules compile against `octaryn-shared` plus explicitly approved packages and framework API groups. Basegame is the bundled module and follows the same validation path as future modules or mods.
 
-- The runtime block atlas is generated from Pixlli at build time and cached under `.octaryn-cache/texture-packs/`
-- Generated texture outputs are `atlas.png`, `atlas_n.png`, and `atlas_s.png`
-- `atlas.png` is the sRGB albedo atlas
-- `atlas_n.png` preserves Pixlli `_n` normal/height data for PBR and POM
-- `atlas_s.png` preserves Pixlli `_s` specular/material data for PBR
-- Use `-DOCTARYN_TEXTURE_PACK_PATH=/path/to/pack.zip` to build from a local pack instead of downloading
-- Use `-DOCTARYN_TEXTURE_PACK_SHA256=<hash>` to enforce a specific pack payload
+Host-only packages such as `LiteNetLib` and `LiteEntitySystem` belong only in client/server transport implementation. Shared contracts stay package-free, and basegame/module code must not use native bridges, filesystem/network/process APIs, reflection, runtime code generation, or direct host internals unless a future allowlist explicitly grants a narrow API.
 
-## Persistence
+C/C++ owners may call managed ECS/gameplay or networking through explicit owner bridges. Modules never receive bridge internals, unmanaged exports, native service handles, or direct client/server implementation access.
 
-Runtime saves are written under the configured save root as:
+## Threading Model
 
-- `settings.json`
-- `player_0.json`
-- `world/chunk_<cx>_<cz>.json`
-
-## Notes
-
-- Product outputs live under `build/octaryn-engine/<preset>/`
-- Runtime binaries live under `build/octaryn-engine/<preset>/bin`
-- Runtime save/output data for scripted runs lives under `build/octaryn-engine/<preset>/runtime`
-- Logs live under `logs/`
-- CMake workspace files live under `build/shared/workspace/<preset>/cmake`
-- Shared third-party source and build caches live under `build/shared/`
-- `shaderc` is used for explicit GLSL shader compilation in the offline shader tool
-- `SDL3_shadercross` is used for shader reflection and MSL transpilation in the offline shader tool
-- Runtime asset lookup is rooted under `assets/`
-
-## License
-
-Octaryn Engine is licensed under the MIT License. See `LICENSE`.
+The target host owns all threading: one main thread, one coordinator thread, and a worker pool with at least two workers that can scale to available cores. Computation systems and gameplay logic should run through coordinator-scheduled worker jobs. Modules use host scheduling APIs; they do not create raw threads, private task schedulers, timers, or worker pools.

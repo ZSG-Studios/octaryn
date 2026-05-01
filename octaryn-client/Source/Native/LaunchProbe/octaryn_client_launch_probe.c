@@ -1,0 +1,87 @@
+#include "octaryn_client_host_exports.h"
+
+#include <stdio.h>
+
+static FILE* s_log;
+
+static int OCTARYN_ABI_CALL octaryn_probe_enqueue_command(octaryn_host_command* command)
+{
+    if (s_log != NULL && command != NULL) {
+        fprintf(s_log, "enqueue_command kind=%u request=%llu\n",
+            command->kind,
+            (unsigned long long)command->request_id);
+    }
+
+    return 1;
+}
+
+static octaryn_host_frame_snapshot octaryn_probe_frame(void)
+{
+    octaryn_host_frame_snapshot frame = {0};
+    frame.version = 1u;
+    frame.size = OCTARYN_HOST_FRAME_SNAPSHOT_SIZE;
+    frame.input.version = 1u;
+    frame.input.size = OCTARYN_HOST_INPUT_SNAPSHOT_SIZE;
+    frame.timing.version = 1u;
+    frame.timing.size = OCTARYN_HOST_FRAME_TIMING_SNAPSHOT_SIZE;
+    frame.timing.frame_index = 1u;
+    frame.timing.delta_seconds = 1.0 / 60.0;
+    return frame;
+}
+
+int main(void)
+{
+    s_log = fopen(OCTARYN_CLIENT_LAUNCH_PROBE_LOG_PATH, "w");
+    if (s_log == NULL) {
+        return 2;
+    }
+
+    octaryn_client_native_host_api api = {0};
+    api.version = 1u;
+    api.size = OCTARYN_CLIENT_NATIVE_HOST_API_SIZE;
+    api.enqueue_command = octaryn_probe_enqueue_command;
+
+    octaryn_host_frame_snapshot frame = octaryn_probe_frame();
+    int result = octaryn_client_tick(&frame);
+    fprintf(s_log, "tick_before_initialize=%d\n", result);
+    if (result != -1) {
+        fclose(s_log);
+        return 3;
+    }
+
+    result = octaryn_client_initialize(&api);
+    fprintf(s_log, "initialize=%d\n", result);
+    if (result != 0) {
+        fclose(s_log);
+        return 4;
+    }
+
+    result = octaryn_client_tick(&frame);
+    fprintf(s_log, "tick=%d\n", result);
+    if (result != 0) {
+        octaryn_client_shutdown();
+        fclose(s_log);
+        return 5;
+    }
+
+    result = octaryn_client_initialize(&api);
+    fprintf(s_log, "reinitialize=%d\n", result);
+    if (result != 0) {
+        fclose(s_log);
+        return 6;
+    }
+
+    result = octaryn_client_tick(&frame);
+    fprintf(s_log, "tick_after_reinitialize=%d\n", result);
+    if (result != 0) {
+        octaryn_client_shutdown();
+        fclose(s_log);
+        return 7;
+    }
+
+    octaryn_client_shutdown();
+    fprintf(s_log, "shutdown=0\n");
+    fclose(s_log);
+
+    return result == 0 ? 0 : 8;
+}

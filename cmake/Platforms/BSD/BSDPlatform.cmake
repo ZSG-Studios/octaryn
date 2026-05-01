@@ -1,0 +1,3 @@
+include_guard(GLOBAL)
+
+set(OCTARYN_BSD_PLATFORM_SCAFFOLD ON)

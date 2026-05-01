@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 enum oct_managed_native_command_kind : std::uint32_t
@@ -105,3 +106,33 @@ static_assert(sizeof(oct_managed_native_command_t) == 88);
 static_assert(sizeof(oct_managed_input_snapshot_t) == 56);
 static_assert(sizeof(oct_managed_world_snapshot_t) == 88);
 static_assert(sizeof(oct_managed_frame_snapshot_t) == 152);
+static_assert(sizeof(oct_managed_native_api_t) == 16);
+
+static_assert(offsetof(oct_managed_native_command_t, kind) == 0);
+static_assert(offsetof(oct_managed_native_command_t, flags) == 4);
+static_assert(offsetof(oct_managed_native_command_t, request_id) == 8);
+static_assert(offsetof(oct_managed_native_command_t, target_id) == 16);
+static_assert(offsetof(oct_managed_native_command_t, a) == 24);
+static_assert(offsetof(oct_managed_native_command_t, x) == 40);
+static_assert(offsetof(oct_managed_native_command_t, payload0) == 72);
+static_assert(offsetof(oct_managed_native_command_t, payload1) == 80);
+
+static_assert(offsetof(oct_managed_input_snapshot_t, version) == 0);
+static_assert(offsetof(oct_managed_input_snapshot_t, flags) == 8);
+static_assert(offsetof(oct_managed_input_snapshot_t, move_x) == 16);
+static_assert(offsetof(oct_managed_input_snapshot_t, camera_pitch) == 40);
+static_assert(offsetof(oct_managed_input_snapshot_t, relative_mouse) == 48);
+
+static_assert(offsetof(oct_managed_world_snapshot_t, version) == 0);
+static_assert(offsetof(oct_managed_world_snapshot_t, frame_index) == 8);
+static_assert(offsetof(oct_managed_world_snapshot_t, delta_seconds) == 24);
+static_assert(offsetof(oct_managed_world_snapshot_t, second_of_day) == 40);
+static_assert(offsetof(oct_managed_world_snapshot_t, player_block_x) == 44);
+static_assert(offsetof(oct_managed_world_snapshot_t, pending_window_transition) == 76);
+
+static_assert(offsetof(oct_managed_frame_snapshot_t, input) == 8);
+static_assert(offsetof(oct_managed_frame_snapshot_t, world) == 64);
+
+static_assert(offsetof(oct_managed_native_api_t, version) == 0);
+static_assert(offsetof(oct_managed_native_api_t, size) == 4);
+static_assert(offsetof(oct_managed_native_api_t, enqueue_command) == 8);

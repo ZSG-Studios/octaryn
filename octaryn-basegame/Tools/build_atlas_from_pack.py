@@ -122,7 +122,7 @@ def download_pack(url, cache_dir):
         return destination
 
     temporary = destination.with_suffix(destination.suffix + ".part")
-    request = urllib.request.Request(url, headers={"User-Agent": "octaryn-engine-asset-pipeline/1.0"})
+    request = urllib.request.Request(url, headers={"User-Agent": "octaryn-basegame-atlas-pipeline/1.0"})
     with urllib.request.urlopen(request, timeout=120) as response, temporary.open("wb") as file:
         while True:
             chunk = response.read(1024 * 1024)

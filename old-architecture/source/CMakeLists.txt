@@ -548,26 +548,28 @@ octaryn_apply_build_layout(octaryn_engine_runtime PRODUCT octaryn-engine)
 octaryn_product_preset_root(octaryn_engine_runtime_preset_root "octaryn-engine")
 set(octaryn_engine_runtime_asset_dir "${octaryn_engine_runtime_preset_root}/bin/assets")
 if(OCTARYN_ENABLE_MANAGED_DOTNET)
-  set(octaryn_managed_game_project "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Octaryn.Game.csproj")
-  set(octaryn_managed_publish_dir "${octaryn_engine_runtime_preset_root}/bin/dotnet/basegame")
-  set(octaryn_managed_publish_output "${octaryn_managed_publish_dir}/Octaryn.Game.dll")
+  set(octaryn_managed_client_host_project "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Octaryn.Client.csproj")
+  set(octaryn_managed_publish_dir "${octaryn_engine_runtime_preset_root}/bin/dotnet/client")
+  set(octaryn_managed_publish_output "${octaryn_managed_publish_dir}/Octaryn.Client.dll")
   set(octaryn_managed_build_configuration Debug)
   if(CMAKE_BUILD_TYPE MATCHES "^[Rr]el")
     set(octaryn_managed_build_configuration Release)
   endif()
   file(GLOB_RECURSE octaryn_managed_project_files CONFIGURE_DEPENDS
-    "${OCTARYN_ENGINE_ROOT_DIR}/source/api/*.cs"
-    "${OCTARYN_ENGINE_ROOT_DIR}/source/api/*.csproj"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/*.cs"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/*.csproj"
-    "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Gameplay/*.cs"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/*.cs"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/*.csproj"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/*.cs"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/*.csproj"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/Directory.Build.props"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/Directory.Build.targets"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/Directory.Packages.props"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/Octaryn.DotNet.sln")
 
   add_custom_command(
     OUTPUT "${octaryn_managed_publish_output}"
-    COMMAND "${OCTARYN_DOTNET_EXECUTABLE}" publish "${octaryn_managed_game_project}"
+    COMMAND "${OCTARYN_DOTNET_EXECUTABLE}" publish "${octaryn_managed_client_host_project}"
       --configuration "${octaryn_managed_build_configuration}"
       --framework net10.0
       --output "${octaryn_managed_publish_dir}"
@@ -578,8 +580,8 @@ if(OCTARYN_ENABLE_MANAGED_DOTNET)
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)
 
-  add_custom_target(octaryn_managed_game DEPENDS "${octaryn_managed_publish_output}")
-  add_dependencies(octaryn_engine_runtime octaryn_managed_game)
+  add_custom_target(octaryn_managed_client_host DEPENDS "${octaryn_managed_publish_output}")
+  add_dependencies(octaryn_engine_runtime octaryn_managed_client_host)
 endif()
 
 if(OCTARYN_ENABLE_RUNTIME_ASSET_GENERATION)

@@ -1,0 +1,135 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_STANDARD": "17",
+        "CMAKE_CXX_STANDARD": "23",
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
+      "name": "debug-linux-gcc",
+      "displayName": "Debug Linux GCC",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/gcc.cmake",
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
+      "name": "debug-linux-clang",
+      "displayName": "Debug Linux Clang",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
+      "name": "debug-windows-mingw",
+      "displayName": "Debug Windows MinGW",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake",
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "debug-validate",
+      "configurePreset": "debug",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "release-validate",
+      "configurePreset": "release",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "debug-linux-gcc",
+      "configurePreset": "debug-linux-gcc",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "debug-linux-gcc-validate",
+      "configurePreset": "debug-linux-gcc",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "debug-linux-clang",
+      "configurePreset": "debug-linux-clang",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "debug-linux-clang-validate",
+      "configurePreset": "debug-linux-clang",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "debug-windows-mingw",
+      "configurePreset": "debug-windows-mingw",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "debug-windows-mingw-validate",
+      "configurePreset": "debug-windows-mingw",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    }
+  ]
+}

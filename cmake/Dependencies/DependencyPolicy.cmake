@@ -1,0 +1,5 @@
+include_guard(GLOBAL)
+
+set(OCTARYN_DEPENDENCY_POLICY_SCAFFOLD ON)
+
+find_program(DOTNET_EXECUTABLE dotnet REQUIRED)
