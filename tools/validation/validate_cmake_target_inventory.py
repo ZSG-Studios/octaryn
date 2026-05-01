@@ -126,6 +126,19 @@ REQUIRED_CONFIGURE_PRESETS = (
     "debug-linux-gcc",
     "debug-linux-clang",
     "debug-windows-mingw",
+    "debug-macos-apple-clang",
+    "release-linux-gcc",
+    "release-linux-clang",
+    "release-macos-apple-clang",
+    "release-windows-mingw",
+)
+
+REQUIRED_CONFIGURED_GRAPH_PRESETS = (
+    "debug",
+    "release",
+    "debug-linux-gcc",
+    "debug-linux-clang",
+    "debug-windows-mingw",
     "release-linux-gcc",
     "release-linux-clang",
     "release-windows-mingw",
@@ -142,10 +155,14 @@ REQUIRED_BUILD_PRESETS = (
     "debug-linux-clang-validate",
     "debug-windows-mingw",
     "debug-windows-mingw-validate",
+    "debug-macos-apple-clang",
+    "debug-macos-apple-clang-validate",
     "release-linux-gcc",
     "release-linux-gcc-validate",
     "release-linux-clang",
     "release-linux-clang-validate",
+    "release-macos-apple-clang",
+    "release-macos-apple-clang-validate",
     "release-windows-mingw",
     "release-windows-mingw-validate",
 )
@@ -420,7 +437,7 @@ def validate_generated_layout(repo_root):
 def validate_configured_preset_graphs(repo_root, current_build_dir):
     errors = []
     current = current_build_dir.resolve()
-    required_presets = set(REQUIRED_CONFIGURE_PRESETS)
+    required_presets = set(REQUIRED_CONFIGURED_GRAPH_PRESETS)
     for preset_name, build_dir in configure_preset_build_dirs(repo_root):
         build_file = build_dir / "build.ninja"
         if not build_file.exists():

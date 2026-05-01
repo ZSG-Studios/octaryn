@@ -60,6 +60,21 @@
       }
     },
     {
+      "name": "debug-macos-apple-clang",
+      "displayName": "Debug macOS AppleClang",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/apple-clang.cmake",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
       "name": "release-linux-gcc",
       "displayName": "Release Linux GCC",
       "inherits": "release",
@@ -75,6 +90,21 @@
       "inherits": "release",
       "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
       "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
+      "name": "release-macos-apple-clang",
+      "displayName": "Release macOS AppleClang",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/apple-clang.cmake",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
@@ -162,6 +192,30 @@
       ]
     },
     {
+      "name": "debug-macos-apple-clang",
+      "configurePreset": "debug-macos-apple-clang",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "debug-macos-apple-clang-validate",
+      "configurePreset": "debug-macos-apple-clang",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
       "name": "release-linux-gcc",
       "configurePreset": "release-linux-gcc",
       "targets": [
@@ -185,6 +239,30 @@
     {
       "name": "release-linux-clang-validate",
       "configurePreset": "release-linux-clang",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "release-macos-apple-clang",
+      "configurePreset": "release-macos-apple-clang",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "release-macos-apple-clang-validate",
+      "configurePreset": "release-macos-apple-clang",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
       "targets": [
         "octaryn_validate_all"
       ]

@@ -11,10 +11,12 @@ cmake --preset debug
 cmake --preset debug-linux-gcc
 cmake --preset debug-linux-clang
 cmake --preset debug-windows-mingw
+cmake --preset debug-macos-apple-clang
 cmake --preset release
 cmake --preset release-linux-gcc
 cmake --preset release-linux-clang
 cmake --preset release-windows-mingw
+cmake --preset release-macos-apple-clang
 cmake --build --preset debug
 cmake --build --preset debug-validate
 cmake --build --preset debug-linux-gcc
@@ -23,6 +25,8 @@ cmake --build --preset debug-linux-clang
 cmake --build --preset debug-linux-clang-validate
 cmake --build --preset debug-windows-mingw
 cmake --build --preset debug-windows-mingw-validate
+cmake --build --preset debug-macos-apple-clang
+cmake --build --preset debug-macos-apple-clang-validate
 cmake --build --preset release
 cmake --build --preset release-validate
 cmake --build --preset release-linux-gcc
@@ -31,6 +35,8 @@ cmake --build --preset release-linux-clang
 cmake --build --preset release-linux-clang-validate
 cmake --build --preset release-windows-mingw
 cmake --build --preset release-windows-mingw-validate
+cmake --build --preset release-macos-apple-clang
+cmake --build --preset release-macos-apple-clang-validate
 ```
 
 ## Expanded Debug Validators
@@ -103,8 +109,8 @@ python3 tools/validation/validate_owner_launch_probe_logs.py --owner server --lo
 - Basegame has checked-in package descriptor metadata at `octaryn-basegame/Data/Module/octaryn.basegame.module.json`. `Octaryn.ModuleManifestProbe` compares that descriptor with `BasegameModuleRegistration.Manifest` and writes the generated validation manifest under `build/basegame/<preset>/generated/octaryn.basegame.manifest.json`.
 - Bundle payload validation reads the bundled descriptor from client/server bundles and verifies every manifest-declared content and asset file is present under the same bundle root.
 - Native C/C++ bridge loader validation is active for current facades. The matrix builds client/server managed outputs and native bridge facades, then verifies hostfxr startup, runtimeconfig/deps discovery, exact managed method resolution, exported owner ABI names, and invalid-input managed return paths for client and server bridge entry points.
-- Toolchain configure coverage is explicit for default debug/release, Linux GCC debug/release, Linux Clang debug/release, and Windows MinGW debug/release. MinGW configure disables hostfxr bridge/probe targets when target-compatible .NET native hosting assets are not present under `OCTARYN_DOTNET_ROOT`; Linux host validation still builds and runs those bridge/probe targets.
-- BSD and macOS platform files are scaffold markers only until targeted configure presets and platform checks are added. Validation requires those scaffold markers so file presence cannot be mistaken for implemented platform coverage.
+- Toolchain configure coverage is explicit for default debug/release, Linux GCC debug/release, Linux Clang debug/release, Windows MinGW debug/release, and macOS AppleClang debug/release. MinGW configure disables hostfxr bridge/probe targets when target-compatible .NET native hosting assets are not present under `OCTARYN_DOTNET_ROOT`; Linux host validation still builds and runs those bridge/probe targets. macOS presets are Darwin-only and must be validated on a macOS host with AppleClang and the target .NET host pack installed.
+- BSD platform files are scaffold markers only until targeted configure presets and platform checks are added. Validation requires those scaffold markers so file presence cannot be mistaken for implemented platform coverage.
 - .NET native hosting discovery is target-RID constrained. Arch Linux uses `arch-x64`; MinGW declares `win-x64`; host pack lookup only searches `Microsoft.NETCore.App.Host.<rid>/.../runtimes/<rid>/native`, and hostfxr lookup uses the target platform extension.
 - `octaryn_validate_cmake_targets` validates every configured preset graph listed in `CMakePresets.json` and rejects stale generated root buckets outside the documented owner layout.
 - MinGW native archive validation proves target ABI explicitly: `octaryn_validate_native_archive_format` checks the shared host ABI archive with `x86_64-w64-mingw32-objdump` and requires PE/COFF `pe-x86-64` output.

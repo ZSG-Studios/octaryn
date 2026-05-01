@@ -522,7 +522,7 @@ Platform rules:
 - Native Windows policy belongs under `cmake/Platforms/Windows/`, but native MSVC Windows support is unimplemented until a native Windows preset/toolchain path exists. The old public Windows presets are MinGW cross-builds from Linux, not native Windows coverage.
 - Linux policy is split by distro family only when real package/tool behavior differs. Start with Arch, Debian, Fedora, and Suse/openSUSE because the old dependency installer already has distinct package-manager logic for those families.
 - BSD policy belongs under `cmake/Platforms/BSD/`, with FreeBSD-specific logic isolated from generic BSD checks. BSD is target coverage, not currently implemented old-CMake behavior.
-- macOS policy belongs under `cmake/Platforms/MacOS/`, including SDK, deployment target, frameworks, signing/notarization hooks, and AppleClang behavior. macOS is target coverage, not currently implemented old-CMake behavior.
+- macOS policy belongs under `cmake/Platforms/MacOS/`, including SDK, deployment target, frameworks, signing/notarization hooks, and AppleClang behavior. macOS has Darwin-only AppleClang presets; validate those on macOS hosts instead of faking AppleClang coverage from Linux.
 - Platform modules report capabilities; owner targets decide whether to use those capabilities. Platform modules must not own gameplay, rendering, server, basegame, or module-sandbox behavior.
 
 Port map for old CMake:
@@ -543,7 +543,7 @@ Validation for CMake changes:
 - For structure-only CMake work, run `validate_cmake_target_inventory.py`; it verifies active target names, required owner/platform/dependency files, and absence of old generic product CMake paths.
 - For build policy changes, configure the smallest owner target that uses the changed policy.
 - For platform/toolchain changes, run targeted configure checks for the affected platform or toolchain when the host has that compiler/sysroot installed.
-- Active configure presets cover default debug/release, Linux GCC, Linux Clang, and Windows MinGW. MinGW configure may disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are unavailable, but Linux host validation must still build and run those bridge/probe targets.
+- Active configure presets cover default debug/release, Linux GCC, Linux Clang, Windows MinGW, and macOS AppleClang. MinGW configure may disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are unavailable, but Linux host validation must still build and run those bridge/probe targets. macOS AppleClang configure/build validation belongs on Darwin hosts with the matching SDK and .NET target host pack.
 - Do not validate CMake work with smoke tests or `ctest` unless explicitly requested.
 
 ## Library Catalog
