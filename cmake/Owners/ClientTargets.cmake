@@ -210,6 +210,27 @@ if(TARGET SDL3::SDL3)
             OCTARYN_CLIENT_SHADER_CREATION_USE_SDL3)
 endif()
 
+octaryn_add_native_static_library(
+    octaryn_client_renderdoc_capture
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Diagnostics/RenderDocCapture/octaryn_client_renderdoc_capture.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Diagnostics/RenderDocCapture"
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeLogging"
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeProfiling"
+    PRIVATE_LINKS
+        octaryn_native_logging
+        octaryn_native_profiling)
+
+add_dependencies(octaryn_client_native octaryn_client_renderdoc_capture)
+
+if(CMAKE_DL_LIBS)
+    target_link_libraries(octaryn_client_renderdoc_capture
+        PRIVATE
+            ${CMAKE_DL_LIBS})
+endif()
+
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge
