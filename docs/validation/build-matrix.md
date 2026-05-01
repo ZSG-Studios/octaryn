@@ -37,6 +37,7 @@ cmake --build --preset release-windows-mingw-validate
 
 ```sh
 cmake --build --preset debug --target octaryn_client_managed_bridge
+cmake --build --preset debug --target octaryn_client_camera_matrix
 cmake --build --preset debug --target octaryn_client_render_distance
 cmake --build --preset debug --target octaryn_server_managed_bridge
 cmake --build --preset debug --target octaryn_server_bundle

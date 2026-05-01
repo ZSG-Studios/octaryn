@@ -41,6 +41,16 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_render_distance)
 
+octaryn_add_native_static_library(
+    octaryn_client_camera_matrix
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Camera/octaryn_client_camera_matrix.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Camera")
+
+add_dependencies(octaryn_client_native octaryn_client_camera_matrix)
+
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge
