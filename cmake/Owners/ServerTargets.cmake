@@ -67,6 +67,13 @@ octaryn_add_dotnet_owner(
 
 add_dependencies(octaryn_server octaryn_shared octaryn_basegame)
 
+add_custom_command(
+    OUTPUT "${octaryn_server_STAMP}"
+    APPEND
+    DEPENDS
+        "${octaryn_shared_STAMP}"
+        "${octaryn_basegame_STAMP}")
+
 file(MAKE_DIRECTORY "${server_build_root}/stamps" "${server_log_root}")
 
 add_custom_command(

@@ -75,6 +75,16 @@ if(TARGET SDL3::SDL3)
 endif()
 
 octaryn_add_native_static_library(
+    octaryn_client_display_menu
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Ui/DisplayMenu/octaryn_client_display_menu.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Ui/DisplayMenu")
+
+add_dependencies(octaryn_client_native octaryn_client_display_menu)
+
+octaryn_add_native_static_library(
     octaryn_client_camera_matrix
     client
     SOURCES
@@ -137,6 +147,13 @@ octaryn_add_dotnet_owner(
     "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Octaryn.Client.csproj")
 
 add_dependencies(octaryn_client_managed octaryn_shared octaryn_basegame)
+
+add_custom_command(
+    OUTPUT "${octaryn_client_managed_STAMP}"
+    APPEND
+    DEPENDS
+        "${octaryn_shared_STAMP}"
+        "${octaryn_basegame_STAMP}")
 
 file(MAKE_DIRECTORY "${client_build_root}/stamps" "${client_log_root}")
 
