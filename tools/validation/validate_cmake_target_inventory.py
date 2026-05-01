@@ -14,6 +14,7 @@ REQUIRED_TARGETS = {
     "octaryn_native_diagnostics",
     "octaryn_native_memory",
     "octaryn_native_profiling",
+    "octaryn_native_jobs",
     "octaryn_basegame",
     "octaryn_basegame_native",
     "octaryn_server",

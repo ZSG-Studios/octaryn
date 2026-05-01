@@ -89,12 +89,26 @@ if(TARGET Tracy::TracyClient OR TARGET TracyClient)
             OCTARYN_NATIVE_PROFILING_USE_TRACY)
 endif()
 
+octaryn_add_native_static_library(
+    octaryn_native_jobs
+    shared
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Libraries/NativeJobs/octaryn_native_worker_policy.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Libraries/NativeJobs"
+    PRIVATE_LINKS
+        octaryn_native_logging
+        octaryn_native_profiling
+        octaryn::native_threads
+        octaryn::deps::taskflow)
+
 add_dependencies(octaryn_shared_native
     octaryn_shared_host_abi
     octaryn_native_logging
     octaryn_native_diagnostics
     octaryn_native_memory
-    octaryn_native_profiling)
+    octaryn_native_profiling
+    octaryn_native_jobs)
 
 octaryn_add_dotnet_owner(
     octaryn_shared

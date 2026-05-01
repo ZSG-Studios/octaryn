@@ -47,3 +47,13 @@ if(TARGET Tracy::TracyClient)
 elseif(TARGET TracyClient)
     target_link_libraries(octaryn_native_tracy INTERFACE TracyClient)
 endif()
+
+add_library(octaryn_native_taskflow INTERFACE)
+add_library(octaryn::deps::taskflow ALIAS octaryn_native_taskflow)
+
+find_package(Taskflow CONFIG QUIET)
+if(TARGET Taskflow::Taskflow)
+    target_link_libraries(octaryn_native_taskflow INTERFACE Taskflow::Taskflow)
+elseif(TARGET Taskflow)
+    target_link_libraries(octaryn_native_taskflow INTERFACE Taskflow)
+endif()
