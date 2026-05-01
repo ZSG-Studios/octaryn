@@ -7,6 +7,7 @@ Shader sources and shader asset generation are client/tool concerns.
 - Runtime shader sources move to `octaryn-client/Shaders/`.
 - Generated shader outputs are build artifacts and stay ignored.
 - The shader compiler belongs under root tools when ported, not inside basegame.
+- Shader compiler metadata belongs beside the root shader compiler tool, not under old render ownership.
 - Basegame may own content shader inputs only when they are default-game assets.
 
 ## Old Targets

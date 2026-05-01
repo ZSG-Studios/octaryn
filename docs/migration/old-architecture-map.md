@@ -19,7 +19,8 @@
 | `old-architecture/source/app/` | `octaryn-client/Source/` | Window, input, local frame loop, overlays, and managed host edge. |
 | `old-architecture/source/render/` | `octaryn-client/Source/Rendering/` | GPU upload, render resources, pipelines, scene presentation, UI rendering. |
 | `old-architecture/source/shaders/` | `octaryn-client/Shaders/` plus shader tooling | Runtime shader sources are client-owned assets. |
-| `old-architecture/source/tools/shader_tool_main.cpp` | `tools/Source/ShaderCompiler/` | Root shader tooling; generated shader assets are consumed by client-owned shader pipelines. |
+| `old-architecture/source/tools/shader_tool_main.cpp` | `tools/Source/ShaderCompiler/` | Root shader tooling; generated shader assets are consumed by client-owned shader pipelines. Tool dependency aliases and metadata are staged first; executable port waits for direct shader-output validation. |
+| `old-architecture/source/render/shader/asset_metadata.hpp` | `tools/Source/ShaderCompiler/ShaderAssetMetadata.hpp` | Ported as a tool-local metadata schema so root shader tools do not include old render-owned headers. |
 | `old-architecture/source/world/edit/` | `octaryn-server/Source/World/` and shared command contracts | Server owns authoritative edit validation and execution. |
 | `old-architecture/source/world/runtime/` | split between client presentation and server world authority | Query/render descriptor pieces are not shared implementation. |
 | `old-architecture/source/world/chunks/` | split between server chunk authority and client mesh presentation | Storage, streaming, meshing, and upload must be separated. |
