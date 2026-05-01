@@ -180,6 +180,16 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_hidden_block_uniforms)
 
+octaryn_add_native_static_library(
+    octaryn_client_shader_metadata_contract
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Shaders/Metadata/octaryn_client_shader_metadata_contract.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Shaders/Metadata")
+
+add_dependencies(octaryn_client_native octaryn_client_shader_metadata_contract)
+
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge
