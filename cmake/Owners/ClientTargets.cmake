@@ -103,6 +103,24 @@ if(TARGET SDL3::SDL3)
 endif()
 
 octaryn_add_native_static_library(
+    octaryn_client_fullscreen_display_mode
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Window/FullscreenDisplayMode/octaryn_client_fullscreen_display_mode.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Window/FullscreenDisplayMode"
+    PRIVATE_LINKS
+        octaryn::deps::sdl3)
+
+add_dependencies(octaryn_client_native octaryn_client_fullscreen_display_mode)
+
+if(TARGET SDL3::SDL3)
+    target_compile_definitions(octaryn_client_fullscreen_display_mode
+        PUBLIC
+            OCTARYN_CLIENT_FULLSCREEN_DISPLAY_MODE_USE_SDL3)
+endif()
+
+octaryn_add_native_static_library(
     octaryn_client_display_menu
     client
     SOURCES
