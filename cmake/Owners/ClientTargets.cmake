@@ -31,6 +31,16 @@ endif()
 
 add_dependencies(octaryn_client_native octaryn_client_asset_paths)
 
+octaryn_add_native_static_library(
+    octaryn_client_render_distance
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/RenderDistance/octaryn_client_render_distance.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/RenderDistance")
+
+add_dependencies(octaryn_client_native octaryn_client_render_distance)
+
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge
