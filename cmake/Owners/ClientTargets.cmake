@@ -104,6 +104,16 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_camera_matrix)
 
+octaryn_add_native_static_library(
+    octaryn_client_visibility_flags
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Visibility/octaryn_client_visibility_flags.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Visibility")
+
+add_dependencies(octaryn_client_native octaryn_client_visibility_flags)
+
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge

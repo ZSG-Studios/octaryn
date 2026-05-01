@@ -31,6 +31,7 @@ REQUIRED_TARGETS = {
     "octaryn_client_display_settings",
     "octaryn_client_lighting_settings",
     "octaryn_client_render_distance",
+    "octaryn_client_visibility_flags",
     "octaryn_client_managed_bridge",
     "octaryn_client_launch_probe",
     "octaryn_client_bundle",
