@@ -20,7 +20,8 @@ function(octaryn_add_native_static_library target_name owner)
         C_STANDARD_REQUIRED ON
         CXX_STANDARD 23
         CXX_STANDARD_REQUIRED ON
-        CXX_EXTENSIONS OFF)
+        CXX_EXTENSIONS OFF
+        POSITION_INDEPENDENT_CODE ON)
 
     if(OCTARYN_NATIVE_PUBLIC_INCLUDE_DIRS)
         target_include_directories(${target_name}

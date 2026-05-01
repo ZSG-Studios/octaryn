@@ -60,8 +60,10 @@ if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
         PUBLIC_INCLUDE_DIRS
             "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/ClientHostAbi"
             "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Native/HostAbi"
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeCrashDiagnostics"
         PRIVATE_LINKS
             octaryn_shared_host_abi
+            octaryn_native_diagnostics
             octaryn::dotnet_hosting)
 
     target_compile_definitions(octaryn_client_managed_bridge

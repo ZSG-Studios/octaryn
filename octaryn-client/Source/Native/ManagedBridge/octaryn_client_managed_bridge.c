@@ -1,5 +1,6 @@
 #define OCTARYN_ABI_BUILD
 #include "octaryn_client_host_exports.h"
+#include "octaryn_native_crash_diagnostics.h"
 
 #include <coreclr_delegates.h>
 #include <dlfcn.h>
@@ -53,6 +54,8 @@ static int octaryn_resolve_managed_method(
 
 static int octaryn_client_load_managed_exports(void)
 {
+    octaryn_native_crash_diagnostics_init("octaryn-client-native");
+
     if (s_initialize != NULL && s_tick != NULL && s_shutdown != NULL) {
         return 0;
     }
