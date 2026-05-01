@@ -1,0 +1,47 @@
+#include "octaryn_client_hidden_block_uniforms.h"
+
+void octaryn_client_hidden_block_uniforms_clear(octaryn_client_hidden_block_uniforms* uniforms)
+{
+    if (uniforms == nullptr)
+    {
+        return;
+    }
+
+    uniforms->count = 0u;
+    uniforms->pad[0] = 0;
+    uniforms->pad[1] = 0;
+    uniforms->pad[2] = 0;
+
+    for (uint32_t i = 0u; i < OCTARYN_CLIENT_HIDDEN_BLOCK_CAPACITY; ++i)
+    {
+        uniforms->blocks[i][0] = 0;
+        uniforms->blocks[i][1] = 0;
+        uniforms->blocks[i][2] = 0;
+        uniforms->blocks[i][3] = 0;
+    }
+}
+
+void octaryn_client_hidden_block_uniforms_fill(
+    octaryn_client_hidden_block_uniforms* uniforms,
+    const octaryn_client_hidden_block_position* positions,
+    uint32_t position_count)
+{
+    octaryn_client_hidden_block_uniforms_clear(uniforms);
+
+    if (uniforms == nullptr || positions == nullptr)
+    {
+        return;
+    }
+
+    const uint32_t copied_count =
+        position_count < OCTARYN_CLIENT_HIDDEN_BLOCK_CAPACITY ? position_count : OCTARYN_CLIENT_HIDDEN_BLOCK_CAPACITY;
+    uniforms->count = copied_count;
+
+    for (uint32_t i = 0u; i < copied_count; ++i)
+    {
+        uniforms->blocks[i][0] = positions[i].x;
+        uniforms->blocks[i][1] = positions[i].y;
+        uniforms->blocks[i][2] = positions[i].z;
+        uniforms->blocks[i][3] = 0;
+    }
+}

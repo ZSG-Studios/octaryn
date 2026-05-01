@@ -170,6 +170,16 @@ octaryn_add_native_static_library(
 
 add_dependencies(octaryn_client_native octaryn_client_visibility_flags)
 
+octaryn_add_native_static_library(
+    octaryn_client_hidden_block_uniforms
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Scene/HiddenBlocks/octaryn_client_hidden_block_uniforms.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Rendering/Scene/HiddenBlocks")
+
+add_dependencies(octaryn_client_native octaryn_client_hidden_block_uniforms)
+
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge
