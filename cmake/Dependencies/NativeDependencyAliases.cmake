@@ -27,3 +27,13 @@ find_package(cpptrace CONFIG QUIET)
 if(TARGET cpptrace::cpptrace)
     target_link_libraries(octaryn_native_cpptrace INTERFACE cpptrace::cpptrace)
 endif()
+
+add_library(octaryn_native_mimalloc INTERFACE)
+add_library(octaryn::deps::mimalloc ALIAS octaryn_native_mimalloc)
+
+find_package(mimalloc CONFIG QUIET)
+if(TARGET mimalloc-static)
+    target_link_libraries(octaryn_native_mimalloc INTERFACE mimalloc-static)
+elseif(TARGET mimalloc)
+    target_link_libraries(octaryn_native_mimalloc INTERFACE mimalloc)
+endif()

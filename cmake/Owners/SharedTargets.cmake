@@ -50,10 +50,29 @@ if(TARGET cpptrace::cpptrace)
             OCTARYN_NATIVE_DIAGNOSTICS_USE_CPPTRACE)
 endif()
 
+octaryn_add_native_static_library(
+    octaryn_native_memory
+    shared
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Memory/NativeMemory/octaryn_native_memory.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Memory/NativeMemory"
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeLogging"
+    PRIVATE_LINKS
+        octaryn_native_logging
+        octaryn::deps::mimalloc)
+
+if(TARGET mimalloc-static OR TARGET mimalloc)
+    target_compile_definitions(octaryn_native_memory
+        PRIVATE
+            OCTARYN_NATIVE_MEMORY_USE_MIMALLOC)
+endif()
+
 add_dependencies(octaryn_shared_native
     octaryn_shared_host_abi
     octaryn_native_logging
-    octaryn_native_diagnostics)
+    octaryn_native_diagnostics
+    octaryn_native_memory)
 
 octaryn_add_dotnet_owner(
     octaryn_shared

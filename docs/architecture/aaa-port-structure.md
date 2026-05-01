@@ -556,7 +556,7 @@ Use these libraries for the cases they are intended for. Keep wrappers focused a
 | --- | --- | --- |
 | `octaryn_engine_log` | Native logging through `spdlog`. | `octaryn_native_logging`, used by client, server, tools, and support libraries that need logs. |
 | `octaryn_engine_diagnostics` | Crash diagnostics and stack traces. | `octaryn_native_diagnostics`, used by executables and tools that need crash reports. |
-| `octaryn_engine_memory` | Process allocator setup through `mimalloc`. | `octaryn_native_memory`; remove or isolate its current SDL coupling while porting. |
+| `octaryn_engine_memory` | Process allocator setup through `mimalloc`. | `octaryn_native_memory`; SDL coupling removed while porting. |
 | `octaryn_engine_imgui_backend` | Dear ImGui backend glue for SDL3 and SDL GPU. | Client UI/debug UI only. |
 | `octaryn_engine_shader_tool` | GLSL compilation, reflection, validation, and SPIR-V/MSL asset generation. | Root `tools/` shader compiler; generated shaders are client-owned assets. |
 | `octaryn_engine_texture_atlas` | Builds block/material texture atlases from basegame content and packs. | `octaryn-basegame/Tools/`; generated atlas assets are consumed by the client. |

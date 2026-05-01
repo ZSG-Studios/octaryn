@@ -12,6 +12,7 @@ REQUIRED_TARGETS = {
     "octaryn_shared_host_abi",
     "octaryn_native_logging",
     "octaryn_native_diagnostics",
+    "octaryn_native_memory",
     "octaryn_basegame",
     "octaryn_basegame_native",
     "octaryn_server",
