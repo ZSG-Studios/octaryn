@@ -88,22 +88,44 @@
 
   <Target Name="OctarynValidateModuleManifestPackages" BeforeTargets="CoreCompile"
     Condition="'$(OctarynIsModuleOwner)' == 'true'">
-    <Exec Command="python3 &quot;$(MSBuildThisFileDirectory)tools/validation/validate_module_manifest_packages.py&quot; --module-root &quot;$(MSBuildProjectDirectory)&quot; --project-file &quot;$(MSBuildProjectFullPath)&quot; --allowed-package-ids-file &quot;$(MSBuildThisFileDirectory)octaryn-shared/Source/FrameworkAllowlist/AllowedPackageIds.cs&quot;" />
+    <ItemGroup Condition="'$(OctarynModuleManifestJson)' == ''">
+      <OctarynModuleManifestJsonCandidate Include="$(MSBuildProjectDirectory)/Data/Module/*.module.json" />
+    </ItemGroup>
+    <PropertyGroup Condition="'$(OctarynModuleManifestJson)' == '' And '@(OctarynModuleManifestJsonCandidate)' != ''">
+      <OctarynModuleManifestJson>@(OctarynModuleManifestJsonCandidate)</OctarynModuleManifestJson>
+    </PropertyGroup>
+    <Error Condition="'$(OctarynModuleManifestJson)' != '' And $([System.String]::Copy('$(OctarynModuleManifestJson)').Contains(';'))"
+      Text="$(MSBuildProjectName) must set OctarynModuleManifestJson explicitly when more than one Data/Module/*.module.json file exists." />
+    <Exec Condition="'$(OctarynModuleManifestJson)' == ''"
+      Command="python3 &quot;$(MSBuildThisFileDirectory)tools/validation/validate_module_manifest_packages.py&quot; --module-root &quot;$(MSBuildProjectDirectory)&quot; --project-file &quot;$(MSBuildProjectFullPath)&quot; --allowed-package-ids-file &quot;$(MSBuildThisFileDirectory)octaryn-shared/Source/FrameworkAllowlist/AllowedPackageIds.cs&quot;" />
+    <Exec Condition="'$(OctarynModuleManifestJson)' != ''"
+      Command="python3 &quot;$(MSBuildThisFileDirectory)tools/validation/validate_module_manifest_packages.py&quot; --module-root &quot;$(MSBuildProjectDirectory)&quot; --project-file &quot;$(MSBuildProjectFullPath)&quot; --allowed-package-ids-file &quot;$(MSBuildThisFileDirectory)octaryn-shared/Source/FrameworkAllowlist/AllowedPackageIds.cs&quot; --manifest-json &quot;$(OctarynModuleManifestJson)&quot;" />
   </Target>
 
   <Target Name="OctarynValidateModuleManifestFiles" BeforeTargets="CoreCompile"
     Condition="'$(OctarynIsModuleOwner)' == 'true'">
-    <Exec Command="python3 &quot;$(MSBuildThisFileDirectory)tools/validation/validate_module_manifest_files.py&quot; --module-root &quot;$(MSBuildProjectDirectory)&quot;" />
+    <ItemGroup Condition="'$(OctarynModuleManifestJson)' == ''">
+      <OctarynModuleManifestJsonCandidate Include="$(MSBuildProjectDirectory)/Data/Module/*.module.json" />
+    </ItemGroup>
+    <PropertyGroup Condition="'$(OctarynModuleManifestJson)' == '' And '@(OctarynModuleManifestJsonCandidate)' != ''">
+      <OctarynModuleManifestJson>@(OctarynModuleManifestJsonCandidate)</OctarynModuleManifestJson>
+    </PropertyGroup>
+    <Error Condition="'$(OctarynModuleManifestJson)' != '' And $([System.String]::Copy('$(OctarynModuleManifestJson)').Contains(';'))"
+      Text="$(MSBuildProjectName) must set OctarynModuleManifestJson explicitly when more than one Data/Module/*.module.json file exists." />
+    <Exec Condition="'$(OctarynModuleManifestJson)' == ''"
+      Command="python3 &quot;$(MSBuildThisFileDirectory)tools/validation/validate_module_manifest_files.py&quot; --module-root &quot;$(MSBuildProjectDirectory)&quot;" />
+    <Exec Condition="'$(OctarynModuleManifestJson)' != ''"
+      Command="python3 &quot;$(MSBuildThisFileDirectory)tools/validation/validate_module_manifest_files.py&quot; --module-root &quot;$(MSBuildProjectDirectory)&quot; --manifest-json &quot;$(OctarynModuleManifestJson)&quot;" />
   </Target>
 
   <Target Name="OctarynValidateModuleSourceApi" BeforeTargets="CoreCompile"
     Condition="'$(OctarynIsModuleOwner)' == 'true'">
-    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; --no-restore -- &quot;$(MSBuildProjectDirectory)&quot;" />
+    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; -- --source-root &quot;$(MSBuildProjectDirectory)&quot; --assets-file &quot;$(ProjectAssetsFile)&quot;" />
   </Target>
 
   <Target Name="OctarynValidateModuleBinarySandbox" AfterTargets="CopyFilesToOutputDirectory"
     Condition="'$(OctarynIsModuleOwner)' == 'true'">
-    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; --no-restore -- --assembly &quot;$(TargetPath)&quot; --assets-file &quot;$(ProjectAssetsFile)&quot;" />
+    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; -- --assembly &quot;$(TargetPath)&quot; --assets-file &quot;$(ProjectAssetsFile)&quot;" />
   </Target>
 
   <Target Name="OctarynValidateModuleLayout" BeforeTargets="CoreCompile"

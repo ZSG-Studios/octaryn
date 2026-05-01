@@ -52,6 +52,12 @@ internal static class ModuleBinarySandboxProbe
         ["UnmanagedCallersOnlyAttribute"] = FrameworkApiGroupIds.BclNativeInterop
     };
 
+    private static readonly IReadOnlySet<string> DeniedModuleApiNamespaces = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "Octaryn.Shared.Networking",
+        "Schedulers"
+    };
+
     private static readonly IReadOnlySet<string> DeniedFullTypeNames = new HashSet<string>(StringComparer.Ordinal)
     {
         "System.Reflection.Assembly",
@@ -145,6 +151,8 @@ internal static class ModuleBinarySandboxProbe
         ExpectDenied(errors, "native marshal", "System.Runtime.InteropServices", "Marshal", null, "System.Runtime.InteropServices.Marshal");
         ExpectDenied(errors, "threading task", "System.Threading.Tasks", "Task", "Run", FrameworkApiGroupIds.BclThreading);
         ExpectDenied(errors, "threading parallel", "System.Threading.Tasks", "Parallel", "For", FrameworkApiGroupIds.BclThreading);
+        ExpectDenied(errors, "networking contract namespace", "Octaryn.Shared.Networking", "ClientCommandFrame", null, "denied module API namespace");
+        ExpectDenied(errors, "transitive scheduler namespace", "Schedulers", "JobScheduler", null, "denied module API namespace");
         ExpectAllowed(errors, "compiler attribute", "System.Runtime.CompilerServices", "NullableContextAttribute", ".ctor");
         ValidateAllowedAssemblyReferencePolicySelfTests(errors);
         return errors;
@@ -700,6 +708,16 @@ internal static class ModuleBinarySandboxProbe
         {
             errors.Add($"{assemblyPath}: denied framework API: {fullTypeName}");
             return;
+        }
+
+        foreach (var deniedNamespace in DeniedModuleApiNamespaces)
+        {
+            if (namespaceName == deniedNamespace ||
+                namespaceName.StartsWith(deniedNamespace + ".", StringComparison.Ordinal))
+            {
+                errors.Add($"{assemblyPath}: denied module API namespace: {fullTypeName}");
+                return;
+            }
         }
 
         if (fullTypeName == "System.Type" && memberName == "GetTypeFromHandle")

@@ -119,6 +119,12 @@ internal static class ModuleApiProbe
         "Schedulers.JobHandle"
     };
 
+    private static readonly HashSet<string> DeniedModuleApiNamespaces = new(StringComparer.Ordinal)
+    {
+        "Octaryn.Shared.Networking",
+        "Schedulers"
+    };
+
     public static int Run(IReadOnlyList<string> args)
     {
         var selfTestErrors = RunSelfTests();
@@ -133,7 +139,8 @@ internal static class ModuleApiProbe
         }
 
         var moduleRoot = ParseSourceRoot(args);
-        var errors = Validate(moduleRoot);
+        var assetsPath = ParseOption(args, "--assets-file");
+        var errors = Validate(moduleRoot, assetsPath);
         if (errors.Count == 0)
         {
             return 0;
@@ -147,10 +154,10 @@ internal static class ModuleApiProbe
         return 1;
     }
 
-    private static List<string> Validate(string moduleRoot)
+    private static List<string> Validate(string moduleRoot, string? assetsPath = null)
     {
         var errors = new List<string>();
-        var requestedGroups = LoadRequestedFrameworkGroups(moduleRoot, errors);
+        var requestedGroups = LoadRequestedFrameworkGroups(moduleRoot, assetsPath, errors);
 
         foreach (var deniedGroup in DeniedFrameworkApiGroups.Values)
         {
@@ -181,7 +188,7 @@ internal static class ModuleApiProbe
         var compilation = CSharpCompilation.Create(
             "Octaryn.ModuleApiProbe.Input",
             syntaxTrees,
-            CompilationReferences(moduleRoot),
+            CompilationReferences(moduleRoot, assetsPath),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         foreach (var tree in syntaxTrees)
@@ -238,6 +245,11 @@ internal static class ModuleApiProbe
             FrameworkApiGroupIds.BclFilesystem,
             errors,
             requestedGroups: ["\"bcl.filesystem\""]);
+        VerifyDenied(
+            "networking contract namespace",
+            "using Octaryn.Shared.Networking; public static class Probe { public static void Run() { _ = default(ClientCommandFrame); } }",
+            "denied module API namespace",
+            errors);
         ExpectValid(
             "requested allowed text API",
             "using System.Text; public static class Probe { public static void Run() { _ = new StringBuilder(); } }",
@@ -519,6 +531,11 @@ internal static class ModuleApiProbe
             "using Octaryn.Shared.World; public static class Probe { public static void Run() { _ = default(ChunkSnapshot); } }",
             "denied host control API",
             errors);
+        VerifyDenied(
+            "transitive scheduler namespace",
+            "using Schedulers; public static class Probe { public static void Run() { } }",
+            "denied module API namespace",
+            errors);
         VerifyDeniedRaw(
             "unresolved type compile diagnostic",
             "public static class Probe { public static void Run() { MissingType value = null; } }",
@@ -708,12 +725,34 @@ internal static class ModuleApiProbe
             }
         }
 
-        return args.Count > 0
-            ? Path.GetFullPath(args[0])
-            : Path.GetFullPath("octaryn-basegame");
+        for (var index = 0; index < args.Count; index++)
+        {
+            if (args[index].StartsWith("--", StringComparison.Ordinal))
+            {
+                index++;
+                continue;
+            }
+
+            return Path.GetFullPath(args[index]);
+        }
+
+        return Path.GetFullPath("octaryn-basegame");
     }
 
-    private static HashSet<string> LoadRequestedFrameworkGroups(string moduleRoot, List<string> errors)
+    private static string? ParseOption(IReadOnlyList<string> args, string name)
+    {
+        for (var index = 0; index < args.Count - 1; index++)
+        {
+            if (args[index] == name)
+            {
+                return Path.GetFullPath(args[index + 1]);
+            }
+        }
+
+        return null;
+    }
+
+    private static HashSet<string> LoadRequestedFrameworkGroups(string moduleRoot, string? assetsPath, List<string> errors)
     {
         var groups = new HashSet<string>(StringComparer.Ordinal);
         var sourceRoot = Path.Combine(moduleRoot, "Source");
@@ -734,7 +773,7 @@ internal static class ModuleApiProbe
         var compilation = CSharpCompilation.Create(
             "Octaryn.ModuleApiProbe.ManifestInput",
             syntaxTrees,
-            CompilationReferences(moduleRoot),
+            CompilationReferences(moduleRoot, assetsPath),
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         foreach (var tree in syntaxTrees)
@@ -855,7 +894,7 @@ internal static class ModuleApiProbe
         };
     }
 
-    private static IEnumerable<MetadataReference> CompilationReferences(string moduleRoot)
+    private static IEnumerable<MetadataReference> CompilationReferences(string moduleRoot, string? assetsPath)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var paths = ((string?)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? string.Empty)
@@ -873,7 +912,7 @@ internal static class ModuleApiProbe
             yield return MetadataReference.CreateFromFile(typeof(GameModuleManifest).Assembly.Location);
         }
 
-        foreach (var path in ModulePackageReferencePaths(moduleRoot))
+        foreach (var path in ModulePackageReferencePaths(moduleRoot, assetsPath))
         {
             if (seen.Add(path))
             {
@@ -882,9 +921,9 @@ internal static class ModuleApiProbe
         }
     }
 
-    private static IEnumerable<string> ModulePackageReferencePaths(string moduleRoot)
+    private static IEnumerable<string> ModulePackageReferencePaths(string moduleRoot, string? assetsPath)
     {
-        var assetsPath = ResolveProjectAssetsPath(moduleRoot);
+        assetsPath ??= ResolveProjectAssetsPath(moduleRoot);
         if (assetsPath is null)
         {
             yield break;
@@ -948,20 +987,13 @@ internal static class ModuleApiProbe
 
         var projectName = Path.GetFileNameWithoutExtension(projectFile);
         var repoRoot = FindRepoRoot(moduleRoot);
-        var candidate = Path.Combine(repoRoot, "build", "basegame", "dotnet", "obj", projectName, "project.assets.json");
+        var candidate = Path.Combine(repoRoot, "build", "basegame", "local", "dotnet", "obj", projectName, "project.assets.json");
         if (File.Exists(candidate))
         {
             return candidate;
         }
 
-        var buildRoot = Path.Combine(repoRoot, "build");
-        if (!Directory.Exists(buildRoot))
-        {
-            return null;
-        }
-
-        return Directory.EnumerateFiles(buildRoot, "project.assets.json", SearchOption.AllDirectories)
-            .FirstOrDefault(path => path.Split(Path.DirectorySeparatorChar).Contains(projectName));
+        return null;
     }
 
     private static string FindRepoRoot(string moduleRoot)
@@ -998,6 +1030,12 @@ internal static class ModuleApiProbe
             if (FindDeniedGroup(name) is { } group)
             {
                 errors.Add($"{Location(tree, usingDirective.GetLocation())}: denied framework API group {group}: using {name}");
+                continue;
+            }
+
+            if (IsDeniedModuleApiNamespace(name))
+            {
+                errors.Add($"{Location(tree, usingDirective.GetLocation())}: denied module API namespace: using {name}");
                 continue;
             }
 
@@ -1161,6 +1199,12 @@ internal static class ModuleApiProbe
                 return;
             }
 
+            if (IsDeniedModuleApiNamespace(fullyQualifiedName))
+            {
+                errors.Add($"{Location(tree, node.GetLocation())}: denied module API namespace: {fullyQualifiedName}");
+                return;
+            }
+
             var allowedGroup = FindAllowedGroup(fullyQualifiedName) ?? FindAllowedTypeGroup(fullyQualifiedName);
             if (allowedGroup is not null)
             {
@@ -1231,6 +1275,13 @@ internal static class ModuleApiProbe
         }
 
         return null;
+    }
+
+    private static bool IsDeniedModuleApiNamespace(string fullyQualifiedName)
+    {
+        return DeniedModuleApiNamespaces.Any(prefix =>
+            fullyQualifiedName == prefix ||
+            fullyQualifiedName.StartsWith($"{prefix}.", StringComparison.Ordinal));
     }
 
     private static string? NormalizeName(NameSyntax? name)

@@ -15,9 +15,9 @@ set(octaryn_tool_server_bundle_dir "${tool_server_build_root}/bundle")
 set(octaryn_tool_client_probe_log "${tool_client_log_root}/octaryn_client_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
 set(octaryn_tool_server_probe_log "${tool_server_log_root}/octaryn_server_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
 set(octaryn_tool_basegame_project "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Octaryn.Basegame.csproj")
-set(octaryn_tool_client_assets "${OCTARYN_WORKSPACE_ROOT_DIR}/build/client/dotnet/obj/Octaryn.Client/project.assets.json")
-set(octaryn_tool_server_assets "${OCTARYN_WORKSPACE_ROOT_DIR}/build/server/dotnet/obj/Octaryn.Server/project.assets.json")
-set(octaryn_tool_basegame_assets "${OCTARYN_WORKSPACE_ROOT_DIR}/build/basegame/dotnet/obj/Octaryn.Basegame/project.assets.json")
+set(octaryn_tool_client_assets "${tool_client_build_root}/dotnet/obj/Octaryn.Client/project.assets.json")
+set(octaryn_tool_server_assets "${tool_server_build_root}/dotnet/obj/Octaryn.Server/project.assets.json")
+set(octaryn_tool_basegame_assets "${tool_basegame_build_root}/dotnet/obj/Octaryn.Basegame/project.assets.json")
 set(octaryn_tool_basegame_manifest_json "${tool_basegame_build_root}/generated/octaryn.basegame.manifest.json")
 
 add_custom_target(octaryn_validate_cmake_targets
@@ -42,41 +42,8 @@ add_custom_target(octaryn_validate_package_policy_sync
 
 add_custom_target(octaryn_validate_project_references
     COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_all_project_reference_boundaries.py"
         --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Octaryn.Shared.csproj"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${octaryn_tool_basegame_project}"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Octaryn.Client.csproj"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-server/Octaryn.Server.csproj"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleManifestProbe/Octaryn.ModuleManifestProbe.csproj"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj"
-    COMMAND python3
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_project_reference_boundaries.py"
-        --repo-root "${OCTARYN_WORKSPACE_ROOT_DIR}"
-        --project-file "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj"
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)
 
@@ -103,9 +70,11 @@ add_custom_target(octaryn_validate_module_manifest_files
     VERBATIM)
 
 add_custom_target(octaryn_validate_module_manifest_probe
-    COMMAND "${DOTNET_EXECUTABLE}" restore
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleManifestProbe/Octaryn.ModuleManifestProbe.csproj"
-    COMMAND "${DOTNET_EXECUTABLE}" run
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleManifestProbe/Octaryn.ModuleManifestProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --no-restore
@@ -115,24 +84,29 @@ add_custom_target(octaryn_validate_module_manifest_probe
     VERBATIM)
 
 add_custom_target(octaryn_validate_module_source_api
-    COMMAND "${DOTNET_EXECUTABLE}" restore
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj"
-    COMMAND "${DOTNET_EXECUTABLE}" run
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --no-restore
-        -- "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame"
+        -- --source-root "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame"
+        --assets-file "${octaryn_tool_basegame_assets}"
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)
 
 add_custom_target(octaryn_validate_module_binary_sandbox
-    COMMAND "${DOTNET_EXECUTABLE}" restore
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj"
-    COMMAND "${DOTNET_EXECUTABLE}" run
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --no-restore
-        -- --assembly "${OCTARYN_WORKSPACE_ROOT_DIR}/build/basegame/dotnet/bin/Octaryn.Basegame/${CMAKE_BUILD_TYPE}/net10.0/Octaryn.Basegame.dll"
+        -- --assembly "${tool_basegame_build_root}/dotnet/bin/Octaryn.Basegame/${CMAKE_BUILD_TYPE}/net10.0/Octaryn.Basegame.dll"
         --assets-file "${octaryn_tool_basegame_assets}"
     DEPENDS
         octaryn_basegame
@@ -219,9 +193,11 @@ else()
 endif()
 
 add_custom_target(octaryn_validate_dotnet_owners
-    COMMAND "${DOTNET_EXECUTABLE}" restore
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/Octaryn.DotNet.sln"
-    COMMAND "${DOTNET_EXECUTABLE}" build
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" build
         "${OCTARYN_WORKSPACE_ROOT_DIR}/Octaryn.DotNet.sln"
         --configuration "${CMAKE_BUILD_TYPE}"
         --no-restore
@@ -241,9 +217,11 @@ add_custom_target(octaryn_validate_scheduler_contract
     VERBATIM)
 
 add_custom_target(octaryn_validate_scheduler_probe
-    COMMAND "${DOTNET_EXECUTABLE}" restore
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj"
-    COMMAND "${DOTNET_EXECUTABLE}" run
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --no-restore
@@ -251,9 +229,11 @@ add_custom_target(octaryn_validate_scheduler_probe
     VERBATIM)
 
 add_custom_target(octaryn_validate_owner_module_validation_probe
-    COMMAND "${DOTNET_EXECUTABLE}" restore
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj"
-    COMMAND "${DOTNET_EXECUTABLE}" run
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --no-restore

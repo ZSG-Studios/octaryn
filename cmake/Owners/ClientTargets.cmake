@@ -92,7 +92,8 @@ add_custom_command(
         "${octaryn_client_bundle_dir}/Schedulers.dll"
     COMMAND "${CMAKE_COMMAND}" -E rm -rf "${octaryn_client_bundle_dir}"
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${octaryn_client_bundle_dir}"
-    COMMAND "${DOTNET_EXECUTABLE}" publish "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Octaryn.Client.csproj"
+    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "${DOTNET_EXECUTABLE}" publish "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Octaryn.Client.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --framework net10.0
         --output "${octaryn_client_bundle_dir}"

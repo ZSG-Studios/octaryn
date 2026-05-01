@@ -63,7 +63,7 @@ dotnet run --project tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn
 
 - CMake driver state lives under `build/tools/cmake/<preset>/`.
 - Owner products from CMake live under `build/<owner>/<preset>/`.
-- Default direct MSBuild output lives under `build/<owner>/dotnet/`.
+- Default direct MSBuild output lives under `build/<owner>/local/dotnet/`.
 - Owner logs and CMake-driven binary logs live under `logs/<owner>/`.
 
 Old monolith outputs under `build/octaryn-engine/` and old target names under `old-architecture/` are transitional port artifacts only.

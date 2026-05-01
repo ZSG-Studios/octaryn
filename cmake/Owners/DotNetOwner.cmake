@@ -12,7 +12,7 @@ function(octaryn_add_dotnet_owner target_name owner project_path)
     endif()
     set(stamp_dir "${owner_build_root}/dotnet/stamps")
     set(stamp_file "${stamp_dir}/${target_name}.stamp")
-    set(output_dll "${OCTARYN_WORKSPACE_ROOT_DIR}/build/${owner}/dotnet/bin/${project_stem}/${dotnet_configuration}/net10.0/${project_stem}.dll")
+    set(output_dll "${owner_build_root}/dotnet/bin/${project_stem}/${dotnet_configuration}/net10.0/${project_stem}.dll")
     file(GLOB_RECURSE dotnet_source_inputs CONFIGURE_DEPENDS
         "${project_dir}/*.cs"
         "${project_dir}/*.csproj")
@@ -25,8 +25,10 @@ function(octaryn_add_dotnet_owner target_name owner project_path)
     add_custom_command(
         OUTPUT "${stamp_file}"
         BYPRODUCTS "${output_dll}"
-        COMMAND "${DOTNET_EXECUTABLE}" build "${project_path}"
+        COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+            "${DOTNET_EXECUTABLE}" build "${project_path}"
             --configuration "${dotnet_configuration}"
+            --no-dependencies
             "-bl:${owner_log_root}/${target_name}-${OCTARYN_BUILD_PRESET_NAME}.binlog"
         COMMAND "${CMAKE_COMMAND}" -E touch "${stamp_file}"
         DEPENDS

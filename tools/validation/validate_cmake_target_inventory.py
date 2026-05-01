@@ -10,6 +10,7 @@ REQUIRED_TARGETS = {
     "octaryn_shared",
     "octaryn_shared_native",
     "octaryn_shared_host_abi",
+    "octaryn_native_logging",
     "octaryn_basegame",
     "octaryn_basegame_native",
     "octaryn_server",
@@ -104,6 +105,9 @@ REQUIRED_CONFIGURE_PRESETS = (
     "debug-linux-gcc",
     "debug-linux-clang",
     "debug-windows-mingw",
+    "release-linux-gcc",
+    "release-linux-clang",
+    "release-windows-mingw",
 )
 
 REQUIRED_BUILD_PRESETS = (
@@ -117,6 +121,12 @@ REQUIRED_BUILD_PRESETS = (
     "debug-linux-clang-validate",
     "debug-windows-mingw",
     "debug-windows-mingw-validate",
+    "release-linux-gcc",
+    "release-linux-gcc-validate",
+    "release-linux-clang",
+    "release-linux-clang-validate",
+    "release-windows-mingw",
+    "release-windows-mingw-validate",
 )
 
 ALLOWED_BUILD_ROOTS = (
@@ -146,7 +156,7 @@ FORBIDDEN_OWNER_BUILD_SUBROOT_NAMES = (
 )
 
 ALLOWED_OWNER_BUILD_SUBROOTS = (
-    "dotnet",
+    "local",
 )
 
 HOSTFXR_REAL_OUTPUTS = (

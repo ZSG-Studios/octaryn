@@ -17,7 +17,25 @@ target_compile_definitions(octaryn_shared_host_abi
     PRIVATE
         OCTARYN_ABI_BUILD)
 
-add_dependencies(octaryn_shared_native octaryn_shared_host_abi)
+octaryn_add_native_static_library(
+    octaryn_native_logging
+    shared
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeLogging/octaryn_native_log.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeLogging"
+    PRIVATE_LINKS
+        octaryn::deps::spdlog)
+
+if(TARGET spdlog::spdlog_header_only OR TARGET spdlog::spdlog)
+    target_compile_definitions(octaryn_native_logging
+        PRIVATE
+            OCTARYN_NATIVE_LOGGING_USE_SPDLOG)
+endif()
+
+add_dependencies(octaryn_shared_native
+    octaryn_shared_host_abi
+    octaryn_native_logging)
 
 octaryn_add_dotnet_owner(
     octaryn_shared

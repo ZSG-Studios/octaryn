@@ -18,9 +18,10 @@
     <OctarynBuildOwner Condition="'$(OctarynBuildOwner)' == 'unknown' And $([System.String]::Copy('$(MSBuildProjectDirectory)').Replace('\', '/').Contains('/octaryn-modules/'))">game-module</OctarynBuildOwner>
     <OctarynBuildOwner Condition="'$(OctarynBuildOwner)' == 'unknown' And $([System.String]::Copy('$(MSBuildProjectDirectory)').Replace('\', '/').Contains('/octaryn-mods/'))">mod</OctarynBuildOwner>
     <OctarynBuildOwner Condition="'$(OctarynBuildOwner)' == 'unknown' And '$(OctarynModuleOwner)' != ''">$(OctarynModuleOwner)</OctarynBuildOwner>
+    <OctarynBuildPresetName Condition="'$(OctarynBuildPresetName)' == ''">local</OctarynBuildPresetName>
     <OctarynIsModuleOwner>false</OctarynIsModuleOwner>
     <OctarynIsModuleOwner Condition="'$(OctarynBuildOwner)' == 'basegame' Or '$(OctarynBuildOwner)' == 'game' Or '$(OctarynBuildOwner)' == 'game-module' Or '$(OctarynBuildOwner)' == 'mod'">true</OctarynIsModuleOwner>
-    <BaseOutputPath>$(MSBuildThisFileDirectory)build\$(OctarynBuildOwner)\dotnet\bin\$(MSBuildProjectName)\</BaseOutputPath>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)build\$(OctarynBuildOwner)\dotnet\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)build\$(OctarynBuildOwner)\$(OctarynBuildPresetName)\dotnet\bin\$(MSBuildProjectName)\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)build\$(OctarynBuildOwner)\$(OctarynBuildPresetName)\dotnet\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
   </PropertyGroup>
 </Project>

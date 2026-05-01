@@ -58,6 +58,36 @@
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
+    },
+    {
+      "name": "release-linux-gcc",
+      "displayName": "Release Linux GCC",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/gcc.cmake",
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
+      "name": "release-linux-clang",
+      "displayName": "Release Linux Clang",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
+    },
+    {
+      "name": "release-windows-mingw",
+      "displayName": "Release Windows MinGW",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/tools/cmake/${presetName}",
+      "toolchainFile": "${sourceDir}/cmake/Toolchains/Windows/MinGW/x86_64-w64-mingw32.cmake",
+      "cacheVariables": {
+        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
+      }
     }
   ],
   "buildPresets": [
@@ -127,6 +157,48 @@
     {
       "name": "debug-windows-mingw-validate",
       "configurePreset": "debug-windows-mingw",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "release-linux-gcc",
+      "configurePreset": "release-linux-gcc",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "release-linux-gcc-validate",
+      "configurePreset": "release-linux-gcc",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "release-linux-clang",
+      "configurePreset": "release-linux-clang",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "release-linux-clang-validate",
+      "configurePreset": "release-linux-clang",
+      "targets": [
+        "octaryn_validate_all"
+      ]
+    },
+    {
+      "name": "release-windows-mingw",
+      "configurePreset": "release-windows-mingw",
+      "targets": [
+        "octaryn_all"
+      ]
+    },
+    {
+      "name": "release-windows-mingw-validate",
+      "configurePreset": "release-windows-mingw",
       "targets": [
         "octaryn_validate_all"
       ]
