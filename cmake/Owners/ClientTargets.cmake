@@ -55,6 +55,16 @@ octaryn_add_native_static_library(
 add_dependencies(octaryn_client_native octaryn_client_app_settings)
 
 octaryn_add_native_static_library(
+    octaryn_client_lighting_settings
+    client
+    SOURCES
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/LightingSettings/octaryn_client_lighting_settings.cpp"
+    PUBLIC_INCLUDE_DIRS
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Settings/LightingSettings")
+
+add_dependencies(octaryn_client_native octaryn_client_lighting_settings)
+
+octaryn_add_native_static_library(
     octaryn_client_display_settings
     client
     SOURCES
