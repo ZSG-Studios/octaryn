@@ -11,7 +11,6 @@ def render(catalog_path):
     if not isinstance(blocks, list):
         raise ValueError(f"{catalog_path}: blocks must be a list")
 
-    legacy_ids = []
     block_ids = {}
     grass_supported_ids = []
     placeable_ids = []
@@ -25,24 +24,20 @@ def render(catalog_path):
     for index, block in enumerate(blocks):
         if not isinstance(block, dict):
             raise ValueError(f"{catalog_path}: block index {index} must be an object")
-        legacy_id = block.get("legacyId")
-        if legacy_id != index:
-            raise ValueError(f"{catalog_path}: block index {index} has legacyId {legacy_id!r}")
-        legacy_ids.append(legacy_id)
         block_id = block.get("id")
         if not isinstance(block_id, str):
             raise ValueError(f"{catalog_path}: block index {index} has invalid id {block_id!r}")
-        block_ids[block_id] = legacy_id
+        block_ids[block_id] = index
         if block.get("requiresGrass") is True:
-            grass_supported_ids.append(legacy_id)
+            grass_supported_ids.append(index)
         if block.get("placeable") is True:
-            placeable_ids.append(legacy_id)
+            placeable_ids.append(index)
         if block.get("requiresSolidBase") is True:
-            solid_base_supported_ids.append(legacy_id)
+            solid_base_supported_ids.append(index)
         if block.get("solid") is True:
-            solid_ids.append(legacy_id)
+            solid_ids.append(index)
         if block.get("targetable") is True:
-            targetable_ids.append(legacy_id)
+            targetable_ids.append(index)
         fluid_kind = block.get("fluidKind")
         fluid_level = block.get("fluidLevel")
         if fluid_kind not in {"none", "water", "lava"}:
@@ -52,7 +47,7 @@ def render(catalog_path):
         fluid_kinds.append(fluid_kind_value(fluid_kind))
         fluid_levels.append(fluid_level)
         if block.get("fluidSource") is True:
-            fluid_source_ids.append(legacy_id)
+            fluid_source_ids.append(index)
         skylight_opacity = block.get("skylightOpacity")
         if not isinstance(skylight_opacity, int) or skylight_opacity < 0 or skylight_opacity > 15:
             raise ValueError(f"{catalog_path}: block index {index} has invalid skylightOpacity {skylight_opacity!r}")
@@ -66,37 +61,33 @@ def render(catalog_path):
         "",
         "public static class BasegameBlockCatalog",
         "{",
-        "    private static readonly ushort[] LegacyIds =",
+        f"    private const ushort KnownBlockCount = {len(blocks)};",
+        "",
+        "    private static readonly ushort[] GrassSupportedBlockIds =",
         "    [",
     ]
-    lines.extend(render_span_values(legacy_ids))
-    lines.extend([
-        "",
-        "    private static readonly ushort[] GrassSupportedLegacyIds =",
-        "    [",
-    ])
     lines.extend(render_span_values(grass_supported_ids))
     lines.extend([
         "",
-        "    private static readonly ushort[] PlaceableLegacyIds =",
+        "    private static readonly ushort[] PlaceableBlockIds =",
         "    [",
     ])
     lines.extend(render_span_values(placeable_ids))
     lines.extend([
         "",
-        "    private static readonly ushort[] SolidBaseSupportedLegacyIds =",
+        "    private static readonly ushort[] SolidBaseSupportedBlockIds =",
         "    [",
     ])
     lines.extend(render_span_values(solid_base_supported_ids))
     lines.extend([
         "",
-        "    private static readonly ushort[] SolidLegacyIds =",
+        "    private static readonly ushort[] SolidBlockIds =",
         "    [",
     ])
     lines.extend(render_span_values(solid_ids))
     lines.extend([
         "",
-        "    private static readonly ushort[] TargetableLegacyIds =",
+        "    private static readonly ushort[] TargetableBlockIds =",
         "    [",
     ])
     lines.extend(render_span_values(targetable_ids))
@@ -114,7 +105,7 @@ def render(catalog_path):
     lines.extend(render_int_values(fluid_levels))
     lines.extend([
         "",
-        "    private static readonly ushort[] FluidSourceLegacyIds =",
+        "    private static readonly ushort[] FluidSourceBlockIds =",
         "    [",
     ])
     lines.extend(render_span_values(fluid_source_ids))
@@ -168,26 +159,26 @@ def render_members(block_ids):
         "",
         f"    public static BlockId LavaSource => new({lava_id});",
         "",
-        "    public static int PlaceableCount => PlaceableLegacyIds.Length;",
+        "    public static int PlaceableCount => PlaceableBlockIds.Length;",
         "",
         "    public static bool IsKnown(BlockId block)",
         "    {",
-        "        return block.Value < LegacyIds.Length && LegacyIds[block.Value] == block.Value;",
+        "        return block.Value < KnownBlockCount;",
         "    }",
         "",
         "    public static bool IsPlaceable(BlockId block)",
         "    {",
-        "        return IndexOf(PlaceableLegacyIds, block.Value) >= 0;",
+        "        return IndexOf(PlaceableBlockIds, block.Value) >= 0;",
         "    }",
         "",
         "    public static bool IsSolid(BlockId block)",
         "    {",
-        "        return IndexOf(SolidLegacyIds, block.Value) >= 0;",
+        "        return IndexOf(SolidBlockIds, block.Value) >= 0;",
         "    }",
         "",
         "    public static bool IsTargetable(BlockId block)",
         "    {",
-        "        return IndexOf(TargetableLegacyIds, block.Value) >= 0;",
+        "        return IndexOf(TargetableBlockIds, block.Value) >= 0;",
         "    }",
         "",
         "    public static bool IsFluid(BlockId block)",
@@ -197,7 +188,7 @@ def render_members(block_ids):
         "",
         "    public static bool IsFluidSource(BlockId block)",
         "    {",
-        "        return IndexOf(FluidSourceLegacyIds, block.Value) >= 0;",
+        "        return IndexOf(FluidSourceBlockIds, block.Value) >= 0;",
         "    }",
         "",
         "    public static bool IsWater(BlockId block)",
@@ -229,12 +220,12 @@ def render_members(block_ids):
         "",
         "    public static BlockId MakeWater(int level)",
         "    {",
-        f"        return new BlockId(ClampedFluidLegacyId({water_id}, {water_7_id}, level));",
+        f"        return new BlockId(ClampedFluidBlockId({water_id}, {water_7_id}, level));",
         "    }",
         "",
         "    public static BlockId MakeLava(int level)",
         "    {",
-        f"        return new BlockId(ClampedFluidLegacyId({lava_id}, {lava_7_id}, level));",
+        f"        return new BlockId(ClampedFluidBlockId({lava_id}, {lava_7_id}, level));",
         "    }",
         "",
         "    public static BlockId MakeFluid(BasegameFluidKind kind, int level)",
@@ -249,25 +240,25 @@ def render_members(block_ids):
         "",
         "    public static bool RequiresGrass(BlockId block)",
         "    {",
-        "        return IndexOf(GrassSupportedLegacyIds, block.Value) >= 0;",
+        "        return IndexOf(GrassSupportedBlockIds, block.Value) >= 0;",
         "    }",
         "",
         "    public static bool RequiresSolidBase(BlockId block)",
         "    {",
-        "        return IndexOf(SolidBaseSupportedLegacyIds, block.Value) >= 0;",
+        "        return IndexOf(SolidBaseSupportedBlockIds, block.Value) >= 0;",
         "    }",
         "",
         "    public static BlockId PlaceableAt(int index)",
         "    {",
-        "        return new BlockId(PlaceableLegacyIds[index]);",
+        "        return new BlockId(PlaceableBlockIds[index]);",
         "    }",
         "",
         "    public static int PlaceableIndexOf(BlockId block)",
         "    {",
-        "        return IndexOf(PlaceableLegacyIds, block.Value);",
+        "        return IndexOf(PlaceableBlockIds, block.Value);",
         "    }",
         "",
-        "    private static ushort ClampedFluidLegacyId(ushort sourceId, ushort maxLevelId, int level)",
+        "    private static ushort ClampedFluidBlockId(ushort sourceId, ushort maxLevelId, int level)",
         "    {",
         "        if (level <= 0)",
         "        {",
@@ -300,10 +291,10 @@ def render_members(block_ids):
 
 
 def required_block_id(block_ids, block_id):
-    legacy_id = block_ids.get(block_id)
-    if legacy_id is None:
+    block_value = block_ids.get(block_id)
+    if block_value is None:
         raise ValueError(f"missing required block {block_id}")
-    return legacy_id
+    return block_value
 
 
 def fluid_kind_value(fluid_kind):

@@ -37,10 +37,10 @@ internal sealed class ClientBlockRenderCatalog
         for (var index = 0; index < properties.Length; index++)
         {
             var block = blocks[index];
-            var legacyId = block.GetProperty("legacyId").GetInt32();
-            if (legacyId != index)
+            var blockId = block.GetProperty("id").GetString();
+            if (string.IsNullOrWhiteSpace(blockId))
             {
-                throw new InvalidOperationException($"Block catalog legacyId {legacyId} is not ordered at index {index}.");
+                throw new InvalidOperationException($"Block catalog entry at index {index} has no stable id.");
             }
 
             properties[index] = CreateProperties(block);
@@ -67,7 +67,7 @@ internal sealed class ClientBlockRenderCatalog
 
     private static ClientBlockRenderProperties CreateProperties(JsonElement block)
     {
-        var legacyId = block.GetProperty("legacyId").GetInt32();
+        var blockId = block.GetProperty("id").GetString();
         var fluidKind = block.GetProperty("fluidKind").GetString();
         var fluidLevel = block.GetProperty("fluidLevel").GetInt32();
         var sprite = block.GetProperty("sprite").GetBoolean();
@@ -80,7 +80,7 @@ internal sealed class ClientBlockRenderCatalog
         {
             "water" => ClientBlockRenderKind.Water,
             "lava" => ClientBlockRenderKind.Lava,
-            _ when legacyId == 0 => ClientBlockRenderKind.Empty,
+            _ when blockId == "octaryn.basegame.block.air" => ClientBlockRenderKind.Empty,
             _ when sprite => ClientBlockRenderKind.Sprite,
             _ when opaque => ClientBlockRenderKind.OpaqueCube,
             _ when solid => ClientBlockRenderKind.TransparentCube,

@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 
-EXPECTED_LEGACY_NAMES = (
+EXPECTED_OLD_SOURCE_NAMES = (
     "BLOCK_EMPTY",
     "BLOCK_GRASS",
     "BLOCK_DIRT",
@@ -62,12 +62,10 @@ REQUIRED_BOOL_FIELDS = (
 
 ATLAS_DIRECTIONS = ("north", "south", "east", "west", "up", "down")
 
-ALLOWED_TOP_LEVEL_FIELDS = {"schema", "legacySource", "blocks"}
+ALLOWED_TOP_LEVEL_FIELDS = {"schema", "blocks"}
 
 ALLOWED_BLOCK_FIELDS = {
     "id",
-    "legacyId",
-    "legacyName",
     "displayName",
     "opaque",
     "sprite",
@@ -137,31 +135,24 @@ def validate(path):
     validate_top_level_fields(errors, path, catalog)
     if catalog.get("schema") != "octaryn.basegame.blocks.v1":
         errors.append(f"{path}: schema must be octaryn.basegame.blocks.v1")
-    if catalog.get("legacySource") != "old-architecture/source/world/block":
-        errors.append(f"{path}: legacySource must be old-architecture/source/world/block")
-
     blocks = catalog.get("blocks")
     if not isinstance(blocks, list):
         return errors + [f"{path}: blocks must be a list"]
 
-    if len(blocks) != len(EXPECTED_LEGACY_NAMES):
-        errors.append(f"{path}: expected {len(EXPECTED_LEGACY_NAMES)} block records, found {len(blocks)}")
+    if len(blocks) != len(EXPECTED_OLD_SOURCE_NAMES):
+        errors.append(f"{path}: expected {len(EXPECTED_OLD_SOURCE_NAMES)} block records, found {len(blocks)}")
 
     ids = set()
-    for expected_id, expected_name in enumerate(EXPECTED_LEGACY_NAMES):
+    for expected_id, expected_name in enumerate(EXPECTED_OLD_SOURCE_NAMES):
         if expected_id >= len(blocks):
             break
         block = blocks[expected_id]
-        legacy_id = block.get("legacyId")
-        legacy_name = block.get("legacyName")
-        if legacy_id != expected_id:
-            errors.append(f"{path}: block index {expected_id} has legacyId {legacy_id!r}")
-        if legacy_name != expected_name:
-            errors.append(f"{path}: block legacyId {expected_id} has legacyName {legacy_name!r}")
 
         block_id = block.get("id")
         if not isinstance(block_id, str) or not block_id.startswith("octaryn.basegame.block."):
-            errors.append(f"{path}: block legacyId {expected_id} has invalid id {block_id!r}")
+            errors.append(f"{path}: block index {expected_id} has invalid id {block_id!r}")
+        elif block_id != expected_block_id(expected_name):
+            errors.append(f"{path}: block index {expected_id} has id {block_id!r}, expected {expected_block_id(expected_name)!r}")
         elif block_id in ids:
             errors.append(f"{path}: duplicate block id {block_id}")
         ids.add(block_id)
@@ -177,7 +168,7 @@ def validate(path):
         validate_fluid(errors, path, block)
         validate_atlas(errors, path, block)
         validate_skylight(errors, path, block)
-        validate_legacy_behavior(errors, path, expected_id, block)
+        validate_old_source_behavior(errors, path, expected_id, block)
 
     return errors
 
@@ -247,7 +238,6 @@ def validate_fluid(errors, path, block):
 
 def validate_atlas(errors, path, block):
     block_id = block.get("id", "<unknown>")
-    legacy_id = block.get("legacyId")
     atlas = block.get("atlas")
     if not isinstance(atlas, dict):
         errors.append(f"{path}: block {block_id} atlas must be an object")
@@ -259,10 +249,11 @@ def validate_atlas(errors, path, block):
         value = atlas.get(direction)
         if not isinstance(value, int) or value < 0 or value >= 32:
             errors.append(f"{path}: block {block_id} atlas.{direction} must be 0 through 31")
-    expected = EXPECTED_ATLAS.get(legacy_id)
+    block_index = block_index_from_id(block_id)
+    expected = EXPECTED_ATLAS.get(block_index)
     actual = tuple(atlas.get(direction) for direction in ATLAS_DIRECTIONS)
     if expected is not None and actual != expected:
-        errors.append(f"{path}: block {block_id} atlas {actual!r} must match legacy {expected!r}")
+        errors.append(f"{path}: block {block_id} atlas {actual!r} must match old source {expected!r}")
 
 
 def validate_skylight(errors, path, block):
@@ -272,15 +263,15 @@ def validate_skylight(errors, path, block):
         errors.append(f"{path}: block {block_id} skylightOpacity must be 0 through 15")
 
 
-def validate_legacy_behavior(errors, path, legacy_id, block):
+def validate_old_source_behavior(errors, path, old_source_index, block):
     block_id = block.get("id", "<unknown>")
-    fluid_kind, fluid_level = expected_fluid(legacy_id)
+    fluid_kind, fluid_level = expected_fluid(old_source_index)
 
-    expected_placeable = legacy_id > 0 and legacy_id != 8 and legacy_id not in range(15, 22) and legacy_id not in range(32, 39)
+    expected_placeable = old_source_index > 0 and old_source_index != 8 and old_source_index not in range(15, 22) and old_source_index not in range(32, 39)
     if block.get("placeable") != expected_placeable:
         errors.append(f"{path}: block {block_id} placeable must be {expected_placeable}")
 
-    expected_targetable = legacy_id != 0 and (
+    expected_targetable = old_source_index != 0 and (
         block.get("solid") is True or
         block.get("sprite") is True or
         block.get("requiresGrass") is True or
@@ -288,11 +279,11 @@ def validate_legacy_behavior(errors, path, legacy_id, block):
     if block.get("targetable") != expected_targetable:
         errors.append(f"{path}: block {block_id} targetable must be {expected_targetable}")
 
-    expected_requires_grass = legacy_id in EXPECTED_GRASS_BASE
+    expected_requires_grass = old_source_index in EXPECTED_GRASS_BASE
     if block.get("requiresGrass") != expected_requires_grass:
         errors.append(f"{path}: block {block_id} requiresGrass must be {expected_requires_grass}")
 
-    expected_requires_solid_base = legacy_id in EXPECTED_SOLID_BASE
+    expected_requires_solid_base = old_source_index in EXPECTED_SOLID_BASE
     if block.get("requiresSolidBase") != expected_requires_solid_base:
         errors.append(f"{path}: block {block_id} requiresSolidBase must be {expected_requires_solid_base}")
 
@@ -304,27 +295,43 @@ def validate_legacy_behavior(errors, path, legacy_id, block):
     if block.get("fluidSource") != expected_source:
         errors.append(f"{path}: block {block_id} fluidSource must be {expected_source}")
 
-    expected_opacity = expected_skylight_opacity(legacy_id, block)
+    expected_opacity = expected_skylight_opacity(old_source_index, block)
     if block.get("skylightOpacity") != expected_opacity:
         errors.append(f"{path}: block {block_id} skylightOpacity must be {expected_opacity}")
 
 
-def expected_fluid(legacy_id):
-    if legacy_id in range(14, 22):
-        return "water", legacy_id - 14
-    if legacy_id in range(31, 39):
-        return "lava", legacy_id - 31
+def expected_fluid(old_source_index):
+    if old_source_index in range(14, 22):
+        return "water", old_source_index - 14
+    if old_source_index in range(31, 39):
+        return "lava", old_source_index - 31
     return "none", -1
 
 
-def expected_skylight_opacity(legacy_id, block):
-    if legacy_id in {0, 8, 9, 10, 11, 12, 13, 30}:
+def expected_skylight_opacity(old_source_index, block):
+    if old_source_index in {0, 8, 9, 10, 11, 12, 13, 30}:
         return 0
-    if legacy_id == 7:
+    if old_source_index == 7:
         return 1
-    if legacy_id in range(14, 22) or legacy_id in range(31, 39):
+    if old_source_index in range(14, 22) or old_source_index in range(31, 39):
         return 2
     return 15 if block.get("occlusion") is True else 0
+
+
+def expected_block_id(old_source_name):
+    token = old_source_name.removeprefix("BLOCK_").lower()
+    if token == "empty":
+        token = "air"
+    return f"octaryn.basegame.block.{token}"
+
+
+def block_index_from_id(block_id):
+    if not isinstance(block_id, str):
+        return None
+    try:
+        return [expected_block_id(name) for name in EXPECTED_OLD_SOURCE_NAMES].index(block_id)
+    except ValueError:
+        return None
 
 
 def main():

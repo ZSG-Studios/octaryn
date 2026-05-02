@@ -5,50 +5,9 @@ namespace Octaryn.Basegame.Content.Blocks;
 
 public static class BasegameBlockCatalog
 {
-    private static readonly ushort[] LegacyIds =
-    [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38
-    ];
+    private const ushort KnownBlockCount = 39;
 
-    private static readonly ushort[] GrassSupportedLegacyIds =
+    private static readonly ushort[] GrassSupportedBlockIds =
     [
         9,
         10,
@@ -57,7 +16,7 @@ public static class BasegameBlockCatalog
         13
     ];
 
-    private static readonly ushort[] PlaceableLegacyIds =
+    private static readonly ushort[] PlaceableBlockIds =
     [
         1,
         2,
@@ -84,7 +43,7 @@ public static class BasegameBlockCatalog
         31
     ];
 
-    private static readonly ushort[] SolidBaseSupportedLegacyIds =
+    private static readonly ushort[] SolidBaseSupportedBlockIds =
     [
         22,
         23,
@@ -95,7 +54,7 @@ public static class BasegameBlockCatalog
         28
     ];
 
-    private static readonly ushort[] SolidLegacyIds =
+    private static readonly ushort[] SolidBlockIds =
     [
         1,
         2,
@@ -108,7 +67,7 @@ public static class BasegameBlockCatalog
         30
     ];
 
-    private static readonly ushort[] TargetableLegacyIds =
+    private static readonly ushort[] TargetableBlockIds =
     [
         1,
         2,
@@ -219,7 +178,7 @@ public static class BasegameBlockCatalog
         7
     ];
 
-    private static readonly ushort[] FluidSourceLegacyIds =
+    private static readonly ushort[] FluidSourceBlockIds =
     [
         14,
         31
@@ -278,26 +237,26 @@ public static class BasegameBlockCatalog
 
     public static BlockId LavaSource => new(31);
 
-    public static int PlaceableCount => PlaceableLegacyIds.Length;
+    public static int PlaceableCount => PlaceableBlockIds.Length;
 
     public static bool IsKnown(BlockId block)
     {
-        return block.Value < LegacyIds.Length && LegacyIds[block.Value] == block.Value;
+        return block.Value < KnownBlockCount;
     }
 
     public static bool IsPlaceable(BlockId block)
     {
-        return IndexOf(PlaceableLegacyIds, block.Value) >= 0;
+        return IndexOf(PlaceableBlockIds, block.Value) >= 0;
     }
 
     public static bool IsSolid(BlockId block)
     {
-        return IndexOf(SolidLegacyIds, block.Value) >= 0;
+        return IndexOf(SolidBlockIds, block.Value) >= 0;
     }
 
     public static bool IsTargetable(BlockId block)
     {
-        return IndexOf(TargetableLegacyIds, block.Value) >= 0;
+        return IndexOf(TargetableBlockIds, block.Value) >= 0;
     }
 
     public static bool IsFluid(BlockId block)
@@ -307,7 +266,7 @@ public static class BasegameBlockCatalog
 
     public static bool IsFluidSource(BlockId block)
     {
-        return IndexOf(FluidSourceLegacyIds, block.Value) >= 0;
+        return IndexOf(FluidSourceBlockIds, block.Value) >= 0;
     }
 
     public static bool IsWater(BlockId block)
@@ -339,12 +298,12 @@ public static class BasegameBlockCatalog
 
     public static BlockId MakeWater(int level)
     {
-        return new BlockId(ClampedFluidLegacyId(14, 21, level));
+        return new BlockId(ClampedFluidBlockId(14, 21, level));
     }
 
     public static BlockId MakeLava(int level)
     {
-        return new BlockId(ClampedFluidLegacyId(31, 38, level));
+        return new BlockId(ClampedFluidBlockId(31, 38, level));
     }
 
     public static BlockId MakeFluid(BasegameFluidKind kind, int level)
@@ -359,25 +318,25 @@ public static class BasegameBlockCatalog
 
     public static bool RequiresGrass(BlockId block)
     {
-        return IndexOf(GrassSupportedLegacyIds, block.Value) >= 0;
+        return IndexOf(GrassSupportedBlockIds, block.Value) >= 0;
     }
 
     public static bool RequiresSolidBase(BlockId block)
     {
-        return IndexOf(SolidBaseSupportedLegacyIds, block.Value) >= 0;
+        return IndexOf(SolidBaseSupportedBlockIds, block.Value) >= 0;
     }
 
     public static BlockId PlaceableAt(int index)
     {
-        return new BlockId(PlaceableLegacyIds[index]);
+        return new BlockId(PlaceableBlockIds[index]);
     }
 
     public static int PlaceableIndexOf(BlockId block)
     {
-        return IndexOf(PlaceableLegacyIds, block.Value);
+        return IndexOf(PlaceableBlockIds, block.Value);
     }
 
-    private static ushort ClampedFluidLegacyId(ushort sourceId, ushort maxLevelId, int level)
+    private static ushort ClampedFluidBlockId(ushort sourceId, ushort maxLevelId, int level)
     {
         if (level <= 0)
         {
