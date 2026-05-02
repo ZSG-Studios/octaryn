@@ -29,15 +29,15 @@ The basegame atlas builder can import Minecraft-style resource packs. Generated 
 - License: Faithful License Version 3, <https://faithfulpack.net/license>
 - Release rule: generated assets containing this work must include clear credit, link back to Faithful, avoid monetization of content containing the work, avoid implying official Faithful status, and include the unmodified Faithful license file with any distributed content that contains the work.
 
-## Old Architecture Release Payload
+Release packages that include generated atlas assets from this pack must include:
 
-The `old-architecture-shareable-20260430` release packages include third-party notice files inside each ZIP under `THIRD_PARTY/` and a package-level `THIRD_PARTY_NOTICES.txt`.
+- `texture_pack_*` metadata in the atlas manifest.
+- Faithful license and credit files under `THIRD_PARTY/ClassicFaithful/`.
+- A package-level `THIRD_PARTY_NOTICES.txt` that keeps the texture-pack obligations visible.
 
-Texture assets:
+## Runtime Library Sources
 
-- Classic Faithful 32x Jappa texture inputs are used to generate the bundled atlas PNGs.
-- The atlas manifest stores `texture_pack_*` metadata in `assets/textures/atlas.txt`.
-- Faithful license and credit files are bundled under `THIRD_PARTY/ClassicFaithful/`.
+Release packages that bundle runtime binaries must include the matching upstream license and notice files under `THIRD_PARTY/`.
 
 Native libraries:
 
