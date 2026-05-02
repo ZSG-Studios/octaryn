@@ -35,6 +35,7 @@
         <h2>Contents</h2>
         <ul>
           <li><a href="#pipeline">Pipeline</a></li>
+          <li><a href="#default-source">Default Source</a></li>
           <li><a href="#pack-input">Pack Input</a></li>
           <li><a href="#atlas-layers">Atlas Layers</a></li>
           <li><a href="#outputs">Generated Outputs</a></li>
@@ -50,6 +51,13 @@
         <pre><code>python3 octaryn-basegame/Tools/build_atlas_from_pack.py \
   --pack /path/to/resource-pack.zip \
   --sha256 PACK_SHA256 \
+  --pack-name "PACK_NAME" \
+  --pack-source-url PACK_SOURCE_URL \
+  --pack-license-name "PACK_LICENSE" \
+  --pack-license-url PACK_LICENSE_URL \
+  --pack-license-file "path/to/included/license.txt" \
+  --pack-credit "PACK_AUTHOR_OR_TEAM" \
+  --pack-credits-url PACK_CREDITS_URL \
   --cache-dir build/dependencies/texture-packs \
   --output build/debug-linux/basegame/assets/atlases/basegame-color.png \
   --normal-output build/debug-linux/basegame/assets/atlases/basegame-normal.png \
@@ -58,7 +66,38 @@
   --animation-manifest build/debug-linux/basegame/assets/atlases/basegame-animation.txt \
   --tile-size 32 \
   --layer-count 29</code></pre>
-        <p>Use an explicit pack path and SHA-256 when preparing release assets. If <code>--pack</code> is omitted, the tool uses its configured default download URL and cache.</p>
+        <p>Use an explicit pack path, SHA-256, and license metadata when preparing release assets. If <code>--pack</code> is omitted, the tool uses its configured default download URL and records the default pack license metadata.</p>
+      </section>
+
+      <section id="default-source">
+        <h2>Default Source</h2>
+        <p>The current default source is Classic Faithful 32x Jappa. It is useful for local atlas generation, but it is not public-domain content and is not covered by Octaryn's source license.</p>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pack</td>
+              <td><a href="https://github.com/ClassicFaithful/Classic-32x-Jappa-Java">Classic Faithful 32x Jappa</a></td>
+            </tr>
+            <tr>
+              <td>License</td>
+              <td><a href="https://faithfulpack.net/license">Faithful License Version 3</a></td>
+            </tr>
+            <tr>
+              <td>Credit</td>
+              <td>Faithful Resource Pack and ClassicFaithful contributors.</td>
+            </tr>
+            <tr>
+              <td>Credits</td>
+              <td><a href="https://github.com/ClassicFaithful/Classic-32x-Jappa-Java/blob/main/credits.txt">Classic Faithful credits</a></td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       <section id="pack-input">
@@ -171,7 +210,7 @@
             </tr>
             <tr>
               <td><code>*.txt</code> sidecar</td>
-              <td>Generated manifest with pack path, layer count, tile size, outputs, and warnings.</td>
+              <td>Generated manifest with pack path, source, license, credit, layer count, tile size, outputs, and warnings.</td>
             </tr>
           </tbody>
         </table>
@@ -228,6 +267,7 @@
       <section id="license-credit">
         <h2>License And Credit</h2>
         <p>Texture packs are third-party content. Do not import, commit, publish, or package pack assets unless the pack license permits that use. Release packages should keep upstream license files, credit text, source URL, version or commit, and SHA-256 beside the generated asset manifest.</p>
+        <p>For Faithful-licensed work, release materials must include clear credit, link back to Faithful, avoid monetizing content containing their work, avoid implying official Faithful status, and include the unmodified Faithful license file with any distributed content that contains their textures.</p>
       </section>
     </main>
   </div>

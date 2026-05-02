@@ -73,6 +73,13 @@ Current atlas import path:
 python3 octaryn-basegame/Tools/build_atlas_from_pack.py \
   --pack /path/to/resource-pack.zip \
   --sha256 PACK_SHA256 \
+  --pack-name "PACK_NAME" \
+  --pack-source-url PACK_SOURCE_URL \
+  --pack-license-name "PACK_LICENSE" \
+  --pack-license-url PACK_LICENSE_URL \
+  --pack-license-file "path/to/included/license.txt" \
+  --pack-credit "PACK_AUTHOR_OR_TEAM" \
+  --pack-credits-url PACK_CREDITS_URL \
   --cache-dir build/dependencies/texture-packs \
   --output build/debug-linux/basegame/assets/atlases/basegame-color.png \
   --normal-output build/debug-linux/basegame/assets/atlases/basegame-normal.png \
@@ -83,7 +90,9 @@ python3 octaryn-basegame/Tools/build_atlas_from_pack.py \
   --layer-count 29
 ```
 
-Third-party packs need license permission before assets are committed, packaged, or published. Keep upstream credit, license text, source URL, version or commit, and SHA-256 with release materials.
+The tool records pack source, credit, license, and license-file metadata in the generated atlas sidecar. Third-party packs need license permission before assets are committed, packaged, or published.
+
+If the default pack source is used, the imported work is Classic Faithful 32x Jappa under the Faithful License Version 3. That license requires clear credit, a link back to Faithful, no monetization of content containing their work, no misleading official branding, and the unmodified license file included with any distributed content that contains their work.
 
 ## Output Layout
 

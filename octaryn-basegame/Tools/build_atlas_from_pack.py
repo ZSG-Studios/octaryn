@@ -18,6 +18,19 @@ DEFAULT_PACK_URL = (
     "java-latest.zip"
 )
 DEFAULT_PACK_FILE_NAME = "Classic-32x-Jappa-Java-java-latest.zip"
+DEFAULT_PACK_NAME = "Classic Faithful 32x Jappa"
+DEFAULT_PACK_SOURCE_URL = "https://github.com/ClassicFaithful/Classic-32x-Jappa-Java"
+DEFAULT_PACK_LICENSE_NAME = "Faithful License Version 3"
+DEFAULT_PACK_LICENSE_URL = "https://faithfulpack.net/license"
+DEFAULT_PACK_CREDIT = "Faithful Resource Pack and ClassicFaithful contributors"
+DEFAULT_PACK_CREDITS_URL = (
+    "https://github.com/ClassicFaithful/Classic-32x-Jappa-Java/blob/main/credits.txt"
+)
+DEFAULT_PACK_LICENSE_FILE = "license.txt inside the source pack"
+TEXTURE_PACK_LICENSE_NOTICE = (
+    "Generated atlases may contain third-party texture pack work. Verify distribution "
+    "rights, preserve required credit, and include the upstream license file before release."
+)
 
 
 ATLAS_SOURCES = {
@@ -112,6 +125,13 @@ def parse_args():
     parser.add_argument("--layer-count", type=int, required=True)
     parser.add_argument("--pack", default="")
     parser.add_argument("--sha256", default="")
+    parser.add_argument("--pack-name", default="")
+    parser.add_argument("--pack-source-url", default="")
+    parser.add_argument("--pack-license-name", default="")
+    parser.add_argument("--pack-license-url", default="")
+    parser.add_argument("--pack-license-file", default="")
+    parser.add_argument("--pack-credit", default="")
+    parser.add_argument("--pack-credits-url", default="")
     return parser.parse_args()
 
 
@@ -533,7 +553,48 @@ def write_animation_manifest(path, animations, frames, tile_size):
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def write_manifest(path, pack_path, outputs, tile_size, layer_count, warnings):
+def license_metadata(args, warnings):
+    use_default_pack = not args.pack
+
+    def value(cli_value, default_value):
+        if cli_value:
+            return cli_value
+        return default_value if use_default_pack else "UNSPECIFIED"
+
+    metadata = {
+        "texture_pack_name": value(args.pack_name, DEFAULT_PACK_NAME),
+        "texture_pack_source_url": value(args.pack_source_url, DEFAULT_PACK_SOURCE_URL),
+        "texture_pack_license_name": value(args.pack_license_name, DEFAULT_PACK_LICENSE_NAME),
+        "texture_pack_license_url": value(args.pack_license_url, DEFAULT_PACK_LICENSE_URL),
+        "texture_pack_license_file": value(args.pack_license_file, DEFAULT_PACK_LICENSE_FILE),
+        "texture_pack_credit": value(args.pack_credit, DEFAULT_PACK_CREDIT),
+        "texture_pack_credits_url": value(args.pack_credits_url, DEFAULT_PACK_CREDITS_URL),
+        "texture_pack_license_notice": TEXTURE_PACK_LICENSE_NOTICE,
+    }
+    required_keys = (
+        "texture_pack_name",
+        "texture_pack_source_url",
+        "texture_pack_license_name",
+        "texture_pack_license_url",
+        "texture_pack_license_file",
+        "texture_pack_credit",
+    )
+    if any(metadata[key] == "UNSPECIFIED" for key in required_keys):
+        warnings.append(
+            "texture pack license metadata is incomplete; do not distribute generated atlas assets"
+        )
+    return metadata
+
+
+def write_manifest(
+    path,
+    pack_path,
+    outputs,
+    tile_size,
+    layer_count,
+    texture_license,
+    warnings,
+):
     manifest = path.with_suffix(".txt")
     lines = [
         "Octaryn generated texture atlas",
@@ -541,6 +602,7 @@ def write_manifest(path, pack_path, outputs, tile_size, layer_count, warnings):
         f"layers={layer_count}",
         f"tile_size={tile_size}",
     ]
+    lines.extend(f"{key}={value}" for key, value in texture_license.items())
     lines.extend(f"output={output}" for output in outputs)
     lines.extend(f"warning={warning}" for warning in warnings)
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -568,6 +630,7 @@ def main():
         outputs.append(Path(args.animation_manifest))
 
     warnings = []
+    texture_license = license_metadata(args, warnings)
     with zipfile.ZipFile(pack_path) as zip_file:
         save_atlas(Path(args.output), args.tile_size, args.layer_count, build_tile, zip_file, warnings)
         if args.normal_output:
@@ -579,7 +642,7 @@ def main():
             save_animation_atlas(Path(args.animation_output), frames, args.tile_size)
         if args.animation_manifest:
             write_animation_manifest(Path(args.animation_manifest), animations, frames, args.tile_size)
-    write_manifest(output, pack_path, outputs, args.tile_size, args.layer_count, warnings)
+    write_manifest(output, pack_path, outputs, args.tile_size, args.layer_count, texture_license, warnings)
     for warning in warnings:
         print(f"[atlas] {warning}", file=sys.stderr)
 
