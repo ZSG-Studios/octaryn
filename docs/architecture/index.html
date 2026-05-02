@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Octaryn Architecture</title>
+  <meta name="color-scheme" content="dark">
+  <style>html,body{background:#0d1117;color:#d6dde8;}</style>
+  <link rel="stylesheet" href="../assets/octaryn-docs.css?v=3">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="../">Octaryn</a>
+      <p class="tagline">Clean API documentation for client, server, shared contracts, and basegame modules.</p>
+      <nav>
+        <div class="nav-group">
+          <p class="nav-title">Pages</p>
+          <a class="nav-link" href="../">Home</a>
+          <a class="nav-link" href="../api/">API</a>
+          <a class="nav-link" href="../api/examples/">Examples</a>
+          <a class="nav-link" href="./">Architecture</a>
+          <a class="nav-link" href="../build/">Build Tooling</a>
+          <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
+        </div>
+      </nav>
+    </aside>
+    <main class="content">
+      <p class="eyebrow">Octaryn Architecture</p>
+      <h1>Small owners, explicit contracts.</h1>
+      <p class="lead">Octaryn is organized around ownership. Each owner has a focused responsibility, clear inputs and outputs, and a narrow API boundary.</p>
+
+      <section id="owners">
+        <h2>Owners</h2>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Owner</th>
+              <th>Responsibility</th>
+              <th>Examples</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>octaryn-client</code></td>
+              <td>Presentation and local client host behavior.</td>
+              <td>Windowing, input, rendering, shaders, overlays, client snapshots, local prediction.</td>
+            </tr>
+            <tr>
+              <td><code>octaryn-server</code></td>
+              <td>Authority and server host behavior.</td>
+              <td>Simulation, validation, persistence, server ticks, replication, command handling.</td>
+            </tr>
+            <tr>
+              <td><code>octaryn-shared</code></td>
+              <td>Contracts that multiple owners can safely reference.</td>
+              <td>IDs, snapshots, manifests, capability IDs, host API IDs, scheduling contracts.</td>
+            </tr>
+            <tr>
+              <td><code>octaryn-basegame</code></td>
+              <td>Bundled gameplay and content module.</td>
+              <td>Blocks, items, materials, recipes, tags, interactions, content data, game rules.</td>
+            </tr>
+            <tr>
+              <td><code>tools</code></td>
+              <td>Repository-wide developer operations.</td>
+              <td>Build wrappers, validation probes, profiling helpers, workspace UI.</td>
+            </tr>
+            <tr>
+              <td><code>cmake</code></td>
+              <td>Build policy and target construction.</td>
+              <td>Owner targets, dependency aliases, platform facts, toolchains.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="source-shape">
+        <h2>Source Shape</h2>
+        <p>Module roots use a predictable vocabulary so code, data, assets, shaders, and tools are easy to find.</p>
+        <pre><code>octaryn-client/
+  Source/
+  Shaders/
+  Assets/
+octaryn-server/
+  Source/
+octaryn-shared/
+  Source/
+octaryn-basegame/
+  Source/
+  Data/
+  Assets/
+  Tools/
+tools/
+cmake/</code></pre>
+      </section>
+
+      <section id="contracts">
+        <h2>Contract Flow</h2>
+        <p>Shared contracts describe what can cross owner boundaries. Implementation remains inside the owning module.</p>
+        <ul>
+          <li>Client and server share IDs, commands, snapshots, and value types through <code>octaryn-shared</code>.</li>
+          <li>Basegame uses shared module APIs and does not reach into client or server internals.</li>
+          <li>Client rendering consumes presentation data and snapshots; it does not own authority.</li>
+          <li>Server authority accepts commands, validates them, persists state, and emits snapshots.</li>
+        </ul>
+      </section>
+
+      <section id="module-policy">
+        <h2>Module Policy</h2>
+        <p>Module access is explicit and validated. A module manifest requests capabilities, host APIs, package access, framework API groups, content declarations, assets, dependencies, and scheduled systems.</p>
+        <ul>
+          <li>Capabilities define what a module is allowed to do.</li>
+          <li>Host API IDs define what host surfaces it can read or write.</li>
+          <li>Scheduled systems declare read/write resources and ordering.</li>
+          <li>Content and asset IDs must be module-owned.</li>
+        </ul>
+      </section>
+
+      <section id="runtime">
+        <h2>Runtime Ownership</h2>
+        <p>The host owns threads, scheduling, activation, validation, and barriers. Modules supply declarations and logic; they do not create private execution systems.</p>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Concern</th>
+              <th>Owner</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Frame presentation</td>
+              <td>Client</td>
+            </tr>
+            <tr>
+              <td>World authority</td>
+              <td>Server</td>
+            </tr>
+            <tr>
+              <td>Gameplay rules</td>
+              <td>Basegame or another module</td>
+            </tr>
+            <tr>
+              <td>Cross-owner contracts</td>
+              <td>Shared</td>
+            </tr>
+            <tr>
+              <td>Build orchestration</td>
+              <td>Tools and CMake</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

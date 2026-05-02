@@ -6,7 +6,7 @@
   <title>Octaryn API Examples</title>
   <meta name="color-scheme" content="dark">
   <style>html,body{background:#0d1117;color:#d6dde8;}</style>
-  <link rel="stylesheet" href="../../assets/octaryn-docs.css?v=2">
+  <link rel="stylesheet" href="../../assets/octaryn-docs.css?v=3">
 </head>
 <body>
   <div class="layout">
@@ -19,6 +19,8 @@
           <a class="nav-link" href="../../">Home</a>
           <a class="nav-link" href="../">API</a>
           <a class="nav-link" href="./">Examples</a>
+          <a class="nav-link" href="../../architecture/">Architecture</a>
+          <a class="nav-link" href="../../build/">Build Tooling</a>
           <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
         </div>
       </nav>
@@ -36,6 +38,8 @@
           <li><a href="#validate-manifest">Validate A Manifest</a></li>
           <li><a href="#command-access">Request Command Access</a></li>
           <li><a href="#snapshot-contracts">Read Snapshot Contracts</a></li>
+          <li><a href="#content-declarations">Declare Content</a></li>
+          <li><a href="#schedule-reads-writes">Declare Reads And Writes</a></li>
         </ul>
       </section>
 
@@ -176,6 +180,53 @@ static bool IsSupported(in ServerSnapshotHeader header)
     return header.Version == ServerSnapshotHeader.VersionValue &&
            header.Size == ServerSnapshotHeader.SizeValue;
 }</code></pre>
+      </section>
+
+      <section id="content-declarations">
+        <h2>Declare Content</h2>
+        <p>Content IDs stay module-owned and point to files inside the module package.</p>
+        <pre><code class="language-csharp">ContentDeclarations:
+[
+    new GameModuleContentDeclaration(
+        "example.demo.blocks",
+        "block",
+        "Data/Blocks/example.demo.blocks.json"),
+    new GameModuleContentDeclaration(
+        "example.demo.rules.default_interaction",
+        "rule",
+        "Data/Rules/example.demo.rules.default_interaction.json")
+],
+AssetDeclarations:
+[
+    new GameModuleAssetDeclaration(
+        "example.demo.texture.placeholder",
+        "texture",
+        "Assets/Textures/example.demo.texture.placeholder.png")
+]</code></pre>
+      </section>
+
+      <section id="schedule-reads-writes">
+        <h2>Declare Reads And Writes</h2>
+        <p>Scheduled work declares resource access so the host can order jobs and reject unsafe conflicts.</p>
+        <pre><code class="language-csharp">new ScheduledSystemDeclaration(
+    SystemId: "example.demo.replication_prepare",
+    Phase: HostWorkPhase.Replication,
+    FrameOrTickOwner: HostScheduleIds.FrameOrTickOwner,
+    Reads:
+    [
+        new ScheduledResourceAccess(HostApiIds.Frame, ScheduledAccessMode.Read)
+    ],
+    Writes:
+    [
+        new ScheduledResourceAccess("example.demo.replication_state", ScheduledAccessMode.Write)
+    ],
+    RunsAfter:
+    [
+        "example.demo.frame_tick"
+    ],
+    RunsBefore: [],
+    Flags: HostWorkScheduleFlags.DeterministicOrder,
+    CommitBarrier: HostScheduleIds.FrameOrTickEndBarrier)</code></pre>
       </section>
     </main>
   </div>

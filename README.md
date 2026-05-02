@@ -1,8 +1,8 @@
 # Octaryn
 
-Octaryn is being ported from a monolithic engine tree into a clean owner-split platform. The target is a native C/C++ core first, with managed C# gameplay and networking used only where the boundary is explicit and validated.
+Octaryn is a clean owner-split platform with a native C/C++ core first, plus managed C# gameplay and networking where the boundary is explicit and validated.
 
-The active work is the AAA modular port: client presentation, server authority, shared contracts, and the bundled basegame are separate owners. `old-architecture/` remains source material only.
+Client presentation, server authority, shared contracts, and bundled basegame logic are separate owners.
 
 ## Repository Layout
 
@@ -12,8 +12,7 @@ The active work is the AAA modular port: client presentation, server authority, 
 - `octaryn-basegame/`: bundled default game module with gameplay rules, content declarations, assets, data, and basegame-specific tools.
 - `tools/`: repo-wide build, validation, profiling, launch, and developer operations.
 - `cmake/`: build policy, owner target construction, dependency wrappers, platform facts, and toolchains.
-- `docs/`: architecture, migration, validation, and GitHub Pages documentation.
-- `old-architecture/`: old implementation source material used for the port. It is not the destination architecture.
+- `docs/`: API, architecture, build tooling, validation, and GitHub Pages documentation.
 
 No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `helpers`, or catch-all owner is part of the target layout.
 
@@ -22,18 +21,19 @@ No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `he
 - [Live documentation site](https://zsg-studios.github.io/Octaryn/)
 - [Live API documentation](https://zsg-studios.github.io/Octaryn/api/)
 - [Live API examples](https://zsg-studios.github.io/Octaryn/api/examples/)
+- [Live architecture page](https://zsg-studios.github.io/Octaryn/architecture/)
+- [Live build tooling page](https://zsg-studios.github.io/Octaryn/build/)
 - [GitHub Pages entry source](docs/index.html)
 - [API guide source](docs/api/index.html)
 - [API examples source](docs/api/examples/index.html)
-- [AAA port structure](docs/architecture/aaa-port-structure.md)
-- [Old architecture map](docs/migration/old-architecture-map.md)
-- [Build matrix](docs/validation/build-matrix.md)
+- [Architecture source](docs/architecture/index.html)
+- [Build tooling source](docs/build/index.html)
 
 When GitHub Pages is enabled, the public documentation site is served from `docs/` on `main`.
 
 ## Build
 
-Configure and build the new owner-target scaffold:
+Configure and build the owner-target scaffold:
 
 ```sh
 cmake --preset debug-linux
@@ -76,8 +76,6 @@ Windows is a Linux-hosted cross-build path. Use the Linux launcher and `tools/bu
 - Native libraries: `build/<preset>/<owner>/native/lib/`
 - Logs: `logs/<owner>/`, `logs/build/`, and `logs/tools/`
 
-Old monolith outputs under `build/octaryn-engine/` are not part of the active build layout.
-
 ## API Direction
 
 `octaryn-shared/` is the API boundary. It exposes contracts that client, server, and game modules can share without leaking implementation:
@@ -103,9 +101,7 @@ The host owns all threading:
 
 Gameplay systems run through coordinator-scheduled work and declared read/write access. Modules must not create raw threads, private schedulers, timers, or worker pools.
 
-## Porting Rules
-
-Each port pass starts by mapping old files to explicit destination owners:
+## Ownership Rules
 
 - client presentation/rendering stays in `octaryn-client/`
 - server authority, simulation, persistence, and validation stay in `octaryn-server/`
@@ -114,4 +110,4 @@ Each port pass starts by mapping old files to explicit destination owners:
 - repo-wide developer operations stay in `tools/`
 - build policy and toolchains stay in `cmake/`
 
-Behavior should be preserved unless a boundary or API change is required. Temporary compatibility paths, duplicate old wrappers, and dead code should be removed as each slice is ported.
+Behavioral changes should be explicit. Temporary compatibility paths, duplicate wrappers, and dead code should be removed as owners are cleaned up.

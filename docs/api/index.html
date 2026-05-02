@@ -6,7 +6,7 @@
   <title>Octaryn API Documentation</title>
   <meta name="color-scheme" content="dark">
   <style>html,body{background:#0d1117;color:#d6dde8;}</style>
-  <link rel="stylesheet" href="../assets/octaryn-docs.css?v=2">
+  <link rel="stylesheet" href="../assets/octaryn-docs.css?v=3">
 </head>
 <body>
   <div class="layout">
@@ -19,6 +19,8 @@
           <a class="nav-link" href="../">Home</a>
           <a class="nav-link" href="./">API</a>
           <a class="nav-link" href="examples/">Examples</a>
+          <a class="nav-link" href="../architecture/">Architecture</a>
+          <a class="nav-link" href="../build/">Build Tooling</a>
           <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
         </div>
       </nav>
@@ -29,11 +31,6 @@
         <p class="eyebrow">Octaryn API</p>
         <h1>Contracts first. Owners stay separate.</h1>
         <p class="lead">The Octaryn API is the narrow, implementation-free boundary between client, server, basegame, and future modules. It exposes stable contracts, IDs, manifest policy, scheduling declarations, world value types, commands, and snapshots without leaking host internals.</p>
-        <div class="quick-links">
-          <a class="button primary" href="examples/">Examples</a>
-          <a class="button" href="../">Docs Home</a>
-          <a class="button" href="https://github.com/ZSG-Studios/Octaryn">Source</a>
-        </div>
         <p class="note">The API is intentionally strict and grows only through explicit owner and capability boundaries.</p>
       </section>
 
@@ -48,6 +45,8 @@
           <li><a href="#commands-snapshots">Commands And Snapshots</a></li>
           <li><a href="#threading">Threading</a></li>
           <li><a href="#build-layout">Build Layout</a></li>
+          <li><a href="#naming">Naming</a></li>
+          <li><a href="#module-security">Module Security</a></li>
         </ul>
       </section>
 
@@ -136,6 +135,36 @@
 }</code></pre>
         <h3>Manifest Fields</h3>
         <p><code>GameModuleManifest</code> declares identity, compatibility, requested capabilities, host APIs, runtime packages, build packages, framework API groups, dependencies, content, assets, scheduled systems, and multiplayer/save compatibility.</p>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Field Group</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Identity</td>
+              <td><code>ModuleId</code>, display name, semantic version, and Octaryn API version.</td>
+            </tr>
+            <tr>
+              <td>Capabilities</td>
+              <td>Exact permission request for content, gameplay, command, or world access.</td>
+            </tr>
+            <tr>
+              <td>Host APIs</td>
+              <td>Specific host surfaces the module can read or write, such as frame data or command sinks.</td>
+            </tr>
+            <tr>
+              <td>Allowlists</td>
+              <td>Runtime packages, build packages, and framework API groups allowed for module code.</td>
+            </tr>
+            <tr>
+              <td>Declarations</td>
+              <td>Content, assets, dependencies, and scheduled systems owned by the module.</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       <section id="validation">
@@ -195,6 +224,28 @@
             </tr>
           </tbody>
         </table>
+      </section>
+
+      <section id="naming">
+        <h2>Naming</h2>
+        <p>Names should make ownership obvious. Public API names use the exact concept they expose: command, snapshot, registry, query, host, tick, schedule, or system. Avoid broad buckets and unclear file names.</p>
+        <ul>
+          <li>Use owner names in public host boundaries when the owner matters.</li>
+          <li>Use stable module IDs such as <code>octaryn.basegame</code> or <code>example.demo</code>.</li>
+          <li>Keep contract files focused on one API concept.</li>
+          <li>Do not expose client, server, or native implementation namespaces to modules.</li>
+        </ul>
+      </section>
+
+      <section id="module-security">
+        <h2>Module Security</h2>
+        <p>Modules are deny-by-default. Every dependency, framework API group, host API, capability, content declaration, asset declaration, and scheduled write is validated before activation.</p>
+        <ul>
+          <li>No direct filesystem, process, reflection, networking, native interop, or raw threading access without an explicit future contract.</li>
+          <li>No private worker pools, custom schedulers, timers, or unmanaged worker loops.</li>
+          <li>No implicit access to rendering, persistence, transport, or bridge internals.</li>
+          <li>Diagnostics should go through approved host diagnostics APIs as those are exposed.</li>
+        </ul>
       </section>
 
       <section id="threading">
