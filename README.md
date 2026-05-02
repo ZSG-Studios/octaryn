@@ -23,6 +23,7 @@ No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `he
 - [Examples](https://zsg-studios.github.io/Octaryn/api/examples/)
 - [Architecture](https://zsg-studios.github.io/Octaryn/architecture/)
 - [Build Tooling](https://zsg-studios.github.io/Octaryn/build/)
+- [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 
 Page sources live under `docs/`.
 

@@ -256,28 +256,58 @@ pre code {
   color: var(--code-text);
 }
 
-.token.keyword {
+.token.keyword,
+.token.boolean {
   color: #ff7b72;
 }
 
-.token.type {
+.token.class-name,
+.token.type,
+.token.builtin,
+.token.namespace {
   color: #79c0ff;
 }
 
-.token.string {
+.token.string,
+.token.char {
   color: #a5d6ff;
 }
 
-.token.comment {
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
   color: #8b949e;
 }
 
-.token.number {
+.token.number,
+.token.constant,
+.token.symbol {
   color: #d2a8ff;
 }
 
-.token.member {
+.token.function,
+.token.method,
+.token.property {
   color: #ffa657;
+}
+
+.token.operator,
+.token.punctuation {
+  color: #c9d1d9;
+}
+
+.token.annotation,
+.token.attr-name {
+  color: #7ee787;
+}
+
+.token.deleted {
+  color: #ff7b72;
+}
+
+.token.inserted {
+  color: #7ee787;
 }
 
 .note {
