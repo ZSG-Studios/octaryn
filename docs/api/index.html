@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Octaryn API Documentation</title>
+  <title>Octaryn API Reference</title>
   <meta name="color-scheme" content="dark">
   <style>html,body{background:#0d1117;color:#d6dde8;}</style>
   <link rel="stylesheet" href="../assets/octaryn-docs.css?v=3">
@@ -12,7 +12,7 @@
   <div class="layout">
     <aside class="sidebar">
       <a class="brand" href="../">Octaryn</a>
-      <p class="tagline">Clean API documentation for client, server, shared contracts, and basegame modules.</p>
+      <p class="tagline">Reference for Octaryn modules, contracts, and build tooling.</p>
       <nav>
         <div class="nav-group">
           <p class="nav-title">Pages</p>
@@ -30,8 +30,8 @@
       <section id="introduction">
         <p class="eyebrow">Octaryn API</p>
         <h1>Contracts first. Owners stay separate.</h1>
-        <p class="lead">The Octaryn API is the narrow, implementation-free boundary between client, server, basegame, and future modules. It exposes stable contracts, IDs, manifest policy, scheduling declarations, world value types, commands, and snapshots without leaking host internals.</p>
-        <p class="note">The API is intentionally strict and grows only through explicit owner and capability boundaries.</p>
+        <p class="lead">The Octaryn API is the implementation-free boundary between client, server, basegame, and game modules. It exposes stable contracts, IDs, manifest policy, scheduling declarations, world value types, commands, and snapshots without leaking host internals.</p>
+        <p class="note">Access expands through explicit owner and capability contracts.</p>
       </section>
 
       <section id="contents">
@@ -87,7 +87,7 @@
 
       <section id="shared-contracts">
         <h2>Shared Contracts</h2>
-        <p><code>octaryn-shared/</code> is the API surface. It stays package-light, implementation-free, and stable enough for client, server, basegame, and future modules to agree on behavior.</p>
+        <p><code>octaryn-shared/</code> is the API surface. It stays package-light, implementation-free, and stable enough for client, server, basegame, and game modules to agree on behavior.</p>
         <table class="api-table">
           <thead>
             <tr>
@@ -126,7 +126,7 @@
 
       <section id="module-registration">
         <h2>Module Registration</h2>
-        <p>Modules expose a registration object with a manifest and an instance factory. Basegame uses the same path future game modules and mods should use.</p>
+        <p>Modules expose a registration object with a manifest and an instance factory. Basegame uses the same path as other game modules.</p>
         <pre><code class="language-csharp">public interface IGameModuleRegistration
 {
     GameModuleManifest Manifest { get; }

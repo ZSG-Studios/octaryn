@@ -1,6 +1,6 @@
 # Octaryn
 
-Octaryn is a clean owner-split platform with a native C/C++ core first, plus managed C# gameplay and networking where the boundary is explicit and validated.
+Octaryn is an owner-split platform with a native C/C++ core first, plus managed C# gameplay and networking where the boundary is explicit and validated.
 
 Client presentation, server authority, shared contracts, and bundled basegame logic are separate owners.
 
@@ -18,18 +18,13 @@ No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `he
 
 ## Documentation
 
-- [Live documentation site](https://zsg-studios.github.io/Octaryn/)
-- [Live API documentation](https://zsg-studios.github.io/Octaryn/api/)
-- [Live API examples](https://zsg-studios.github.io/Octaryn/api/examples/)
-- [Live architecture page](https://zsg-studios.github.io/Octaryn/architecture/)
-- [Live build tooling page](https://zsg-studios.github.io/Octaryn/build/)
-- [GitHub Pages entry source](docs/index.html)
-- [API guide source](docs/api/index.html)
-- [API examples source](docs/api/examples/index.html)
-- [Architecture source](docs/architecture/index.html)
-- [Build tooling source](docs/build/index.html)
+- [Documentation](https://zsg-studios.github.io/Octaryn/)
+- [API Reference](https://zsg-studios.github.io/Octaryn/api/)
+- [Examples](https://zsg-studios.github.io/Octaryn/api/examples/)
+- [Architecture](https://zsg-studios.github.io/Octaryn/architecture/)
+- [Build Tooling](https://zsg-studios.github.io/Octaryn/build/)
 
-When GitHub Pages is enabled, the public documentation site is served from `docs/` on `main`.
+Page sources live under `docs/`.
 
 ## Build
 
