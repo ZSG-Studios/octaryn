@@ -24,6 +24,7 @@
           <a class="nav-link" href="examples/">Examples</a>
           <a class="nav-link" href="../architecture/">Architecture</a>
           <a class="nav-link" href="../build/">Build Tooling</a>
+          <a class="nav-link" href="../texture-packs/">Texture Packs</a>
           <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
         </div>
       </nav>
@@ -43,6 +44,7 @@
           <li><a href="#owners">Owner Model</a></li>
           <li><a href="#shared-contracts">Shared Contracts</a></li>
           <li><a href="#module-registration">Module Registration</a></li>
+          <li><a href="#asset-declarations">Asset Declarations</a></li>
           <li><a href="#validation">Validation</a></li>
           <li><a href="#scheduling">Scheduling</a></li>
           <li><a href="#commands-snapshots">Commands And Snapshots</a></li>
@@ -165,6 +167,37 @@
             <tr>
               <td>Declarations</td>
               <td>Content, assets, dependencies, and scheduled systems owned by the module.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="asset-declarations">
+        <h2>Asset Declarations</h2>
+        <p>Texture packs enter the API through asset declarations. Shared only defines the manifest contract; basegame tooling imports pack files, and the client owns GPU upload and shader sampling.</p>
+        <pre><code class="language-csharp">public sealed record GameModuleAssetDeclaration(
+    string AssetId,
+    string AssetKind,
+    string RelativePath);</code></pre>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Rule</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AssetId</code></td>
+              <td>Stable module-owned ID such as <code>octaryn.basegame.texture.atlas.color</code>.</td>
+            </tr>
+            <tr>
+              <td><code>AssetKind</code></td>
+              <td>Allowed values include <code>atlas</code>, <code>texture</code>, <code>blockstate</code>, <code>model</code>, <code>shader</code>, <code>ui</code>, and <code>audio</code>.</td>
+            </tr>
+            <tr>
+              <td><code>RelativePath</code></td>
+              <td>Safe path under <code>Assets/</code> or <code>Shaders/</code> inside the module package.</td>
             </tr>
           </tbody>
         </table>

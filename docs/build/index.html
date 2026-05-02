@@ -21,6 +21,7 @@
           <a class="nav-link" href="../api/examples/">Examples</a>
           <a class="nav-link" href="../architecture/">Architecture</a>
           <a class="nav-link" href="./">Build Tooling</a>
+          <a class="nav-link" href="../texture-packs/">Texture Packs</a>
           <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
         </div>
       </nav>
@@ -84,6 +85,22 @@ tools/build/cmake_build.sh debug-linux --target octaryn_run_server_launch_probe<
         <pre><code>dotnet run --project tools/validation/Octaryn.ModuleManifestProbe/Octaryn.ModuleManifestProbe.csproj --configuration Debug -- octaryn-basegame
 dotnet run --project tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj --configuration Debug
 dotnet run --project tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj --configuration Debug</code></pre>
+      </section>
+
+      <section id="texture-atlases">
+        <h2>Texture Atlases</h2>
+        <p>Basegame texture-pack imports are content tooling. Generated atlas files should land under the basegame owner output path.</p>
+        <pre><code>python3 octaryn-basegame/Tools/build_atlas_from_pack.py \
+  --pack /path/to/resource-pack.zip \
+  --sha256 PACK_SHA256 \
+  --cache-dir build/dependencies/texture-packs \
+  --output build/debug-linux/basegame/assets/atlases/basegame-color.png \
+  --normal-output build/debug-linux/basegame/assets/atlases/basegame-normal.png \
+  --specular-output build/debug-linux/basegame/assets/atlases/basegame-specular.png \
+  --animation-output build/debug-linux/basegame/assets/atlases/basegame-animation.png \
+  --animation-manifest build/debug-linux/basegame/assets/atlases/basegame-animation.txt \
+  --tile-size 32 \
+  --layer-count 29</code></pre>
       </section>
 
       <section id="output-layout">

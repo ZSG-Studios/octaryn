@@ -21,6 +21,7 @@
           <a class="nav-link" href="../api/examples/">Examples</a>
           <a class="nav-link" href="./">Architecture</a>
           <a class="nav-link" href="../build/">Build Tooling</a>
+          <a class="nav-link" href="../texture-packs/">Texture Packs</a>
           <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
         </div>
       </nav>
@@ -115,6 +116,37 @@ cmake/</code></pre>
           <li>Scheduled systems declare read/write resources and ordering.</li>
           <li>Content and asset IDs must be module-owned.</li>
         </ul>
+      </section>
+
+      <section id="texture-packs">
+        <h2>Texture Pack Flow</h2>
+        <p>Texture packs are content input, not shared implementation. Basegame owns pack import and atlas decisions, shared owns only the asset declarations, and client owns rendering the generated atlas.</p>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Owner</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pack import rules and atlas layer names</td>
+              <td><code>octaryn-basegame/Tools/</code></td>
+            </tr>
+            <tr>
+              <td>Block face references and content IDs</td>
+              <td><code>octaryn-basegame/Data/</code></td>
+            </tr>
+            <tr>
+              <td>Manifest asset contracts</td>
+              <td><code>octaryn-shared/</code></td>
+            </tr>
+            <tr>
+              <td>GPU upload, sampling, shaders, and presentation</td>
+              <td><code>octaryn-client/</code></td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       <section id="runtime">

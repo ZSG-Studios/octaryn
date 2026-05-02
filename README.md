@@ -9,7 +9,7 @@ Client presentation, server authority, shared contracts, and bundled basegame lo
 - `octaryn-client/`: windowing, input, rendering, shaders, overlays, client prediction, and client host integration.
 - `octaryn-server/`: authoritative simulation, validation, persistence, server ticks, replication, and transport hosting.
 - `octaryn-shared/`: implementation-free contracts, IDs, commands, snapshots, module manifests, capability IDs, host API IDs, scheduling contracts, and validation policy.
-- `octaryn-basegame/`: bundled default game module with gameplay rules, content declarations, assets, data, and basegame-specific tools.
+- `octaryn-basegame/`: bundled default game module with gameplay rules, content declarations, texture-pack import tools, assets, data, and basegame-specific tools.
 - `tools/`: repo-wide build, validation, profiling, launch, and developer operations.
 - `cmake/`: build policy, owner target construction, dependency wrappers, platform facts, and toolchains.
 - `docs/`: API, architecture, build tooling, validation, and GitHub Pages documentation.
@@ -23,6 +23,7 @@ No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `he
 - [Examples](https://zsg-studios.github.io/Octaryn/api/examples/)
 - [Architecture](https://zsg-studios.github.io/Octaryn/architecture/)
 - [Build Tooling](https://zsg-studios.github.io/Octaryn/build/)
+- [Texture Packs](https://zsg-studios.github.io/Octaryn/texture-packs/)
 - [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md)
 
 Page sources live under `docs/`.
@@ -61,6 +62,28 @@ dotnet run --project tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn
 ```
 
 Windows is a Linux-hosted cross-build path. Use the Linux launcher and `tools/build/podman_build.sh` for `debug-windows` or `release-windows`.
+
+## Texture Packs
+
+Texture packs are imported through basegame-owned tooling, declared as module assets, and rendered by the client. Shared only exposes the manifest contract.
+
+Current atlas import path:
+
+```sh
+python3 octaryn-basegame/Tools/build_atlas_from_pack.py \
+  --pack /path/to/resource-pack.zip \
+  --sha256 PACK_SHA256 \
+  --cache-dir build/dependencies/texture-packs \
+  --output build/debug-linux/basegame/assets/atlases/basegame-color.png \
+  --normal-output build/debug-linux/basegame/assets/atlases/basegame-normal.png \
+  --specular-output build/debug-linux/basegame/assets/atlases/basegame-specular.png \
+  --animation-output build/debug-linux/basegame/assets/atlases/basegame-animation.png \
+  --animation-manifest build/debug-linux/basegame/assets/atlases/basegame-animation.txt \
+  --tile-size 32 \
+  --layer-count 29
+```
+
+Third-party packs need license permission before assets are committed, packaged, or published. Keep upstream credit, license text, source URL, version or commit, and SHA-256 with release materials.
 
 ## Output Layout
 

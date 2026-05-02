@@ -24,6 +24,7 @@
           <a class="nav-link" href="./">Examples</a>
           <a class="nav-link" href="../../architecture/">Architecture</a>
           <a class="nav-link" href="../../build/">Build Tooling</a>
+          <a class="nav-link" href="../../texture-packs/">Texture Packs</a>
           <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
         </div>
       </nav>
@@ -42,6 +43,8 @@
           <li><a href="#command-access">Request Command Access</a></li>
           <li><a href="#snapshot-contracts">Read Snapshot Contracts</a></li>
           <li><a href="#content-declarations">Declare Content</a></li>
+          <li><a href="#texture-pack-assets">Declare Texture Pack Assets</a></li>
+          <li><a href="#atlas-build">Build An Atlas</a></li>
           <li><a href="#schedule-reads-writes">Declare Reads And Writes</a></li>
         </ul>
       </section>
@@ -206,6 +209,42 @@ AssetDeclarations:
         "texture",
         "Assets/Textures/example.demo.texture.placeholder.png")
 ]</code></pre>
+      </section>
+
+      <section id="texture-pack-assets">
+        <h2>Declare Texture Pack Assets</h2>
+        <p>Atlas outputs are module assets. The manifest declares the generated files; basegame tooling decides how a texture pack becomes those files.</p>
+        <pre><code class="language-csharp">AssetDeclarations:
+[
+    new GameModuleAssetDeclaration(
+        "example.demo.texture.atlas.color",
+        "atlas",
+        "Assets/Atlases/example.demo.color.png"),
+    new GameModuleAssetDeclaration(
+        "example.demo.texture.atlas.normal",
+        "atlas",
+        "Assets/Atlases/example.demo.normal.png"),
+    new GameModuleAssetDeclaration(
+        "example.demo.texture.atlas.specular",
+        "atlas",
+        "Assets/Atlases/example.demo.specular.png")
+]</code></pre>
+      </section>
+
+      <section id="atlas-build">
+        <h2>Build An Atlas</h2>
+        <p>The current basegame atlas tool consumes a Minecraft-style resource pack ZIP and writes aligned atlas outputs.</p>
+        <pre><code>python3 octaryn-basegame/Tools/build_atlas_from_pack.py \
+  --pack /path/to/resource-pack.zip \
+  --sha256 PACK_SHA256 \
+  --cache-dir build/dependencies/texture-packs \
+  --output build/debug-linux/basegame/assets/atlases/basegame-color.png \
+  --normal-output build/debug-linux/basegame/assets/atlases/basegame-normal.png \
+  --specular-output build/debug-linux/basegame/assets/atlases/basegame-specular.png \
+  --animation-output build/debug-linux/basegame/assets/atlases/basegame-animation.png \
+  --animation-manifest build/debug-linux/basegame/assets/atlases/basegame-animation.txt \
+  --tile-size 32 \
+  --layer-count 29</code></pre>
       </section>
 
       <section id="schedule-reads-writes">
