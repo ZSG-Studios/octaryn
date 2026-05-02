@@ -52,7 +52,7 @@ internal sealed class ServerBlockEditService(ServerBlockStore blocks, IBlockAuth
     private bool TryClearUnsupportedBlockAbove(BlockEdit edit, out BlockEdit cascadeEdit)
     {
         cascadeEdit = default;
-        if (edit.Position.Y + 1 >= ServerBlockLimits.WorldHeight)
+        if (edit.Position.Y + 1 >= ServerBlockLimits.WorldMaxYExclusive)
         {
             return false;
         }

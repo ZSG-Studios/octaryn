@@ -12,11 +12,6 @@ public static class BlockSupportRules
             return true;
         }
 
-        if (position.Y <= 0)
-        {
-            return false;
-        }
-
         if (RequiresGrass(block))
         {
             return belowBlock == BasegameBlockCatalog.Grass;

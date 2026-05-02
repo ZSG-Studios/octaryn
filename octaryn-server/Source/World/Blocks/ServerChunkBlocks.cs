@@ -50,8 +50,8 @@ internal sealed class ServerChunkBlocks
             yield return new BlockEdit(
                 new BlockPosition(
                     chunkPosition.X * ServerBlockLimits.ChunkWidth + local.X,
-                    chunkPosition.Y * ServerBlockLimits.ChunkWidth + local.Y,
-                    chunkPosition.Z * ServerBlockLimits.ChunkWidth + local.Z),
+                    chunkPosition.Y * ServerBlockLimits.ChunkSectionHeight + local.Y,
+                    chunkPosition.Z * ServerBlockLimits.ChunkDepth + local.Z),
                 entry.Value);
         }
     }
@@ -63,21 +63,21 @@ internal sealed class ServerChunkBlocks
         return position.X >= 0 &&
             position.X < ServerBlockLimits.ChunkWidth &&
             position.Y >= 0 &&
-            position.Y < ServerBlockLimits.ChunkWidth &&
+            position.Y < ServerBlockLimits.ChunkSectionHeight &&
             position.Z >= 0 &&
-            position.Z < ServerBlockLimits.ChunkWidth;
+            position.Z < ServerBlockLimits.ChunkDepth;
     }
 
     private static int LocalIndex(BlockPosition position)
     {
         return position.X +
             position.Z * ServerBlockLimits.ChunkWidth +
-            position.Y * ServerBlockLimits.ChunkWidth * ServerBlockLimits.ChunkWidth;
+            position.Y * ServerBlockLimits.ChunkWidth * ServerBlockLimits.ChunkDepth;
     }
 
     private static BlockPosition LocalPosition(int index)
     {
-        var layer = ServerBlockLimits.ChunkWidth * ServerBlockLimits.ChunkWidth;
+        var layer = ServerBlockLimits.ChunkWidth * ServerBlockLimits.ChunkDepth;
         var y = index / layer;
         var remaining = index - y * layer;
         var z = remaining / ServerBlockLimits.ChunkWidth;

@@ -14,6 +14,7 @@ internal static class ServerWorldBlocksProbe
 {
     public static int Run()
     {
+        ValidateWorldConstants();
         ValidateEditAndQuery();
         ValidateSupportRules();
         ValidateChunkMapping();
@@ -26,6 +27,27 @@ internal static class ServerWorldBlocksProbe
         ValidateSnapshotDrain();
         ValidateActivatorPersistenceLifecycle();
         return 0;
+    }
+
+    private static void ValidateWorldConstants()
+    {
+        Require(ChunkConstants.Width == 32, "chunk width");
+        Require(ChunkConstants.Depth == 32, "chunk depth");
+        Require(ChunkConstants.SectionHeight == 32, "chunk section height");
+        Require(ChunkConstants.WorldHeight == 512, "world height");
+        Require(ChunkConstants.WorldMinY == -256, "centered world min y");
+        Require(ChunkConstants.WorldMaxYExclusive == 256, "centered world max y");
+        Require(ChunkConstants.WorldMaxYExclusive - ChunkConstants.WorldMinY == ChunkConstants.WorldHeight, "world height span");
+        Require(ChunkConstants.SectionBlockCount == ChunkConstants.Width * ChunkConstants.SectionHeight * ChunkConstants.Depth, "section block count");
+        Require(ChunkConstants.WorldHeight % ChunkConstants.SectionHeight == 0, "world height section alignment");
+        Require(ChunkConstants.WorldHeight != ChunkConstants.SectionHeight, "world height independent from section height");
+
+        Require(ServerBlockLimits.ChunkWidth == ChunkConstants.Width, "server chunk width mirrors shared contract");
+        Require(ServerBlockLimits.ChunkDepth == ChunkConstants.Depth, "server chunk depth mirrors shared contract");
+        Require(ServerBlockLimits.ChunkSectionHeight == ChunkConstants.SectionHeight, "server section height mirrors shared contract");
+        Require(ServerBlockLimits.WorldHeight == ChunkConstants.WorldHeight, "server world height mirrors shared contract");
+        Require(ServerBlockLimits.WorldMinY == ChunkConstants.WorldMinY, "server min y mirrors shared contract");
+        Require(ServerBlockLimits.WorldMaxYExclusive == ChunkConstants.WorldMaxYExclusive, "server max y mirrors shared contract");
     }
 
     private static void ValidateEditAndQuery()
@@ -55,8 +77,10 @@ internal static class ServerWorldBlocksProbe
         Require(result.Changed, "air edit changed");
         Require(service.GetBlock(position) == BlockId.Air, "air edit removes override");
 
-        Require(!service.Apply(new BlockEdit(new BlockPosition(0, -1, 0), new BlockId(1))).Applied, "negative height rejected");
-        Require(!service.Apply(new BlockEdit(new BlockPosition(0, 32, 0), new BlockId(1))).Applied, "height edge rejected");
+        Require(!service.Apply(new BlockEdit(new BlockPosition(0, ChunkConstants.WorldMinY - 1, 0), new BlockId(1))).Applied, "below world rejected");
+        Require(service.Apply(new BlockEdit(new BlockPosition(0, ChunkConstants.WorldMinY, 0), new BlockId(1))).Applied, "bottom world block accepted");
+        Require(service.Apply(new BlockEdit(new BlockPosition(0, ChunkConstants.WorldMaxYExclusive - 1, 0), new BlockId(1))).Applied, "top world block accepted");
+        Require(!service.Apply(new BlockEdit(new BlockPosition(0, ChunkConstants.WorldMaxYExclusive, 0), new BlockId(1))).Applied, "height edge rejected");
         Require(!service.Apply(new BlockEdit(new BlockPosition(0, 0, 0), new BlockId(39))).Applied, "unknown block rejected");
     }
 
@@ -93,6 +117,24 @@ internal static class ServerWorldBlocksProbe
         Require(ServerBlockStore.LocalPositionFor(new BlockPosition(0, 0, 0)) == new BlockPosition(0, 0, 0), "origin local");
         Require(ServerBlockStore.ChunkPositionFor(new BlockPosition(31, 31, 31)) == new ChunkPosition(0, 0, 0), "edge chunk");
         Require(ServerBlockStore.LocalPositionFor(new BlockPosition(31, 31, 31)) == new BlockPosition(31, 31, 31), "edge local");
+        Require(ServerBlockStore.ChunkPositionFor(new BlockPosition(0, 32, 0)) == new ChunkPosition(0, 1, 0), "vertical neighbor chunk");
+        Require(ServerBlockStore.LocalPositionFor(new BlockPosition(0, 32, 0)) == new BlockPosition(0, 0, 0), "vertical neighbor local");
+        Require(
+            ServerBlockStore.ChunkPositionFor(new BlockPosition(0, ChunkConstants.WorldMinY, 0)) ==
+            new ChunkPosition(0, ChunkConstants.WorldMinY / ChunkConstants.SectionHeight, 0),
+            "bottom world chunk");
+        Require(
+            ServerBlockStore.LocalPositionFor(new BlockPosition(0, ChunkConstants.WorldMinY, 0)) ==
+            new BlockPosition(0, 0, 0),
+            "bottom world local");
+        Require(
+            ServerBlockStore.ChunkPositionFor(new BlockPosition(0, ChunkConstants.WorldMaxYExclusive - 1, 0)) ==
+            new ChunkPosition(0, ChunkConstants.WorldMaxYExclusive / ChunkConstants.SectionHeight - 1, 0),
+            "top world chunk");
+        Require(
+            ServerBlockStore.LocalPositionFor(new BlockPosition(0, ChunkConstants.WorldMaxYExclusive - 1, 0)) ==
+            new BlockPosition(0, ChunkConstants.SectionHeight - 1, 0),
+            "top world local");
         Require(ServerBlockStore.ChunkPositionFor(new BlockPosition(32, 0, 32)) == new ChunkPosition(1, 0, 1), "positive neighbor chunk");
         Require(ServerBlockStore.LocalPositionFor(new BlockPosition(32, 0, 32)) == new BlockPosition(0, 0, 0), "positive neighbor local");
         Require(ServerBlockStore.ChunkPositionFor(new BlockPosition(-1, 0, -1)) == new ChunkPosition(-1, 0, -1), "negative floor chunk");
@@ -172,10 +214,10 @@ internal static class ServerWorldBlocksProbe
             Size = HostCommand.SizeValue,
             Kind = HostCommandKind.SetBlock,
             A = 4,
-            B = 32,
+            B = ChunkConstants.WorldMaxYExclusive,
             C = 6,
             D = 7
-        }), "invalid set block command rejected");
+        }), "height edge set block command rejected");
 
         var cascadingChanges = new ServerBlockChangeQueue();
         var cascadingStore = new ServerBlockStore();

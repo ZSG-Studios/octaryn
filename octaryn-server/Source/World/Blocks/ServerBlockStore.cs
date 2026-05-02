@@ -62,23 +62,23 @@ internal sealed class ServerBlockStore
 
     public static bool IsValidPosition(BlockPosition position)
     {
-        return position.Y >= 0 && position.Y < ServerBlockLimits.WorldHeight;
+        return position.Y >= ServerBlockLimits.WorldMinY && position.Y < ServerBlockLimits.WorldMaxYExclusive;
     }
 
     public static ChunkPosition ChunkPositionFor(BlockPosition position)
     {
         return new ChunkPosition(
             FloorDiv(position.X, ServerBlockLimits.ChunkWidth),
-            FloorDiv(position.Y, ServerBlockLimits.ChunkWidth),
-            FloorDiv(position.Z, ServerBlockLimits.ChunkWidth));
+            FloorDiv(position.Y, ServerBlockLimits.ChunkSectionHeight),
+            FloorDiv(position.Z, ServerBlockLimits.ChunkDepth));
     }
 
     public static BlockPosition LocalPositionFor(BlockPosition position)
     {
         return new BlockPosition(
             FloorMod(position.X, ServerBlockLimits.ChunkWidth),
-            FloorMod(position.Y, ServerBlockLimits.ChunkWidth),
-            FloorMod(position.Z, ServerBlockLimits.ChunkWidth));
+            FloorMod(position.Y, ServerBlockLimits.ChunkSectionHeight),
+            FloorMod(position.Z, ServerBlockLimits.ChunkDepth));
     }
 
     private static int FloorDiv(int value, int divisor)

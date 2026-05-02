@@ -342,7 +342,7 @@ World constants should be explicit:
 - coordinate mapping should support a centered vertical range
 - server authority owns valid-world bounds
 - client presentation consumes server/shared bounds instead of hardcoding them
-- old `CHUNK_HEIGHT = 256` and new `WorldHeight = ChunkConstants.EdgeLength` are temporary port debt, not the target architecture
+- old `CHUNK_HEIGHT = 256` and chunk-edge-derived world height constants are temporary port debt, not the target architecture
 
 ## Client And Server Launch Modes
 
