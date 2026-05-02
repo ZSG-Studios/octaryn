@@ -11,8 +11,8 @@ The API boundary is intentionally narrow. Game modules and mods use explicit sha
 
 ## Guides
 
-- [API guide](api.md)
-- [Examples](examples.md)
+- [API guide](api/)
+- [Examples](api/examples/)
 - [AAA port structure](architecture/aaa-port-structure.md)
 - [Old architecture map](migration/old-architecture-map.md)
 - [Build matrix](validation/build-matrix.md)

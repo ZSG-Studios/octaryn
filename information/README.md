@@ -5,8 +5,8 @@ This folder is the quick human index for the active Octaryn workspace. The root 
 ## Start Here
 
 - [Root README](../README.md): current repository overview and build commands.
-- [API guide](../docs/api.md): current shared API boundary and module contract shape.
-- [API examples](../docs/examples.md): manifest, validation, scheduling, and snapshot examples.
+- [API guide](../docs/api/index.md): current shared API boundary and module contract shape.
+- [API examples](../docs/api/examples.md): manifest, validation, scheduling, and snapshot examples.
 - [AAA port structure](../docs/architecture/aaa-port-structure.md): active modular port plan.
 
 ## Owner Boundaries

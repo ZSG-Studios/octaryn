@@ -22,8 +22,8 @@ No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `he
 
 - [Information index](information/README.md)
 - [GitHub Pages entry](docs/index.md)
-- [API guide](docs/api.md)
-- [API examples](docs/examples.md)
+- [API guide](docs/api/index.md)
+- [API examples](docs/api/examples.md)
 - [AAA port structure](docs/architecture/aaa-port-structure.md)
 - [Old architecture map](docs/migration/old-architecture-map.md)
 - [Build matrix](docs/validation/build-matrix.md)
