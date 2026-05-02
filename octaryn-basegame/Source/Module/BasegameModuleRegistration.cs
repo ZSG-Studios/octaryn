@@ -1,4 +1,5 @@
 using Octaryn.Basegame.Gameplay.Interaction;
+using Octaryn.Basegame.Content.Worldgen;
 using Octaryn.Shared.ApiExposure;
 using Octaryn.Shared.FrameworkAllowlist;
 using Octaryn.Shared.GameModules;
@@ -6,9 +7,11 @@ using Octaryn.Shared.World;
 
 namespace Octaryn.Basegame.Module;
 
-public sealed class BasegameModuleRegistration : IGameModuleRegistration, IBlockAuthorityRulesProvider
+public sealed class BasegameModuleRegistration : IGameModuleRegistration, IBlockAuthorityRulesProvider, IWorldGenerationRulesProvider
 {
     public IBlockAuthorityRules BlockAuthorityRules { get; } = new BasegameBlockAuthorityRules();
+
+    public IWorldGenerationRules WorldGenerationRules { get; } = new BasegameWorldGenerationRules();
 
     public GameModuleManifest Manifest { get; } = new(
         ModuleId: "octaryn.basegame",
@@ -21,7 +24,10 @@ public sealed class BasegameModuleRegistration : IGameModuleRegistration, IBlock
             ModuleCapabilityIds.ContentItems,
             ModuleCapabilityIds.GameplayInteractions,
             ModuleCapabilityIds.GameplayRules,
-            ModuleCapabilityIds.WorldBlockEdits
+            ModuleCapabilityIds.WorldBlockEdits,
+            ModuleCapabilityIds.WorldgenBiomes,
+            ModuleCapabilityIds.WorldgenFeatures,
+            ModuleCapabilityIds.WorldgenNoise
         ],
         RequestedHostApis:
         [
@@ -62,7 +68,19 @@ public sealed class BasegameModuleRegistration : IGameModuleRegistration, IBlock
             new GameModuleContentDeclaration(
                 "octaryn.basegame.rule.default_interaction",
                 "rule",
-                "Data/Rules/octaryn.basegame.rule.default_interaction.json")
+                "Data/Rules/octaryn.basegame.rule.default_interaction.json"),
+            new GameModuleContentDeclaration(
+                "octaryn.basegame.biomes",
+                "biome",
+                "Data/Biomes/octaryn.basegame.biomes.json"),
+            new GameModuleContentDeclaration(
+                "octaryn.basegame.features",
+                "feature",
+                "Data/Features/octaryn.basegame.features.json"),
+            new GameModuleContentDeclaration(
+                "octaryn.basegame.rule.terrain_generation",
+                "rule",
+                "Data/Rules/octaryn.basegame.rule.terrain_generation.json")
         ],
         AssetDeclarations:
         [

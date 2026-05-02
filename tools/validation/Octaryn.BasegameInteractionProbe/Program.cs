@@ -14,7 +14,7 @@ internal static class BasegameInteractionProbe
 
         Require(BlockSupportRules.CanStaySupported(BlockId.Air, bottomLayer, BlockId.Air), "air is always supported");
         Require(BlockSupportRules.CanStaySupported(new BlockId(1), aboveGround, BlockId.Air), "grass does not need base support");
-        Require(!BlockSupportRules.CanStaySupported(new BlockId(1), bottomLayer, new BlockId(1)), "non-air blocks require y above zero");
+        Require(BlockSupportRules.CanStaySupported(new BlockId(1), bottomLayer, new BlockId(1)), "basegame support rules do not own world floor policy");
 
         Require(BlockSupportRules.RequiresGrass(new BlockId(9)), "bush requires grass");
         Require(BlockSupportRules.RequiresGrass(new BlockId(13)), "lavender requires grass");

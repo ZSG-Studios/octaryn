@@ -1,0 +1,28 @@
+{
+  "schema": "octaryn.basegame.features.v1",
+  "features": [
+    {
+      "id": "octaryn.basegame.feature.flowers",
+      "noiseThreshold": 0.52,
+      "blocks": [
+        "bluebell",
+        "gardenia",
+        "lavender",
+        "rose"
+      ]
+    },
+    {
+      "id": "octaryn.basegame.feature.bushes",
+      "noiseThreshold": 0.55,
+      "blocks": [
+        "bush"
+      ]
+    },
+    {
+      "id": "octaryn.basegame.feature.trees",
+      "noiseThreshold": 0.8,
+      "trunk": "log",
+      "leaves": "leaves"
+    }
+  ]
+}

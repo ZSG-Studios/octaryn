@@ -8,7 +8,10 @@
     "content.items",
     "gameplay.interactions",
     "gameplay.rules",
-    "world.block_edits"
+    "world.block_edits",
+    "worldgen.biomes",
+    "worldgen.features",
+    "worldgen.noise"
   ],
   "RequestedHostApis": [
     "host.commands",
@@ -47,6 +50,21 @@
       "ContentId": "octaryn.basegame.rule.default_interaction",
       "ContentKind": "rule",
       "RelativePath": "Data/Rules/octaryn.basegame.rule.default_interaction.json"
+    },
+    {
+      "ContentId": "octaryn.basegame.biomes",
+      "ContentKind": "biome",
+      "RelativePath": "Data/Biomes/octaryn.basegame.biomes.json"
+    },
+    {
+      "ContentId": "octaryn.basegame.features",
+      "ContentKind": "feature",
+      "RelativePath": "Data/Features/octaryn.basegame.features.json"
+    },
+    {
+      "ContentId": "octaryn.basegame.rule.terrain_generation",
+      "ContentKind": "rule",
+      "RelativePath": "Data/Rules/octaryn.basegame.rule.terrain_generation.json"
     }
   ],
   "AssetDeclarations": [

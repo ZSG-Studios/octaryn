@@ -8,7 +8,10 @@ public static class ModuleCapabilityAllowlist
         ModuleCapabilityIds.ContentItems,
         ModuleCapabilityIds.GameplayInteractions,
         ModuleCapabilityIds.GameplayRules,
-        ModuleCapabilityIds.WorldBlockEdits
+        ModuleCapabilityIds.WorldBlockEdits,
+        ModuleCapabilityIds.WorldgenBiomes,
+        ModuleCapabilityIds.WorldgenFeatures,
+        ModuleCapabilityIds.WorldgenNoise
     };
 
     public static bool IsAllowed(string capabilityId)

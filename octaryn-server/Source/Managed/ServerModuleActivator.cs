@@ -1,6 +1,7 @@
 using Octaryn.Server.Persistence.WorldBlocks;
 using Octaryn.Server.Tick;
 using Octaryn.Server.World.Blocks;
+using Octaryn.Server.World.Generation;
 using Octaryn.Server.World.Time;
 using Octaryn.Shared.GameModules;
 using Octaryn.Shared.Host;
@@ -20,6 +21,7 @@ internal sealed class ServerModuleActivator : IDisposable
     private readonly ServerWorldBlockPersistence _blockPersistence;
     private readonly ServerBlockCommandSink _blockCommands;
     private readonly ServerClientBlockCommandQueue _clientBlockCommands;
+    private readonly ServerTerrainGenerator? _terrainGenerator;
     private ulong _lastTickId;
     private ServerHostScheduler? _scheduler;
     private IGameModuleInstance? _instance;
@@ -47,6 +49,10 @@ internal sealed class ServerModuleActivator : IDisposable
         _blockEdits = new ServerBlockEditService(_blocks, blockAuthorityRules);
         _blockCommands = new ServerBlockCommandSink(_blockEdits, _blockChanges, MarkBlockPersistenceDirty);
         _clientBlockCommands = new ServerClientBlockCommandQueue(_blockCommands, blockAuthorityRules);
+        if (registration is IWorldGenerationRulesProvider worldGenerationRulesProvider)
+        {
+            _terrainGenerator = new ServerTerrainGenerator(worldGenerationRulesProvider.WorldGenerationRules);
+        }
     }
 
     public bool IsActive => _instance is not null;
@@ -59,6 +65,11 @@ internal sealed class ServerModuleActivator : IDisposable
     internal IReadOnlyList<BlockEdit> SnapshotBlocks()
     {
         return _blocks.Snapshot();
+    }
+
+    internal IReadOnlyList<BlockEdit> GenerateTerrainChunkColumn(int originX, int originZ)
+    {
+        return _terrainGenerator?.GenerateChunkColumn(originX, originZ) ?? [];
     }
 
     internal int PendingClientBlockCommandCount => _clientBlockCommands.PendingCount;

@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octaryn.BasegameInteraction
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octaryn.ClientWorldPresentationProbe", "tools\validation\Octaryn.ClientWorldPresentationProbe\Octaryn.ClientWorldPresentationProbe.csproj", "{23A47512-CAF4-4CC2-B6AC-AB6AE27CDAD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Octaryn.ServerWorldGenerationProbe", "tools\validation\Octaryn.ServerWorldGenerationProbe\Octaryn.ServerWorldGenerationProbe.csproj", "{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +165,14 @@ Global
 		{23A47512-CAF4-4CC2-B6AC-AB6AE27CDAD3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23A47512-CAF4-4CC2-B6AC-AB6AE27CDAD3}.Release|x64.ActiveCfg = Release|Any CPU
 		{23A47512-CAF4-4CC2-B6AC-AB6AE27CDAD3}.Release|x64.Build.0 = Release|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Debug|x64.Build.0 = Debug|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Release|x64.ActiveCfg = Release|Any CPU
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -183,5 +193,6 @@ Global
 		{7587E258-EBC5-41A5-8D74-8CB319E7AFB4} = {F04F84C1-13F6-F916-788A-E1343F31DF73}
 		{48DB9118-F89F-4986-88F1-68C2B5002A99} = {F04F84C1-13F6-F916-788A-E1343F31DF73}
 		{23A47512-CAF4-4CC2-B6AC-AB6AE27CDAD3} = {F04F84C1-13F6-F916-788A-E1343F31DF73}
+		{4672DEEF-BBB6-47E2-8D39-9A8A01FC93CB} = {F04F84C1-13F6-F916-788A-E1343F31DF73}
 	EndGlobalSection
 EndGlobal

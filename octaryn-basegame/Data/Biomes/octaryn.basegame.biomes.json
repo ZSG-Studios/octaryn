@@ -1,0 +1,29 @@
+{
+  "schema": "octaryn.basegame.biomes.v1",
+  "biomes": [
+    {
+      "id": "octaryn.basegame.biome.lowland",
+      "surface": "grass",
+      "features": [
+        "octaryn.basegame.feature.flowers",
+        "octaryn.basegame.feature.bushes",
+        "octaryn.basegame.feature.trees"
+      ]
+    },
+    {
+      "id": "octaryn.basegame.biome.beach",
+      "surface": "sand",
+      "features": []
+    },
+    {
+      "id": "octaryn.basegame.biome.highland",
+      "surface": "stone",
+      "features": []
+    },
+    {
+      "id": "octaryn.basegame.biome.snowcap",
+      "surface": "snow",
+      "features": []
+    }
+  ]
+}
