@@ -28,6 +28,24 @@ internal readonly struct HostInputSnapshot
     public readonly int RelativeMouse;
     public readonly int Reserved;
 
+    internal HostInputSnapshot(uint version, uint size)
+    {
+        Version = version;
+        Size = size;
+        Flags = 0;
+        Controller = 0;
+        MoveX = 0;
+        MoveY = 0;
+        MoveZ = 0;
+        CameraX = 0;
+        CameraY = 0;
+        CameraZ = 0;
+        CameraPitch = 0;
+        CameraYaw = 0;
+        RelativeMouse = 0;
+        Reserved = 0;
+    }
+
     public bool Jump => (Flags & JumpFlag) != 0;
     public bool Sprint => (Flags & SprintFlag) != 0;
     public bool FlyMode => (Flags & FlyModeFlag) != 0;

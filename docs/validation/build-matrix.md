@@ -4,23 +4,15 @@ Last updated during the AAA port loop.
 
 ## Canonical Commands
 
-Launch the workspace UI through the native launcher so the host setup is checked before the PySide app starts:
+Launch the workspace UI through the Linux launcher so the host setup is checked before the PySide app starts:
 
 ```sh
 tools/run_workspace_ui.sh
 ```
 
-On Windows:
-
-```bat
-tools\run_workspace_ui.bat
-```
-
-The launcher validates native Python/PySide6 and Podman, builds the Arch builder image, verifies the workspace mount, then starts `tools/ui/workspace_control_app.py` with native Python. The Linux and Windows setup helpers install only native launcher requirements: Git, Python, PySide6, Podman, and Podman runtime support. Compilers, CMake, Ninja, .NET, LLVM MinGW, graphics/audio development libraries, and dependency build tools live inside the Arch builder image. The UI sends configure/build/validate actions through `tools/build/podman_build.*`; CMake still runs through the existing CMake helpers inside the Arch builder.
+The launcher validates native Python/PySide6 and Podman, builds the Arch builder image, verifies the workspace mount, then starts `tools/ui/workspace_control_app.py` with native Python. Host setup installs only Linux launcher requirements: Git, Python, PySide6, Podman, and Podman runtime support. Compilers, CMake, Ninja, .NET, LLVM MinGW, graphics/audio development libraries, and dependency build tools live inside the Arch builder image. The UI sends configure/build/validate actions through `tools/build/podman_build.sh`; CMake still runs through the existing CMake helpers inside the Arch builder. Windows is a Linux/Podman cross-build target only.
 
 ```sh
-dotnet restore Octaryn.DotNet.sln
-dotnet build Octaryn.DotNet.sln --no-restore -maxcpucount
 tools/build/podman_build.sh configure debug-linux
 tools/build/podman_build.sh configure release-linux
 tools/build/podman_build.sh configure debug-windows
@@ -33,6 +25,7 @@ tools/build/podman_build.sh validate debug-linux
 tools/build/podman_build.sh validate release-linux
 tools/build/podman_build.sh validate debug-windows
 tools/build/podman_build.sh validate release-windows
+tools/build/podman_build.sh build-all
 tools/build/podman_build.sh build debug-linux --target octaryn_debug_tools
 OCTARYN_TARGET_ARCH=arm64 tools/build/podman_build.sh configure debug-linux
 OCTARYN_TARGET_ARCH=arm64 tools/build/podman_build.sh configure release-linux
@@ -47,7 +40,7 @@ OCTARYN_TARGET_ARCH=arm64 tools/build/podman_build.sh build release-windows --ta
 Linux ARM64 sysroot setup is workspace-managed:
 
 ```sh
-tools/bootstrap/workspace_bootstrap.sh linux-arm64
+tools/build/workspace_bootstrap.sh linux-arm64
 OCTARYN_TARGET_ARCH=arm64 tools/build/podman_build.sh configure debug-linux
 OCTARYN_TARGET_ARCH=arm64 tools/build/podman_build.sh configure release-linux
 OCTARYN_TARGET_ARCH=arm64 tools/build/podman_build.sh build debug-linux --target octaryn_validate_native_archive_format
@@ -83,6 +76,11 @@ tools/build/cmake_build.sh debug-linux --target octaryn_validate_native_archive_
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_dotnet_owners
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_scheduler_contract
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_scheduler_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_world_time_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_server_world_blocks_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_basegame_player_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_basegame_interaction_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_client_world_presentation_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_owner_module_validation_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_hostfxr_bridge_exports
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_owner_launch_probes
@@ -94,7 +92,13 @@ dotnet run --project tools/validation/Octaryn.ModuleManifestProbe/Octaryn.Module
 python3 -m json.tool octaryn-basegame/Data/Module/octaryn.basegame.module.json >/dev/null
 dotnet run --project tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj --configuration Debug
 dotnet run --project tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj --configuration Debug
+dotnet run --project tools/validation/Octaryn.WorldTimeProbe/Octaryn.WorldTimeProbe.csproj --configuration Debug
+dotnet run --project tools/validation/Octaryn.ServerWorldBlocksProbe/Octaryn.ServerWorldBlocksProbe.csproj --configuration Debug
+dotnet run --project tools/validation/Octaryn.BasegamePlayerProbe/Octaryn.BasegamePlayerProbe.csproj --configuration Debug
+dotnet run --project tools/validation/Octaryn.BasegameInteractionProbe/Octaryn.BasegameInteractionProbe.csproj --configuration Debug
+dotnet run --project tools/validation/Octaryn.ClientWorldPresentationProbe/Octaryn.ClientWorldPresentationProbe.csproj --configuration Debug
 python3 tools/validation/validate_module_layout.py --module-root octaryn-basegame
+python3 tools/validation/validate_basegame_block_catalog.py --catalog octaryn-basegame/Data/Blocks/octaryn.basegame.blocks.json
 python3 tools/validation/validate_dotnet_package_assets.py --assets-file build/debug-linux/client/managed-obj/project.assets.json --owner client
 python3 tools/validation/validate_dotnet_package_assets.py --assets-file build/debug-linux/server/managed-obj/project.assets.json --owner server
 python3 tools/validation/validate_dotnet_package_assets.py --assets-file build/debug-linux/basegame/managed-obj/project.assets.json --owner basegame
@@ -127,8 +131,8 @@ python3 tools/validation/validate_owner_launch_probe_logs.py --owner server --lo
 - Basegame has checked-in package descriptor metadata at `octaryn-basegame/Data/Module/octaryn.basegame.module.json`. `Octaryn.ModuleManifestProbe` compares that descriptor with `BasegameModuleRegistration.Manifest` and writes the generated validation manifest under `build/<preset>/basegame/generated/octaryn.basegame.manifest.json`.
 - Bundle payload validation reads the bundled descriptor from client/server bundles and verifies every manifest-declared content and asset file is present under the same bundle root.
 - Native C/C++ bridge loader validation is active for current facades. The matrix builds client/server managed outputs and native bridge facades, then verifies hostfxr startup, runtimeconfig/deps discovery, exact managed method resolution, exported owner ABI names, and invalid-input managed return paths for client and server bridge entry points.
-- Toolchain configure coverage is exactly Linux and Windows, each with debug/release presets. `OCTARYN_TARGET_ARCH` is an internal dimension with `x64` as the public-preset default and `arm64` using `build/<preset>-arm64/` owner outputs. Linux native builds are Clang-only in active lanes; GCC is not an active preset lane. All active UI-driven builds run inside the Arch Podman builder. Native hosts only start matching built artifacts: Linux hosts run Linux outputs and Windows hosts run Windows outputs. Cross presets disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are not present under `OCTARYN_DOTNET_ROOT`; Linux host validation still builds and runs those bridge/probe targets.
-- .NET native hosting discovery is target-RID constrained. Arch Linux x64 uses `arch-x64`, Linux arm64 uses `linux-arm64`, and Windows Clang declares `win-x64` or `win-arm64`; host pack lookup only searches `Microsoft.NETCore.App.Host.<rid>/.../runtimes/<rid>/native`, and hostfxr lookup uses the target platform extension.
+- Toolchain configure coverage is exactly Linux and Windows, each with debug/release presets. `OCTARYN_TARGET_ARCH` is an internal dimension with `x64` as the public-preset default and `arm64` using `build/<preset>-arm64/` owner outputs. `tools/build/podman_build.sh build-all` builds every active preset for both `x64` and `arm64`. Linux native builds are Clang-only in active lanes; GCC is not an active preset lane. Windows builds are cross-builds produced inside the Linux/Arch Podman builder with LLVM MinGW. Windows host build tooling is not supported. All active UI-driven builds run inside the Arch Podman builder on Linux. Cross presets disable hostfxr bridge/probe targets when target-compatible .NET native hosting assets are not present under `OCTARYN_DOTNET_ROOT`; Linux host validation still builds and runs those bridge/probe targets.
+- .NET native hosting discovery is target-RID constrained. Arch Linux x64 uses `linux-x64`, Linux arm64 uses `linux-arm64`, and Windows Clang declares `win-x64` or `win-arm64`; host pack lookup only searches `Microsoft.NETCore.App.Host.<rid>/.../runtimes/<rid>/native`, and hostfxr lookup uses the target platform extension.
 - `octaryn_validate_cmake_targets` validates every configured preset graph listed in `CMakePresets.json` and rejects stale generated root buckets outside the documented owner layout.
 - Native archive validation proves target ABI explicitly: x64 Linux requires `elf64-x86-64`, Linux arm64 requires `elf64-littleaarch64`, Windows x64 requires `pe-x86-64`, and Windows arm64 requires `COFF-ARM64`/`IMAGE_FILE_MACHINE_ARM64` through `llvm-readobj`.
 - Linux ARM64 uses the workspace-managed sysroot under `build/dependencies/sysroots/linux-arm64/root`. The configure wrapper creates it automatically for Linux ARM64 when `OCTARYN_LINUX_ARM64_SYSROOT` is not already set.

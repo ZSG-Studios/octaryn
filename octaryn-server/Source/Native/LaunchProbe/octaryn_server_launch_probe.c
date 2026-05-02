@@ -1,6 +1,7 @@
 #include "octaryn_server_host_exports.h"
 #include "octaryn_native_crash_diagnostics.h"
 
+#include <stdint.h>
 #include <stdio.h>
 
 static FILE* s_log;
@@ -119,16 +120,73 @@ int main(void)
         return 8;
     }
 
+    octaryn_host_command block_commands[1] = {0};
+    block_commands[0].version = 1u;
+    block_commands[0].size = OCTARYN_HOST_COMMAND_SIZE;
+    block_commands[0].kind = 1u;
+    block_commands[0].flags = 1u;
+    block_commands[0].request_id = 2u;
+    block_commands[0].a = 2;
+    block_commands[0].b = 3;
+    block_commands[0].c = 4;
+    block_commands[0].d = 5;
+
+    command_frame.command_count = 1u;
+    command_frame.tick_id = 2u;
+    command_frame.commands_address = (uint64_t)(uintptr_t)block_commands;
+    result = octaryn_server_submit_client_commands(&command_frame);
+    fprintf(s_log, "submit_client_commands_set_block_array=%d\n", result);
+    if (result != 0) {
+        octaryn_server_shutdown();
+        fclose(s_log);
+        return 9;
+    }
+
+    result = octaryn_server_tick(&frame);
+    fprintf(s_log, "tick_after_submit=%d\n", result);
+    if (result != 0) {
+        octaryn_server_shutdown();
+        fclose(s_log);
+        return 10;
+    }
+
+    block_commands[0].size = 0u;
+    command_frame.tick_id = 3u;
+    result = octaryn_server_submit_client_commands(&command_frame);
+    fprintf(s_log, "submit_client_commands_invalid=%d\n", result);
+    if (result != -1) {
+        octaryn_server_shutdown();
+        fclose(s_log);
+        return 11;
+    }
+
+    octaryn_replication_change changes[4] = {0};
     octaryn_server_snapshot_header snapshot = {0};
     snapshot.version = 1u;
     snapshot.size = OCTARYN_SERVER_SNAPSHOT_HEADER_SIZE;
+    snapshot.change_count = 4u;
     snapshot.tick_id = 1u;
+    snapshot.changes_address = (uint64_t)(uintptr_t)changes;
     result = octaryn_server_drain_server_snapshots(&snapshot);
     fprintf(s_log, "drain_server_snapshots=%d\n", result);
+    fprintf(s_log, "drain_server_snapshots_block_changes=%u\n", snapshot.change_count);
+    if (result != 0 || snapshot.change_count != 1u) {
+        octaryn_server_shutdown();
+        fclose(s_log);
+        return 12;
+    }
+
+    result = octaryn_server_drain_server_snapshots(&snapshot);
+    fprintf(s_log, "drain_server_snapshots_empty=%d\n", result);
+    if (result != 0 || snapshot.change_count != 0u) {
+        octaryn_server_shutdown();
+        fclose(s_log);
+        return 13;
+    }
 
     octaryn_server_shutdown();
     fprintf(s_log, "shutdown=0\n");
     fclose(s_log);
 
-    return result == 0 ? 0 : 9;
+    return result == 0 ? 0 : 14;
 }

@@ -7,7 +7,8 @@ public static class ModuleCapabilityAllowlist
         ModuleCapabilityIds.ContentBlocks,
         ModuleCapabilityIds.ContentItems,
         ModuleCapabilityIds.GameplayInteractions,
-        ModuleCapabilityIds.GameplayRules
+        ModuleCapabilityIds.GameplayRules,
+        ModuleCapabilityIds.WorldBlockEdits
     };
 
     public static bool IsAllowed(string capabilityId)

@@ -185,6 +185,32 @@ internal static class ModuleManifestProbe
             "module.schedule.commands.write.required");
         ExpectInvalid(
             errors,
+            "commands requested without block edit capability",
+            ValidManifest(requiredCapabilities:
+            [
+                ModuleCapabilityIds.ContentBlocks,
+                ModuleCapabilityIds.ContentItems,
+                ModuleCapabilityIds.GameplayRules
+            ]),
+            "module.capability.world_block_edits.required");
+        ExpectInvalid(
+            errors,
+            "scheduled command write without block edit capability",
+            ValidManifest(
+                requiredCapabilities:
+                [
+                    ModuleCapabilityIds.ContentBlocks,
+                    ModuleCapabilityIds.ContentItems,
+                    ModuleCapabilityIds.GameplayRules
+                ],
+                requestedHostApis: [HostApiIds.Frame],
+                systems:
+                [
+                    ScheduledSystem("octaryn.test.tick")
+                ]),
+            "module.capability.world_block_edits.required");
+        ExpectInvalid(
+            errors,
             "unexposed host read resource",
             ValidManifest(systems:
             [
@@ -331,6 +357,7 @@ internal static class ModuleManifestProbe
         string assetPath = "Assets/Textures/octaryn.test.texture.txt",
         string minimumHostApiVersion = "0.1.0",
         string maximumHostApiVersion = "0.1.0",
+        IReadOnlyList<string>? requiredCapabilities = null,
         IReadOnlyList<string>? requestedHostApis = null,
         IReadOnlyList<ScheduledSystemDeclaration>? systems = null)
     {
@@ -345,11 +372,12 @@ internal static class ModuleManifestProbe
             DisplayName: "Octaryn Test Module",
             Version: "0.1.0",
             OctarynApiVersion: "0.1.0",
-            RequiredCapabilities:
+            RequiredCapabilities: requiredCapabilities ??
             [
                 ModuleCapabilityIds.ContentBlocks,
                 ModuleCapabilityIds.ContentItems,
-                ModuleCapabilityIds.GameplayRules
+                ModuleCapabilityIds.GameplayRules,
+                ModuleCapabilityIds.WorldBlockEdits
             ],
             RequestedHostApis: hostApis,
             RequestedRuntimePackages: [],

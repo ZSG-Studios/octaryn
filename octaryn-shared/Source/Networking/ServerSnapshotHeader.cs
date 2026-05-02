@@ -15,4 +15,20 @@ public readonly struct ServerSnapshotHeader
     public readonly ulong TickId;
     public readonly ulong ReplicationIdsAddress;
     public readonly ulong ChangesAddress;
+
+    internal ServerSnapshotHeader(
+        uint replicationCount,
+        uint changeCount,
+        ulong tickId,
+        ulong replicationIdsAddress,
+        ulong changesAddress)
+    {
+        Version = VersionValue;
+        Size = SizeValue;
+        ReplicationCount = replicationCount;
+        ChangeCount = changeCount;
+        TickId = tickId;
+        ReplicationIdsAddress = replicationIdsAddress;
+        ChangesAddress = changesAddress;
+    }
 }

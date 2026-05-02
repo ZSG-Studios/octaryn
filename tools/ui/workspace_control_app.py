@@ -29,14 +29,10 @@ def find_workspace_root() -> Path:
 
 
 WORKSPACE_ROOT = find_workspace_root()
-PODMAN_BUILD_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / (
-    "podman_build.bat" if os.name == "nt" else "podman_build.sh"
-)
+PODMAN_BUILD_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / "podman_build.sh"
 TRACY_TOOL_SCRIPT = WORKSPACE_ROOT / "tools" / "profiling" / "tracy_tool.sh"
-BOOTSTRAP_SCRIPT = WORKSPACE_ROOT / "tools" / "bootstrap" / "workspace_bootstrap.sh"
-HOST_SETUP_SCRIPT = WORKSPACE_ROOT / "tools" / "setup" / (
-    "windows_build_environment.bat" if os.name == "nt" else "linux_build_environment.sh"
-)
+BOOTSTRAP_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / "workspace_bootstrap.sh"
+HOST_SETUP_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / "linux_build_environment.sh"
 LOG_ROOT = WORKSPACE_ROOT / "logs" / "tools"
 WARNINGS_LOG = LOG_ROOT / "workspace_control_warnings.log"
 ERRORS_LOG = LOG_ROOT / "workspace_control_errors.log"
@@ -128,8 +124,6 @@ def command_invocation(program: Path, args: list[str]) -> tuple[str, list[str]]:
     if program.suffix == ".sh":
         shell = QtCore.QStandardPaths.findExecutable("bash") or "/usr/bin/bash"
         return shell, [str(program), *args]
-    if program.suffix == ".bat":
-        return "cmd.exe", ["/c", str(program), *args]
     return str(program), list(args)
 
 
@@ -193,8 +187,6 @@ def preset_summary(preset: str) -> str:
 def host_platform() -> str:
     if sys.platform.startswith("linux"):
         return "linux"
-    if os.name == "nt":
-        return "windows"
     return "unknown"
 
 
@@ -482,7 +474,7 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         self._refresh_dashboard()
         self._write_state("idle")
         self._log(
-            "Octaryn control ready. Configure, build, validate, and build-all run through the Podman build wrapper."
+            "Octaryn control ready. Configure, build, validate, and full matrix builds run through the Podman build wrapper."
         )
         self._log(f"Workspace: {WORKSPACE_ROOT}")
         self._log(f"Logs: {LOG_ROOT}")
@@ -556,10 +548,10 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         self.show_status()
 
     def build_all_presets(self) -> None:
-        self._start_command("build all presets", PODMAN_BUILD_SCRIPT, ["build-all"])
+        self._start_command("build all presets and architectures", PODMAN_BUILD_SCRIPT, ["build-all"])
 
     def start_probe_run(self) -> None:
-        host_debug_preset = WINDOWS_DEBUG_PRESET if host_platform() == "windows" else LINUX_DEBUG_PRESET
+        host_debug_preset = LINUX_DEBUG_PRESET
         self.preset_combo.setCurrentText(PRESET_LABELS[host_debug_preset])
         self.pending_probe_run = ProbeRunPlan(preset=host_debug_preset)
         if not self._start_build_command(
@@ -575,9 +567,6 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         opener_args: list[str] = []
         if sys.platform.startswith("linux"):
             opener = "xdg-open"
-            opener_args = [str(LOG_ROOT)]
-        elif os.name == "nt":
-            opener = "explorer"
             opener_args = [str(LOG_ROOT)]
 
         if opener is None:

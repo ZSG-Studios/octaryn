@@ -1,5 +1,3 @@
-using Octaryn.Basegame;
-using Octaryn.Basegame.Module;
 using Octaryn.Client.ClientHost;
 using Octaryn.Shared.GameModules;
 using Octaryn.Shared.Host;
@@ -15,7 +13,7 @@ internal sealed class BasegameModuleActivator : IDisposable
     private bool _isDisposed;
 
     public BasegameModuleActivator()
-        : this(new BasegameModuleRegistration(), requiresBundledMetadata: true)
+        : this(ClientBundledModuleLoader.LoadBasegameRegistration(), requiresBundledMetadata: true)
     {
     }
 

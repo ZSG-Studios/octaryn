@@ -28,7 +28,8 @@ function(octaryn_add_dotnet_owner target_name owner project_path)
         BYPRODUCTS "${output_dll}"
         COMMAND "${CMAKE_COMMAND}" -E env
             "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}"
-            "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+            "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_ROOT_NAME}"
+            "OctarynHostToolBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
             "${DOTNET_EXECUTABLE}" build "${project_path}"
             --configuration "${dotnet_configuration}"
             --no-dependencies

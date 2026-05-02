@@ -1,11 +1,25 @@
+using Octaryn.Shared.World;
+
 namespace Octaryn.Shared.GameModules;
 
-public readonly record struct ModuleCommandRequest(
-    string RequestKind,
-    ulong RequestId)
+public enum ModuleCommandRequestKind : uint
 {
-    public static ModuleCommandRequest Create(string requestKind, ulong requestId = 0)
+    None = 0,
+    SetBlock = 1
+}
+
+public readonly record struct ModuleCommandRequest(
+    ModuleCommandRequestKind Kind,
+    ulong RequestId,
+    BlockEdit BlockEdit)
+{
+    public static ModuleCommandRequest SetBlock(BlockEdit edit, ulong requestId = 0)
     {
-        return new ModuleCommandRequest(requestKind, requestId);
+        return new ModuleCommandRequest(ModuleCommandRequestKind.SetBlock, requestId, edit);
+    }
+
+    public static ModuleCommandRequest BreakBlock(BlockPosition position, ulong requestId = 0)
+    {
+        return SetBlock(new BlockEdit(position, BlockId.Air), requestId);
     }
 }

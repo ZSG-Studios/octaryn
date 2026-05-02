@@ -14,4 +14,17 @@ public readonly struct ClientCommandFrame
     public readonly uint Reserved;
     public readonly ulong TickId;
     public readonly ulong CommandsAddress;
+
+    internal ClientCommandFrame(
+        uint commandCount,
+        ulong tickId,
+        ulong commandsAddress)
+    {
+        Version = VersionValue;
+        Size = SizeValue;
+        CommandCount = commandCount;
+        Reserved = 0;
+        TickId = tickId;
+        CommandsAddress = commandsAddress;
+    }
 }

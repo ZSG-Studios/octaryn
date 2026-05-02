@@ -21,8 +21,8 @@ log() {
 }
 
 repo_root="$(find_repo_root)"
-setup_script="${repo_root}/tools/setup/linux_build_environment.sh"
-podman_dir="${repo_root}/tools/podman"
+setup_script="${repo_root}/tools/build/linux_build_environment.sh"
+podman_dir="${repo_root}/tools/build"
 containerfile="${podman_dir}/Containerfile.arch-build"
 image_name="${OCTARYN_ARCH_BUILDER_IMAGE:-localhost/octaryn-arch-builder:latest}"
 builder_version="20260421-2"

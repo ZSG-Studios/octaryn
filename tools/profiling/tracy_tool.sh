@@ -2,8 +2,8 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../tooling/tool_environment.sh
-source "${script_dir}/../tooling/tool_environment.sh"
+# shellcheck source=../build/tool_environment.sh
+source "${script_dir}/../build/tool_environment.sh"
 
 preset="debug-linux"
 tag="${OCTARYN_TRACY_TAG:-v0.13.1}"

@@ -7,8 +7,11 @@ import sys
 EXPECTED_LINES = {
     "client": (
         "tick_before_initialize=-1",
+        "apply_server_snapshot_before_initialize=-1",
         "initialize=0",
         "tick=0",
+        "apply_server_snapshot=0",
+        "apply_server_snapshot_invalid=-2",
         "reinitialize=0",
         "tick_after_reinitialize=0",
         "shutdown=0",
@@ -20,7 +23,12 @@ EXPECTED_LINES = {
         "reinitialize=0",
         "tick_after_reinitialize=0",
         "submit_client_commands=0",
+        "submit_client_commands_set_block_array=0",
+        "tick_after_submit=0",
+        "submit_client_commands_invalid=-1",
         "drain_server_snapshots=0",
+        "drain_server_snapshots_block_changes=1",
+        "drain_server_snapshots_empty=0",
         "shutdown=0",
     ),
 }

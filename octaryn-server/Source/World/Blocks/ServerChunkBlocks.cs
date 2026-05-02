@@ -1,0 +1,87 @@
+using Octaryn.Shared.World;
+
+namespace Octaryn.Server.World.Blocks;
+
+internal sealed class ServerChunkBlocks
+{
+    private readonly Dictionary<int, BlockId> _overrides = [];
+
+    public BlockId GetLocalBlock(BlockPosition localPosition)
+    {
+        return IsValidLocalPosition(localPosition) &&
+            _overrides.TryGetValue(LocalIndex(localPosition), out var block)
+                ? block
+                : BlockId.Air;
+    }
+
+    public ServerBlockEditResult SetLocalBlock(BlockPosition localPosition, BlockId block)
+    {
+        if (!IsValidLocalPosition(localPosition))
+        {
+            return default;
+        }
+
+        var index = LocalIndex(localPosition);
+        var oldBlock = _overrides.TryGetValue(index, out var existing)
+            ? existing
+            : BlockId.Air;
+        if (oldBlock == block)
+        {
+            return ServerBlockEditResult.Unchanged;
+        }
+
+        if (block == BlockId.Air)
+        {
+            _overrides.Remove(index);
+        }
+        else
+        {
+            _overrides[index] = block;
+        }
+
+        return new ServerBlockEditResult(Applied: true, Changed: true, Changes: []);
+    }
+
+    public IEnumerable<BlockEdit> Snapshot(ChunkPosition chunkPosition)
+    {
+        foreach (var entry in _overrides.OrderBy(entry => entry.Key))
+        {
+            var local = LocalPosition(entry.Key);
+            yield return new BlockEdit(
+                new BlockPosition(
+                    chunkPosition.X * ServerBlockLimits.ChunkWidth + local.X,
+                    chunkPosition.Y * ServerBlockLimits.ChunkWidth + local.Y,
+                    chunkPosition.Z * ServerBlockLimits.ChunkWidth + local.Z),
+                entry.Value);
+        }
+    }
+
+    public bool IsEmpty => _overrides.Count == 0;
+
+    private static bool IsValidLocalPosition(BlockPosition position)
+    {
+        return position.X >= 0 &&
+            position.X < ServerBlockLimits.ChunkWidth &&
+            position.Y >= 0 &&
+            position.Y < ServerBlockLimits.ChunkWidth &&
+            position.Z >= 0 &&
+            position.Z < ServerBlockLimits.ChunkWidth;
+    }
+
+    private static int LocalIndex(BlockPosition position)
+    {
+        return position.X +
+            position.Z * ServerBlockLimits.ChunkWidth +
+            position.Y * ServerBlockLimits.ChunkWidth * ServerBlockLimits.ChunkWidth;
+    }
+
+    private static BlockPosition LocalPosition(int index)
+    {
+        var layer = ServerBlockLimits.ChunkWidth * ServerBlockLimits.ChunkWidth;
+        var y = index / layer;
+        var remaining = index - y * layer;
+        var z = remaining / ServerBlockLimits.ChunkWidth;
+        var x = remaining - z * ServerBlockLimits.ChunkWidth;
+        return new BlockPosition(x, y, z);
+    }
+}

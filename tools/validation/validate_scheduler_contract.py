@@ -118,13 +118,18 @@ def validate_activator_tick_shape(errors, path, text):
     tick_body = text[tick_start:]
     for snippet in (
         "HostFrameContext.FromSnapshot",
-        "new ModuleFrameContext(frame.DeltaSeconds, frame.FrameIndex)",
         "HostScheduledWork.FromDeclaration",
         "_scheduler.TryRun",
         "_instance.Tick(in moduleFrame)",
     ):
         if snippet not in tick_body:
             errors.append(f"{path}: activator Tick must own host scheduler dispatch: {snippet}")
+
+    if (
+        "new ModuleFrameContext(frame.DeltaSeconds, frame.FrameIndex)" not in tick_body and
+        "new ModuleFrameContext(frame.DeltaSeconds, frame.FrameIndex, worldTime)" not in tick_body
+    ):
+        errors.append(f"{path}: activator Tick must own host scheduler dispatch: new ModuleFrameContext")
 
 
 def validate(repo_root):

@@ -60,7 +60,7 @@ REQUIRED_OWNER_SNIPPETS = {
 REQUIRED_PLATFORM_FILE_SNIPPETS = {
     "cmake/Platforms/Linux/ArchFamily.cmake": (
         "OCTARYN_TARGET_DOTNET_RID",
-        "arch-x64",
+        "linux-x64",
         "linux-arm64",
     ),
     "cmake/Platforms/Windows/WindowsPlatform.cmake": (

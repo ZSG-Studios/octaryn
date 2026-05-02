@@ -4,6 +4,7 @@ using Octaryn.Shared.ApiExposure;
 using Octaryn.Shared.FrameworkAllowlist;
 using Octaryn.Shared.GameModules;
 using Octaryn.Shared.Host;
+using Octaryn.Shared.World;
 
 return OwnerModuleValidationProbe.Run();
 
@@ -77,9 +78,20 @@ internal static class OwnerModuleValidationProbe
             [
                 ModuleCapabilityIds.ContentBlocks,
                 ModuleCapabilityIds.ContentItems,
-                ModuleCapabilityIds.GameplayInteractions
+                ModuleCapabilityIds.GameplayInteractions,
+                ModuleCapabilityIds.WorldBlockEdits
             ]))),
             "server.module.capability.required");
+        ExpectInvalid(
+            "shared validator rejects missing world block edit capability",
+            ClientModuleValidation.Validate(Module(ValidManifest(requiredCapabilities:
+            [
+                ModuleCapabilityIds.ContentBlocks,
+                ModuleCapabilityIds.ContentItems,
+                ModuleCapabilityIds.GameplayInteractions,
+                ModuleCapabilityIds.GameplayRules
+            ]))),
+            "module.capability.world_block_edits.required");
         ExpectInvalid(
             "server rejects presentation assets",
             ServerModuleValidation.Validate(Module(ValidManifest(assetKind: "shader", assetPath: "Shaders/octaryn.test.shader.glsl"))),
@@ -136,7 +148,8 @@ internal static class OwnerModuleValidationProbe
                 ModuleCapabilityIds.ContentBlocks,
                 ModuleCapabilityIds.ContentItems,
                 ModuleCapabilityIds.GameplayInteractions,
-                ModuleCapabilityIds.GameplayRules
+                ModuleCapabilityIds.GameplayRules,
+                ModuleCapabilityIds.WorldBlockEdits
             ],
             RequestedHostApis: hostApis,
             RequestedRuntimePackages: [],
@@ -236,41 +249,67 @@ internal static class OwnerModuleValidationProbe
         var commandSink = new TestCommandSink();
 
         var fullContext = HostModuleContext.Create(ValidManifest(), commandSink);
-        if (fullContext.Commands.TryRequest(ModuleCommandRequest.Create("octaryn.test.command", 1)))
+        if (fullContext.Commands.TryRequest(ModuleCommandRequest.BreakBlock(new BlockPosition(1, 2, 3), 2)))
         {
-            throw new InvalidOperationException("host context should deny module command request outside scheduled command write scope.");
+            throw new InvalidOperationException("host context should deny block edit request outside scheduled command write scope.");
         }
 
         using (HostCommandWriteScope.Enter(HostWorkAccess.CommandSinkWrite))
         {
-            if (!fullContext.Commands.TryRequest(ModuleCommandRequest.Create("octaryn.test.command", 1)))
+            if (!fullContext.Commands.TryRequest(ModuleCommandRequest.BreakBlock(new BlockPosition(1, 2, 3), 2)))
             {
-                throw new InvalidOperationException("host context should grant module command request inside scheduled command write scope.");
+                throw new InvalidOperationException("host context should grant block edit request inside scheduled command write scope.");
+            }
+            commandSink.ExpectLastBlockEdit(new BlockPosition(1, 2, 3), BlockId.Air, 2);
+
+            if (fullContext.Commands.TryRequest(new ModuleCommandRequest(
+                ModuleCommandRequestKind.None,
+                3,
+                new BlockEdit(new BlockPosition(4, 5, 6), new BlockId(7)))))
+            {
+                throw new InvalidOperationException("host context should reject empty command request kinds.");
             }
         }
 
         using (HostCommandWriteScope.Enter(HostWorkAccess.GameplayStateWrite))
         {
-            if (fullContext.Commands.TryRequest(ModuleCommandRequest.Create("octaryn.test.command", 1)))
+            if (fullContext.Commands.TryRequest(ModuleCommandRequest.BreakBlock(new BlockPosition(1, 2, 3), 2)))
             {
-                throw new InvalidOperationException("host context should deny module command request inside non-command scheduled scope.");
+                throw new InvalidOperationException("host context should deny block edit request inside non-command scheduled scope.");
             }
         }
 
         var deniedCommands = HostModuleContext.Create(
             ValidManifest(requestedHostApis: [HostApiIds.Frame]),
             commandSink);
-        if (deniedCommands.Commands.TryRequest(ModuleCommandRequest.Create("octaryn.test.command", 1)))
+        if (deniedCommands.Commands.TryRequest(ModuleCommandRequest.BreakBlock(new BlockPosition(1, 2, 3), 2)))
         {
-            throw new InvalidOperationException("host context should deny commands when not requested.");
+            throw new InvalidOperationException("host context should deny block edits when commands are not requested.");
         }
 
         var deniedUndeclaredCommands = HostModuleContext.Create(
             ValidManifest(includeCommandWrite: false),
             commandSink);
-        if (deniedUndeclaredCommands.Commands.TryRequest(ModuleCommandRequest.Create("octaryn.test.command", 1)))
+        if (deniedUndeclaredCommands.Commands.TryRequest(ModuleCommandRequest.BreakBlock(new BlockPosition(1, 2, 3), 2)))
         {
-            throw new InvalidOperationException("host context should deny commands without a scheduled command write.");
+            throw new InvalidOperationException("host context should deny block edits without a scheduled command write.");
+        }
+
+        var deniedMissingCapability = HostModuleContext.Create(
+            ValidManifest(requiredCapabilities:
+            [
+                ModuleCapabilityIds.ContentBlocks,
+                ModuleCapabilityIds.ContentItems,
+                ModuleCapabilityIds.GameplayInteractions,
+                ModuleCapabilityIds.GameplayRules
+            ]),
+            commandSink);
+        using (HostCommandWriteScope.Enter(HostWorkAccess.CommandSinkWrite))
+        {
+            if (deniedMissingCapability.Commands.TryRequest(ModuleCommandRequest.BreakBlock(new BlockPosition(1, 2, 3), 2)))
+            {
+                throw new InvalidOperationException("host context should deny block edits without the world block edits capability.");
+            }
         }
 
     }
@@ -444,9 +483,26 @@ internal static class OwnerModuleValidationProbe
 
     private sealed class TestCommandSink : IHostCommandSink
     {
+        private HostCommand _lastCommand;
+
         public bool Enqueue(HostCommand command)
         {
+            _lastCommand = command;
             return command.IsCurrent;
+        }
+
+        public void ExpectLastBlockEdit(BlockPosition position, BlockId block, ulong requestId)
+        {
+            if (_lastCommand.Kind != HostCommandKind.SetBlock ||
+                _lastCommand.Flags != HostCommand.CriticalFlag ||
+                _lastCommand.RequestId != requestId ||
+                _lastCommand.A != position.X ||
+                _lastCommand.B != position.Y ||
+                _lastCommand.C != position.Z ||
+                _lastCommand.D != block.Value)
+            {
+                throw new InvalidOperationException("host context did not map block edit command payload.");
+            }
         }
     }
 

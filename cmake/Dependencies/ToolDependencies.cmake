@@ -53,6 +53,24 @@ if(NOT TARGET octaryn::deps::glaze)
     endif()
 endif()
 
+if(NOT TARGET octaryn::deps::sdl3)
+    octaryn_add_dependency_wrapper(octaryn_tool_sdl3 octaryn::deps::sdl3)
+    octaryn_fetch_source_dependency(
+        SDL3
+        GITHUB_REPOSITORY libsdl-org/SDL
+        GIT_TAG release-3.4.4
+        OPTIONS
+            "SDL_SHARED OFF"
+            "SDL_STATIC ON"
+            "SDL_TEST_LIBRARY OFF"
+            "SDL_TESTS OFF")
+    if(TARGET SDL3::SDL3)
+        target_link_libraries(octaryn_tool_sdl3 INTERFACE SDL3::SDL3)
+    elseif(TARGET SDL3::SDL3-static)
+        target_link_libraries(octaryn_tool_sdl3 INTERFACE SDL3::SDL3-static)
+    endif()
+endif()
+
 if(NOT TARGET octaryn::deps::shadercross)
     octaryn_add_dependency_wrapper(octaryn_tool_shadercross octaryn::deps::shadercross)
     octaryn_require_spirv_cross()

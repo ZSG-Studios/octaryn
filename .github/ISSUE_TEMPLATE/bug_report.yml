@@ -1,5 +1,5 @@
 name: Bug report
-description: Report an Octaryn engine, client, server, basegame, or tooling bug.
+description: Report an Octaryn platform, client, server, basegame, or tooling bug.
 title: "[Bug] "
 labels:
   - bug
@@ -78,4 +78,3 @@ body:
     attributes:
       label: Logs, screenshots, captures, or notes
       description: Attach logs, screenshots, RenderDoc captures, Tracy captures, or focused details if available.
-

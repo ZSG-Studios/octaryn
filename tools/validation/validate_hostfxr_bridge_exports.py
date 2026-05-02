@@ -13,11 +13,13 @@ OWNER_FILES = {
         "functions": (
             "octaryn_client_initialize",
             "octaryn_client_tick",
+            "octaryn_client_apply_server_snapshot",
             "octaryn_client_shutdown",
         ),
         "invalid_returns": (
             ("octaryn_client_initialize", ctypes.c_int, [ctypes.c_void_p], [None], -1),
             ("octaryn_client_tick", ctypes.c_int, [ctypes.c_void_p], [None], -1),
+            ("octaryn_client_apply_server_snapshot", ctypes.c_int, [ctypes.c_void_p], [None], -1),
         ),
     },
     "server": {

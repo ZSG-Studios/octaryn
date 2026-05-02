@@ -12,4 +12,12 @@ internal readonly struct HostFrameSnapshot
     public readonly uint Size;
     public readonly HostInputSnapshot Input;
     public readonly HostFrameTimingSnapshot Timing;
+
+    internal HostFrameSnapshot(HostInputSnapshot input, HostFrameTimingSnapshot timing)
+    {
+        Version = VersionValue;
+        Size = SizeValue;
+        Input = input;
+        Timing = timing;
+    }
 }

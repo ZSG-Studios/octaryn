@@ -12,8 +12,8 @@ DEFAULT_OWNER_RULES = {
     "game": {"shared"},
     "game-module": {"shared"},
     "mod": {"shared"},
-    "client": {"shared", "basegame", "game", "game-module", "mod"},
-    "server": {"shared", "basegame", "game", "game-module", "mod"},
+    "client": {"shared"},
+    "server": {"shared"},
     "tools": {"shared", "basegame", "game", "game-module", "mod", "client", "server"},
 }
 

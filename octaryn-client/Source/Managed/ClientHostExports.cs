@@ -1,12 +1,16 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Octaryn.Client.ClientHost;
+using Octaryn.Client.WorldPresentation;
 using Octaryn.Shared.Host;
+using Octaryn.Shared.Networking;
 
 namespace Octaryn.Client;
 
 internal static class ClientHostExports
 {
     private static BasegameModuleActivator? s_basegame;
+    private static ClientServerSnapshotConsumer? s_serverSnapshots;
     private static bool s_initialized;
 
     [UnmanagedCallersOnly(EntryPoint = "octaryn_client_initialize", CallConvs = [typeof(CallConvCdecl)])]
@@ -24,6 +28,7 @@ internal static class ClientHostExports
         }
 
         s_basegame ??= new BasegameModuleActivator();
+        s_serverSnapshots = new ClientServerSnapshotConsumer(new ClientBlockPresentationStore());
         var activateResult = s_basegame.Activate(commandSink);
         if (activateResult != 0)
         {
@@ -56,6 +61,22 @@ internal static class ClientHostExports
         return 0;
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "octaryn_client_apply_server_snapshot", CallConvs = [typeof(CallConvCdecl)])]
+    public static unsafe int ApplyServerSnapshot(ServerSnapshotHeader* snapshotHeader)
+    {
+        if (!s_initialized ||
+            s_basegame is null ||
+            s_serverSnapshots is null ||
+            snapshotHeader is null ||
+            snapshotHeader->Version != ServerSnapshotHeader.VersionValue ||
+            snapshotHeader->Size != ServerSnapshotHeader.SizeValue)
+        {
+            return -1;
+        }
+
+        return s_serverSnapshots.Apply(snapshotHeader);
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "octaryn_client_shutdown", CallConvs = [typeof(CallConvCdecl)])]
     public static void Shutdown()
     {
@@ -66,6 +87,7 @@ internal static class ClientHostExports
     {
         s_basegame?.Dispose();
         s_basegame = null;
+        s_serverSnapshots = null;
         s_initialized = false;
     }
 }

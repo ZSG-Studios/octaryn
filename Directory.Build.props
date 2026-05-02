@@ -18,6 +18,7 @@
     <OctarynBuildOwner Condition="'$(OctarynBuildOwner)' == 'unknown' And $([System.String]::Copy('$(MSBuildProjectDirectory)').Replace('\', '/').Contains('/octaryn-mods/'))">mod</OctarynBuildOwner>
     <OctarynBuildOwner Condition="'$(OctarynBuildOwner)' == 'unknown' And '$(OctarynModuleOwner)' != ''">$(OctarynModuleOwner)</OctarynBuildOwner>
     <OctarynBuildPresetName Condition="'$(OctarynBuildPresetName)' == ''">debug-linux</OctarynBuildPresetName>
+    <OctarynHostToolBuildPresetName Condition="'$(OctarynHostToolBuildPresetName)' == ''">$(OctarynBuildPresetName)</OctarynHostToolBuildPresetName>
     <OctarynIsModuleOwner>false</OctarynIsModuleOwner>
     <OctarynIsModuleOwner Condition="'$(OctarynBuildOwner)' == 'basegame' Or '$(OctarynBuildOwner)' == 'game' Or '$(OctarynBuildOwner)' == 'game-module' Or '$(OctarynBuildOwner)' == 'mod'">true</OctarynIsModuleOwner>
     <OctarynIsToolOwner>false</OctarynIsToolOwner>
@@ -32,11 +33,12 @@
     <OutputPath Condition="'$(OctarynFlattenManagedOutput)' == 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\managed\</OutputPath>
     <OutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' == 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\$(MSBuildProjectName)\managed\</OutputPath>
     <OutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' != 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\managed\$(MSBuildProjectName)\</OutputPath>
-    <IntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' == 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\managed-obj\</IntermediateOutputPath>
-    <IntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' == 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\$(MSBuildProjectName)\managed-obj\</IntermediateOutputPath>
-    <IntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' != 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\managed-obj\$(MSBuildProjectName)\</IntermediateOutputPath>
-    <BaseIntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' == 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\managed-obj\</BaseIntermediateOutputPath>
-    <BaseIntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' == 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\$(MSBuildProjectName)\managed-obj\</BaseIntermediateOutputPath>
-    <BaseIntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' != 'true'">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)\$(OctarynBuildOwner)\managed-obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OctarynIntermediateRoot Condition="'$(OctarynIntermediateRoot)' == ''">$(MSBuildThisFileDirectory)build\$(OctarynBuildPresetName)</OctarynIntermediateRoot>
+    <IntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' == 'true'">$(OctarynIntermediateRoot)\$(OctarynBuildOwner)\managed-obj\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' == 'true'">$(OctarynIntermediateRoot)\$(OctarynBuildOwner)\$(MSBuildProjectName)\managed-obj\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' != 'true'">$(OctarynIntermediateRoot)\$(OctarynBuildOwner)\managed-obj\$(MSBuildProjectName)\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' == 'true'">$(OctarynIntermediateRoot)\$(OctarynBuildOwner)\managed-obj\</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' == 'true'">$(OctarynIntermediateRoot)\$(OctarynBuildOwner)\$(MSBuildProjectName)\managed-obj\</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(OctarynFlattenManagedOutput)' != 'true' And '$(OctarynIsToolOwner)' != 'true'">$(OctarynIntermediateRoot)\$(OctarynBuildOwner)\managed-obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
   </PropertyGroup>
 </Project>

@@ -1,4 +1,3 @@
-using Octaryn.Basegame.Module;
 using Octaryn.Shared.ApiExposure;
 using Octaryn.Shared.GameModules;
 using Octaryn.Shared.Host;
@@ -14,7 +13,7 @@ internal static class ServerModuleValidation
 
     public static ModuleValidationReport ValidateBundledBasegame()
     {
-        var registration = new BasegameModuleRegistration();
+        var registration = ServerBundledModuleLoader.LoadBasegameRegistration();
         return Validate(registration);
     }
 

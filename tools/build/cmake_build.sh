@@ -2,8 +2,8 @@
 set -eu
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../tooling/tool_environment.sh
-source "${script_dir}/../tooling/tool_environment.sh"
+# shellcheck source=tool_environment.sh
+source "${script_dir}/tool_environment.sh"
 
 preset="${1:-debug-linux}"
 octaryn_validate_preset_name "${preset}"

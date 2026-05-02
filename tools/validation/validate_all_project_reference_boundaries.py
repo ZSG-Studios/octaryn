@@ -64,6 +64,7 @@ def main():
         except RuntimeError as error:
             errors.append(str(error))
     errors.extend(validate_forbidden_namespaces(repo_root))
+    errors.extend(validate_host_basegame_implementation_imports(repo_root))
 
     if errors:
         for error in errors:
@@ -94,6 +95,30 @@ def validate_forbidden_namespaces(repo_root):
                 line_number = text.count("\n", 0, index) + 1
                 relative = source_file.relative_to(repo_root).as_posix()
                 errors.append(f"{relative}:{line_number}: forbidden namespace token {token}")
+    return errors
+
+
+def validate_host_basegame_implementation_imports(repo_root):
+    errors = []
+    token = "using Octaryn.Basegame"
+    for root_name in ("octaryn-client", "octaryn-server"):
+        host_root = repo_root / root_name
+        if not host_root.exists():
+            continue
+
+        for source_file in sorted(host_root.rglob("*.cs")):
+            relative_parts = source_file.relative_to(repo_root).parts
+            if any(part in EXCLUDED_PATH_PARTS for part in relative_parts):
+                continue
+
+            text = source_file.read_text(encoding="utf-8")
+            index = text.find(token)
+            if index == -1:
+                continue
+
+            line_number = text.count("\n", 0, index) + 1
+            relative = source_file.relative_to(repo_root).as_posix()
+            errors.append(f"{relative}:{line_number}: host code must use shared/basegame module contracts instead of direct basegame imports")
     return errors
 
 

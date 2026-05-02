@@ -6,8 +6,8 @@ Client presentation, server authority, shared contracts, and bundled basegame lo
 
 ## Repository Layout
 
-- `octaryn-client/`: windowing, input, rendering, shaders, overlays, client prediction, and client host integration.
-- `octaryn-server/`: authoritative simulation, validation, persistence, server ticks, replication, and transport hosting.
+- `octaryn-client/`: windowing, input, rendering, shaders, overlays, future prediction, and client host integration.
+- `octaryn-server/`: authoritative simulation, validation, persistence, server ticks, future replication, and transport hosting.
 - `octaryn-shared/`: implementation-free contracts, IDs, commands, snapshots, module manifests, capability IDs, host API IDs, scheduling contracts, and validation policy.
 - `octaryn-basegame/`: bundled default game module with gameplay rules, content declarations, texture-pack import tools, assets, data, and basegame-specific tools.
 - `tools/`: repo-wide build, validation, profiling, launch, and developer operations.

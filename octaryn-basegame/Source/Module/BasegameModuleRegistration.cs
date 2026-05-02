@@ -1,11 +1,15 @@
+using Octaryn.Basegame.Gameplay.Interaction;
 using Octaryn.Shared.ApiExposure;
 using Octaryn.Shared.FrameworkAllowlist;
 using Octaryn.Shared.GameModules;
+using Octaryn.Shared.World;
 
 namespace Octaryn.Basegame.Module;
 
-public sealed class BasegameModuleRegistration : IGameModuleRegistration
+public sealed class BasegameModuleRegistration : IGameModuleRegistration, IBlockAuthorityRulesProvider
 {
+    public IBlockAuthorityRules BlockAuthorityRules { get; } = new BasegameBlockAuthorityRules();
+
     public GameModuleManifest Manifest { get; } = new(
         ModuleId: "octaryn.basegame",
         DisplayName: "Octaryn Basegame",
@@ -16,7 +20,8 @@ public sealed class BasegameModuleRegistration : IGameModuleRegistration
             ModuleCapabilityIds.ContentBlocks,
             ModuleCapabilityIds.ContentItems,
             ModuleCapabilityIds.GameplayInteractions,
-            ModuleCapabilityIds.GameplayRules
+            ModuleCapabilityIds.GameplayRules,
+            ModuleCapabilityIds.WorldBlockEdits
         ],
         RequestedHostApis:
         [
@@ -47,9 +52,9 @@ public sealed class BasegameModuleRegistration : IGameModuleRegistration
         ContentDeclarations:
         [
             new GameModuleContentDeclaration(
-                "octaryn.basegame.block.air",
+                "octaryn.basegame.blocks",
                 "block",
-                "Data/Blocks/octaryn.basegame.block.air.json"),
+                "Data/Blocks/octaryn.basegame.blocks.json"),
             new GameModuleContentDeclaration(
                 "octaryn.basegame.item.hand",
                 "item",

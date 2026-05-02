@@ -2,12 +2,12 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../tooling/tool_environment.sh
-source "${script_dir}/../tooling/tool_environment.sh"
+# shellcheck source=tool_environment.sh
+source "${script_dir}/tool_environment.sh"
 
 image="${OCTARYN_PODMAN_BUILD_IMAGE:-${OCTARYN_ARCH_BUILDER_IMAGE:-localhost/octaryn-arch-builder:latest}}"
-containerfile="${octaryn_workspace_root}/tools/podman/Containerfile.arch-build"
-podman_context="${octaryn_workspace_root}/tools/podman"
+containerfile="${octaryn_workspace_root}/tools/build/Containerfile.arch-build"
+podman_context="${octaryn_workspace_root}/tools/build"
 workspace_container_path="${octaryn_workspace_root}"
 action="${1:-status}"
 
@@ -21,7 +21,7 @@ Commands:
   configure <preset>        Configure one preset inside Podman.
   build <preset> [args...]  Build one preset inside Podman. Extra args go to cmake_build.sh.
   validate <preset>         Build octaryn_validate_all inside Podman.
-  build-all                 Configure and build every active preset inside Podman.
+  build-all                 Configure and build every active preset for x64 and arm64.
 
 Environment:
   OCTARYN_TARGET_ARCH          x64 or arm64. Default: x64.
@@ -34,9 +34,15 @@ USAGE
 host_platform() {
   case "$(uname -s)" in
     Linux) printf 'linux\n' ;;
-    MINGW*|MSYS*|CYGWIN*) printf 'windows\n' ;;
     *) printf 'unknown\n' ;;
   esac
+}
+
+require_linux_host() {
+  if [[ "$(host_platform)" != "linux" ]]; then
+    printf '[error] Octaryn builds run from Linux with Podman. Windows is a cross-build target only.\n' >&2
+    exit 1
+  fi
 }
 
 require_tool() {
@@ -77,17 +83,15 @@ image_fingerprint() {
     "${image}" 2>/dev/null || true
 }
 
-workspace_volume="${octaryn_workspace_root}:${workspace_container_path}"
-if [[ "$(uname -s)" == "Linux" ]]; then
-  workspace_volume="${workspace_volume}:Z"
-fi
+require_linux_host
+
+workspace_volume="${octaryn_workspace_root}:${workspace_container_path}:Z"
 
 podman_args=(
   --rm
   --volume "${workspace_volume}"
   --workdir "${workspace_container_path}"
   --env "OCTARYN_WORKSPACE_ROOT=${workspace_container_path}"
-  --env "OCTARYN_TARGET_ARCH=$(octaryn_target_arch)"
   --env "DOTNET_CLI_TELEMETRY_OPTOUT=1"
   --env "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1"
 )
@@ -100,16 +104,13 @@ mount_optional_host_path() {
     return
   fi
 
-  local volume="${host_path}:${host_path}:ro"
-  if [[ "$(uname -s)" == "Linux" ]]; then
-    volume="${volume},Z"
-  fi
+  local volume="${host_path}:${host_path}:ro,Z"
   podman_args+=(--volume "${volume}" --env "${env_name}=${host_path}")
 }
 
 run_in_builder() {
   ensure_builder_image
-  podman run "${podman_args[@]}" "${image}" "$@"
+  podman run "${podman_args[@]}" --env "OCTARYN_TARGET_ARCH=$(octaryn_target_arch)" "${image}" "$@"
 }
 
 configure_preset() {
@@ -166,9 +167,12 @@ case "${action}" in
     build_preset "${preset}" --target octaryn_validate_all
     ;;
   build-all)
-    for preset in debug-linux release-linux debug-windows release-windows; do
-      configure_preset "${preset}"
-      build_preset "${preset}" --target octaryn_all
+    for arch in x64 arm64; do
+      export OCTARYN_TARGET_ARCH="${arch}"
+      for preset in debug-linux release-linux debug-windows release-windows; do
+        configure_preset "${preset}"
+        build_preset "${preset}" --target octaryn_all
+      done
     done
     ;;
   --help|-h|help)

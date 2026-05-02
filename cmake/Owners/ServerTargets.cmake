@@ -6,8 +6,11 @@ include(Owners/NativeOwner)
 octaryn_owner_build_root(server_build_root server)
 octaryn_owner_log_root(server_log_root server)
 set(octaryn_server_bundle_dir "${server_build_root}/bundle")
+set(octaryn_server_bundle_obj_dir "${server_build_root}/bundle-obj")
 set(octaryn_server_bundle_stamp "${server_build_root}/stamps/octaryn_server_bundle.stamp")
 set(octaryn_server_bundle_output "${octaryn_server_bundle_dir}/Octaryn.Server.dll")
+set(octaryn_bundled_server_app_source_dir "${octaryn_server_bundle_dir}")
+set(octaryn_bundled_server_app_source_target octaryn_server_bundle)
 
 octaryn_add_native_owner(octaryn_server_native)
 add_dependencies(octaryn_server_native octaryn_shared_native)
@@ -85,8 +88,10 @@ add_custom_command(
         "${octaryn_server_bundle_dir}/Octaryn.Server.runtimeconfig.json"
         "${octaryn_server_bundle_dir}/Octaryn.Server${CMAKE_EXECUTABLE_SUFFIX}"
         "${octaryn_server_bundle_dir}/Octaryn.Basegame.dll"
+        "${octaryn_server_bundle_dir}/Octaryn.Basegame.deps.json"
+        "${octaryn_server_bundle_dir}/Octaryn.Basegame.runtimeconfig.json"
         "${octaryn_server_bundle_dir}/Data/Module/octaryn.basegame.module.json"
-        "${octaryn_server_bundle_dir}/Data/Blocks/octaryn.basegame.block.air.json"
+        "${octaryn_server_bundle_dir}/Data/Blocks/octaryn.basegame.blocks.json"
         "${octaryn_server_bundle_dir}/Data/Items/octaryn.basegame.item.hand.json"
         "${octaryn_server_bundle_dir}/Data/Rules/octaryn.basegame.rule.default_interaction.json"
         "${octaryn_server_bundle_dir}/Assets/Textures/octaryn.basegame.texture.placeholder.txt"
@@ -105,20 +110,35 @@ add_custom_command(
         "${octaryn_server_bundle_dir}/Schedulers.dll"
     COMMAND "${CMAKE_COMMAND}" -E rm -rf "${octaryn_server_bundle_dir}"
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${octaryn_server_bundle_dir}"
+    COMMAND "${CMAKE_COMMAND}" -E rm -rf "${octaryn_server_bundle_obj_dir}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${octaryn_server_bundle_obj_dir}"
     COMMAND "${CMAKE_COMMAND}" -E env
         "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}"
-        "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_ROOT_NAME}"
+        "OctarynHostToolBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "OctarynIntermediateRoot=${octaryn_server_bundle_obj_dir}"
+        "${DOTNET_EXECUTABLE}" restore "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-server/Octaryn.Server.csproj"
+        ${OCTARYN_DOTNET_TARGET_RUNTIME_ARGS}
+    COMMAND "${CMAKE_COMMAND}" -E env
+        "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}"
+        "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_ROOT_NAME}"
+        "OctarynHostToolBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        "OctarynIntermediateRoot=${octaryn_server_bundle_obj_dir}"
         "${DOTNET_EXECUTABLE}" publish "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-server/Octaryn.Server.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --framework net10.0
         --output "${octaryn_server_bundle_dir}"
         --no-self-contained
-        --no-build
+        --no-restore
         ${OCTARYN_DOTNET_TARGET_RUNTIME_ARGS}
         "-bl:${server_log_root}/octaryn_server_bundle-${OCTARYN_BUILD_PRESET_NAME}.binlog"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${octaryn_basegame_bundle_dir}"
+        "${octaryn_server_bundle_dir}"
     COMMAND "${CMAKE_COMMAND}" -E touch "${octaryn_server_bundle_stamp}"
     DEPENDS
         "${octaryn_server_STAMP}"
+        octaryn_basegame_bundle
         "${octaryn_shared_STAMP}"
         "${octaryn_basegame_STAMP}"
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
@@ -128,8 +148,14 @@ add_custom_target(octaryn_server_bundle
     DEPENDS "${octaryn_server_bundle_stamp}")
 
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
+    set(octaryn_server_launch_probe_world_dir "${server_build_root}/launch-probe-world")
+    set(octaryn_server_launch_probe_world_blocks "${octaryn_server_launch_probe_world_dir}/world_blocks.json")
     add_custom_target(octaryn_run_server_launch_probe
-        COMMAND "$<TARGET_FILE:octaryn_server_launch_probe>"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${octaryn_server_launch_probe_world_dir}"
+        COMMAND "${CMAKE_COMMAND}" -E rm -f "${octaryn_server_launch_probe_world_blocks}"
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "OCTARYN_SERVER_WORLD_BLOCKS_PATH=${octaryn_server_launch_probe_world_blocks}"
+            "$<TARGET_FILE:octaryn_server_launch_probe>"
         DEPENDS
             octaryn_server_bundle
             octaryn_server_launch_probe

@@ -1,6 +1,6 @@
 # Contributing to Octaryn
 
-Octaryn is a ZSG Studios engine project. Keep contributions focused, reproducible, and aligned with the current architecture.
+Octaryn is a ZSG Studios platform project. Keep contributions focused, reproducible, and aligned with the current architecture.
 
 ## Ground Rules
 
@@ -35,4 +35,3 @@ Before opening a PR:
 ## Reviews
 
 Reviews should focus on correctness, architecture boundaries, performance, maintainability, and test coverage. Resolve review threads when the requested change or answer is complete.
-

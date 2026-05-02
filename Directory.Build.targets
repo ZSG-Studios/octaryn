@@ -46,14 +46,14 @@
           )" />
 
       <OctarynForbiddenModuleReference Include="@(Reference)"
-        Condition="'$(OctarynIsModuleOwner)' == 'true'" />
+        Condition="'$(OctarynIsModuleOwner)' == 'true' And '$(OctarynSkipModuleResolvedReferenceValidation)' != 'true'" />
     </ItemGroup>
 
     <Error Condition="'$(OctarynExpectedBuildOwner)' != 'unknown' And '$(OctarynBuildOwner)' != '$(OctarynExpectedBuildOwner)'"
       Text="$(MSBuildProjectName) evaluated OctarynBuildOwner=$(OctarynBuildOwner), but project path/name require $(OctarynExpectedBuildOwner)." />
 
     <Error Condition="'$(OctarynBuildOwner)' == 'shared' And '@(PackageReference)' != ''"
-      Text="octaryn-shared must stay package-free unless docs/architecture/aaa-port-structure.md approves a contract-only dependency." />
+      Text="octaryn-shared must stay package-free unless docs/architecture/octaryn-master-plan.md approves a contract-only dependency." />
 
     <Error Condition="'$(OctarynBuildOwner)' == 'unknown'"
       Text="$(MSBuildProjectName) must set an explicit OctarynBuildOwner or OctarynModuleOwner before it can build." />
@@ -120,12 +120,14 @@
 
   <Target Name="OctarynValidateModuleSourceApi" BeforeTargets="CoreCompile"
     Condition="'$(OctarynIsModuleOwner)' == 'true'">
-    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; -- --source-root &quot;$(MSBuildProjectDirectory)&quot; --assets-file &quot;$(ProjectAssetsFile)&quot;" />
+    <Exec EnvironmentVariables="OctarynBuildPresetName=$(OctarynHostToolBuildPresetName);OctarynHostToolBuildPresetName=$(OctarynHostToolBuildPresetName);NUGET_PACKAGES=$(NUGET_PACKAGES)"
+      Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; -- --source-root &quot;$(MSBuildProjectDirectory)&quot; --assets-file &quot;$(ProjectAssetsFile)&quot;" />
   </Target>
 
   <Target Name="OctarynValidateModuleBinarySandbox" AfterTargets="CopyFilesToOutputDirectory"
     Condition="'$(OctarynIsModuleOwner)' == 'true'">
-    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; -- --assembly &quot;$(TargetPath)&quot; --assets-file &quot;$(ProjectAssetsFile)&quot;" />
+    <Exec EnvironmentVariables="OctarynBuildPresetName=$(OctarynHostToolBuildPresetName);OctarynHostToolBuildPresetName=$(OctarynHostToolBuildPresetName);NUGET_PACKAGES=$(NUGET_PACKAGES)"
+      Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj&quot; --configuration &quot;$(Configuration)&quot; -- --assembly &quot;$(TargetPath)&quot; --assets-file &quot;$(ProjectAssetsFile)&quot;" />
   </Target>
 
   <Target Name="OctarynValidateModuleLayout" BeforeTargets="CoreCompile"

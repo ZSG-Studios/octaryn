@@ -17,7 +17,7 @@ body:
         - Docs
         - Balance
         - Performance
-        - Engine architecture
+        - Platform architecture
         - Other
     validations:
       required: true
@@ -39,4 +39,3 @@ body:
     id: notes
     attributes:
       label: Notes or alternatives
-

@@ -7,7 +7,8 @@
     "content.blocks",
     "content.items",
     "gameplay.interactions",
-    "gameplay.rules"
+    "gameplay.rules",
+    "world.block_edits"
   ],
   "RequestedHostApis": [
     "host.commands",
@@ -33,9 +34,9 @@
   "ModuleDependencies": [],
   "ContentDeclarations": [
     {
-      "ContentId": "octaryn.basegame.block.air",
+      "ContentId": "octaryn.basegame.blocks",
       "ContentKind": "block",
-      "RelativePath": "Data/Blocks/octaryn.basegame.block.air.json"
+      "RelativePath": "Data/Blocks/octaryn.basegame.blocks.json"
     },
     {
       "ContentId": "octaryn.basegame.item.hand",

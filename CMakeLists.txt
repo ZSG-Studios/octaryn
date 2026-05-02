@@ -34,7 +34,7 @@ add_custom_target(octaryn_all
         octaryn_server_bundle
         octaryn_client_native
         octaryn_client_bundle
-        octaryn_debug_tools)
+        octaryn_tools)
 
 add_custom_target(octaryn_validate_all
     DEPENDS
@@ -47,9 +47,11 @@ add_custom_target(octaryn_validate_all
         octaryn_validate_module_manifest_files
         octaryn_validate_module_manifest_probe
         octaryn_validate_bundle_module_payload
+        octaryn_validate_client_server_app
         octaryn_validate_module_source_api
         octaryn_validate_module_binary_sandbox
         octaryn_validate_module_layout
+        octaryn_validate_basegame_block_catalog
         octaryn_validate_dotnet_package_assets
         octaryn_validate_native_abi_contracts
         octaryn_validate_native_owner_boundaries
@@ -57,6 +59,11 @@ add_custom_target(octaryn_validate_all
         octaryn_validate_dotnet_owners
         octaryn_validate_scheduler_contract
         octaryn_validate_scheduler_probe
+        octaryn_validate_world_time_probe
+        octaryn_validate_server_world_blocks_probe
+        octaryn_validate_basegame_player_probe
+        octaryn_validate_basegame_interaction_probe
+        octaryn_validate_client_world_presentation_probe
         octaryn_validate_owner_module_validation_probe
         octaryn_validate_hostfxr_bridge_exports
         octaryn_validate_owner_launch_probes)

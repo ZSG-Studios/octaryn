@@ -19,6 +19,7 @@
 ## Octaryn Architecture
 
 - This repository must be a super clean, modular API and non-monolithic codebase.
+- Active plan documents are `docs/architecture/octaryn-master-plan.md` first, then `docs/architecture/octaryn-appendix.md` for supplemental source-to-destination maps and checklists. If they conflict, the master plan wins.
 - The end goal is unchanged: a clean owner-split Octaryn platform with a native C/C++ core first, not a C#-only rewrite.
 - Keep strict separation between client, server, shared API/contracts, and basegame implementation.
 - Do not create a top-level `engine/`, `octaryn-engine/`, or generic `runtime/` bucket.
@@ -42,6 +43,8 @@
 - Do not keep old `Engine` API names as wrappers. Replace them with the new client/server/basegame/shared API names directly.
 - Preserve current rendering, world, player, persistence, and shader behavior until a later task explicitly changes behavior.
 - Use `old-architecture/` only as the source of truth during the port. New code should live in the new roots.
+- Hold all DDGI, skylight propagation, lighting architecture, and old CPU skylight port work until the user provides an explicit lighting plan. Existing `skylightOpacity` catalog data may remain as basegame content metadata, but do not add server lighting contracts, DDGI implementation, lighting probes, or client lighting rewrites without that plan.
+- Until the DDGI plan exists, choose the next port slice from non-lighting ownership work such as basegame content/rules, server authority/persistence, client presentation that does not alter lighting, module validation, build ownership, or tool cleanup.
 
 ## Ownership Boundaries
 
@@ -56,13 +59,23 @@
 - Old build helpers, old CMake modules, old desktop helper tools, and old profiling wrappers belong under `old-architecture/` until they are intentionally ported.
 - The old atlas builder is basegame-specific content tooling and belongs under `octaryn-basegame/Tools/`, not root `tools/`.
 - Networking packages and transport implementation belong in client/server layers, not in `octaryn-basegame/`.
+- Developer-facing math, geometry, deterministic random, time, diagnostics, serialization, networking, and physics tools may be exposed to modules only through Octaryn-owned shared API contracts and capability-gated handles.
+- Do not expose raw physics worlds, transport sessions, renderer handles, native pointers, third-party backend types, sockets, filesystems, schedulers, raw ECS storage, or broad service locators to basegame, game modules, or mods.
 - Persistence implementation belongs to server unless a file is a pure shared data contract.
 - Rendering, GPU upload, shader pipelines, windowing, audio, and UI never belong to server.
+- Singleplayer must not make the client authoritative. `client_server_app` launches and supervises a bundled `server` for local worlds, but world creation/loading, module validation, server ticks, simulation, persistence, replication, and physics stay server-owned.
+- Product UI such as the main menu, pause menu, inventory screens, HUD, world-space panels, nameplates, block/entity panels, and game-specific options belongs to `octaryn-basegame` or another active game module through explicit UI APIs. Core/client-owned UI is limited to debug, diagnostics, profiler, validation, editor/developer, and emergency host surfaces.
+- Client owns UI execution and rendering for both screen-space and world-space surfaces, including render-to-texture, textured 3D quads/panels, focus, and raycast input routing. Modules declare UI models, surfaces, anchors, and actions; they do not submit draw calls, own GPU textures, manage font atlases, or bypass client input routing.
 - Authoritative edits, validation, save ownership, and simulation never belong to client.
 - Product-specific gameplay behavior never belongs in `octaryn-shared/`; it belongs in `octaryn-basegame/` or another game project.
 - Product-specific asset/content tooling never belongs in root `tools/` when it only serves `octaryn-basegame/`; move it under `octaryn-basegame/Tools/`.
 - C# ECS/gameplay and client/server networking are intentionally used where they fit best; they are not legacy or fallback paths.
 - C/C++ owner code may drive managed ECS or networking through explicit client/server owner bridges. Basegame is reached through shared contracts and validated module entry points only; game modules and mods must never see bridge internals.
+- Final runtime direction is Octaryn-owned APIs over explicit owner backends: Arch ECS for managed gameplay/module ECS, native owner ECS/storage for high-throughput host paths, Octaryn scheduler policy over Taskflow, LiteNetLib/LiteEntitySystem-backed networking behind Octaryn contracts, custom binary persistence, and client-owned retained UI.
+- Planned backend candidates are Jolt for physics and Yoga for UI layout. Do not expose either backend to modules, and do not claim them implemented until owner code, CMake wiring, and targeted validation exist.
+- LiteNetLib and LiteEntitySystem remain the intended host-side networking packages for client/server. They must stay hidden behind Octaryn command, snapshot, replication, prediction, and compatibility contracts, with no backend types exposed to shared/basegame/modules/mods.
+- SDL3_ttf is the text layer, not the product UI system. Product UI should use Octaryn retained UI declarations; ImGui remains debug/tool/editor UI.
+- Runtime audio should converge on one hidden client runtime backend before content scale grows. Current plan favors OpenAL Soft for spatial runtime audio and miniaudio for helper/decode/streaming/tool roles unless benchmarks justify changing that.
 
 ## Module Folder Shape
 
@@ -91,8 +104,11 @@
 - Use `build/<preset>/tools/` for repo-wide tool builds, `build/<preset>/deps/` for dependency build/stamp outputs, and `build/dependencies/` for shared third-party source/download caches.
 - Core managed outputs belong directly under `build/<preset>/<owner>/managed/`, and core managed intermediates belong directly under `build/<preset>/<owner>/managed-obj/`. Tool managed outputs belong under `build/<preset>/tools/<tool-project>/managed/`, with tool intermediates under `build/<preset>/tools/<tool-project>/managed-obj/`.
 - Native outputs belong under `build/<preset>/<owner>/native/bin/` and `build/<preset>/<owner>/native/lib/`.
+- `octaryn_client_bundle` must include a version-matched `server/` payload copied from server-owned outputs so singleplayer works from the graphical client bundle. Copied payloads do not change ownership and must not become a monolithic client/server implementation target.
+- `octaryn_server_bundle` remains the dedicated headless terminal/server package and must not contain client rendering, windowing, audio, or UI payloads.
 - Logs are generated and ignored. Keep them organized under `logs/<owner>/`.
 - Use `logs/client/`, `logs/server/`, `logs/basegame/`, `logs/shared/`, `logs/build/`, and `logs/tools/` instead of dumping logs at root.
+- Bundled server logs stay under `logs/server/` even when that server was launched by the client for singleplayer.
 - Old architecture scripts are source material only and must not create active build outputs unless intentionally ported to the new preset layout.
 - Active root `cmake/` and `tools/` should stay clean for new architecture support only; do not leave old-engine scripts there.
 
@@ -117,6 +133,8 @@
 - Organize the port so multiplayer is a first-class future target, even before transport is fully implemented.
 - Server must become authoritative for world edits, simulation, validation, persistence, and replication.
 - Client should be prepared for local prediction and presentation of server snapshots without owning authority.
+- Singleplayer is `client_server_app` using a bundled `server`, not a different authority model. The client starts or attaches to a server-owned local session, waits for module validation, world save open/create, world state initialization, server tick startup, and a ready snapshot, then connects through the same command/snapshot contracts used by multiplayer.
+- Dedicated server remains a separate headless executable/package path from `octaryn_server_bundle`.
 - Shared networking contracts should stay explicit and API-shaped: client commands, server snapshots, replication IDs, tick IDs, stable value types, and interfaces needed by client/server/basegame.
 - Transport code belongs in client/server projects; shared only defines message shapes and IDs.
 - The C# API belongs in `octaryn-shared/`, because `octaryn-basegame/` is a default/demo game implementation rather than the platform API.
@@ -155,6 +173,7 @@
 - Game modules and mods compile against `octaryn-shared` plus approved package/framework API groups only. They must not bring their own unapproved NuGet dependencies.
 - Approved module packages today: `Arch`, `Arch.System`, `Arch.System.SourceGenerator` as analyzer/private only, `Arch.EventBus`, and `Arch.Relationships`.
 - Host-only packages today: `LiteNetLib` and `LiteEntitySystem`; these belong in `octaryn-client/` and `octaryn-server/`, not basegame, mods, game modules, or shared contracts.
+- Arch ECS packages are intended managed ECS support for basegame, game modules, mods, and approved owner-local managed systems. Native owner ECS/storage may still back high-throughput host authority, presentation, replication packing, persistence packing, and world kernels through explicit Octaryn descriptors and validators.
 - `Directory.Packages.props` pins versions only; it is not permission for a module or project to reference a package.
 - Approved module package entries must include owner, purpose, version policy, permitted runtime scope, validation rule, and enforcement location before use.
 - Deny by default for module code: reflection/dynamic loading, scripting hosts, runtime code generation, dependency injection containers, networking stacks, filesystem access, filesystem watchers, native interop, process control, raw threading/task scheduling, environment variables, and direct host service discovery.
@@ -171,6 +190,7 @@
 - For Minecraft-parity work, check Minecraft/Iris/shader-pack/reference code and assets first, then map the behavior into this codebase’s architecture.
 - Identify what the reference does at the mesh/data level, texture/asset level, shader level, runtime/update level, and edge-case level before writing the new implementation.
 - Do not substitute a visually similar or guessed system when the goal is 1:1 behavior. If the reference cannot be inspected, say what is missing and keep the implementation scoped to verified behavior.
+- DDGI and lighting parity work require a user-approved plan before inspection or implementation. Do not start DDGI work just because skylight or lighting source files appear in the old architecture.
 
 ## Validation
 

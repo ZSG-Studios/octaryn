@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\octaryn-shared\Octaryn.Shared.csproj" />
-    <ProjectReference Include="..\octaryn-basegame\Octaryn.Basegame.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,6 +14,12 @@
     </AssemblyAttribute>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Octaryn.OwnerModuleValidationProbe</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Octaryn.WorldTimeProbe</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Octaryn.ServerWorldBlocksProbe</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
 </Project>

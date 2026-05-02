@@ -71,7 +71,11 @@ internal static class ServerHostExports
             return -1;
         }
 
-        return 0;
+        return s_basegame?.SubmitClientCommands(
+            (HostCommand*)commandFrame->CommandsAddress,
+            commandFrame->CommandCount) == 0
+            ? 0
+            : -1;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "octaryn_server_drain_server_snapshots", CallConvs = [typeof(CallConvCdecl)])]
@@ -86,7 +90,7 @@ internal static class ServerHostExports
             return -1;
         }
 
-        return 0;
+        return s_basegame?.DrainServerSnapshots(snapshotHeader) ?? -1;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "octaryn_server_shutdown", CallConvs = [typeof(CallConvCdecl)])]

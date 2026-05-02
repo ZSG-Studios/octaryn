@@ -111,7 +111,6 @@ internal static class ModuleApiProbe
         "Octaryn.Shared.Host.HostWorkAccess",
         "Octaryn.Shared.Host.IHostCommandSink",
         "Octaryn.Shared.Host.IHostScheduler",
-        "Octaryn.Shared.World.BlockEdit",
         "Octaryn.Shared.World.ChunkConstants",
         "Octaryn.Shared.World.ChunkPosition",
         "Octaryn.Shared.World.ChunkSnapshot",
@@ -283,6 +282,11 @@ internal static class ModuleApiProbe
         ExpectValid(
             "manifest extractor ignores stray denied constant",
             "public static class Probe { private static readonly string Stray = FrameworkApiGroupIds.BclFilesystem; }",
+            ["FrameworkApiGroupIds.BclPrimitives"],
+            errors);
+        ExpectValid(
+            "module block edit command request",
+            "using Octaryn.Shared.World; public static class Probe { public static void Run() { _ = ModuleCommandRequest.BreakBlock(new BlockPosition(1, 2, 3), 4); } }",
             ["FrameworkApiGroupIds.BclPrimitives"],
             errors);
         VerifyDenied(

@@ -12,4 +12,16 @@ internal readonly struct HostFrameTimingSnapshot
     public readonly uint Size;
     public readonly ulong FrameIndex;
     public readonly double DeltaSeconds;
+
+    internal HostFrameTimingSnapshot(
+        uint version,
+        uint size,
+        ulong frameIndex,
+        double deltaSeconds)
+    {
+        Version = version;
+        Size = size;
+        FrameIndex = frameIndex;
+        DeltaSeconds = deltaSeconds;
+    }
 }

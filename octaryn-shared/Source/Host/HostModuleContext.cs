@@ -10,8 +10,10 @@ internal static class HostModuleContext
         IHostCommandSink commands)
     {
         var requestedHostApis = manifest.RequestedHostApis ?? [];
+        var requiredCapabilities = manifest.RequiredCapabilities ?? [];
         var schedule = manifest.Schedule ?? new GameModuleScheduleDeclaration([]);
         var grantsCommandSink = requestedHostApis.Contains(HostApiIds.Commands, StringComparer.Ordinal) &&
+            requiredCapabilities.Contains(ModuleCapabilityIds.WorldBlockEdits, StringComparer.Ordinal) &&
             HasScheduledWrite(schedule.Systems ?? [], HostApiIds.Commands);
         return new ModuleHostContext(
             grantsCommandSink
@@ -51,12 +53,26 @@ internal static class HostModuleContext
                 return false;
             }
 
+            return request.Kind switch
+            {
+                ModuleCommandRequestKind.SetBlock => EnqueueSetBlock(request),
+                _ => false
+            };
+        }
+
+        private bool EnqueueSetBlock(ModuleCommandRequest request)
+        {
             return inner.Enqueue(new HostCommand
             {
                 Version = HostCommand.VersionValue,
                 Size = HostCommand.SizeValue,
-                Kind = HostCommandKind.None,
-                RequestId = request.RequestId
+                Kind = HostCommandKind.SetBlock,
+                Flags = HostCommand.CriticalFlag,
+                RequestId = request.RequestId,
+                A = request.BlockEdit.Position.X,
+                B = request.BlockEdit.Position.Y,
+                C = request.BlockEdit.Position.Z,
+                D = request.BlockEdit.Block.Value
             });
         }
     }
