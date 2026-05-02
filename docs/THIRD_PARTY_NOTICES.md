@@ -28,3 +28,49 @@ The basegame atlas builder can import Minecraft-style resource packs. Generated 
 - Credits: <https://github.com/ClassicFaithful/Classic-32x-Jappa-Java/blob/main/credits.txt>
 - License: Faithful License Version 3, <https://faithfulpack.net/license>
 - Release rule: generated assets containing this work must include clear credit, link back to Faithful, avoid monetization of content containing the work, avoid implying official Faithful status, and include the unmodified Faithful license file with any distributed content that contains the work.
+
+## Old Architecture Release Payload
+
+The `old-architecture-shareable-20260430` release packages include third-party notice files inside each ZIP under `THIRD_PARTY/` and a package-level `THIRD_PARTY_NOTICES.txt`.
+
+Texture assets:
+
+- Classic Faithful 32x Jappa texture inputs are used to generate the bundled atlas PNGs.
+- The atlas manifest stores `texture_pack_*` metadata in `assets/textures/atlas.txt`.
+- Faithful license and credit files are bundled under `THIRD_PARTY/ClassicFaithful/`.
+
+Native libraries:
+
+- SDL3
+- SDL3_image
+- mimalloc
+- OpenAL Soft
+- miniaudio
+- FastNoise2
+- Jolt Physics
+- ozz-animation
+- zlib
+- Zstandard
+
+Linux release runtime and managed packages:
+
+- Microsoft .NET `nethost`
+- Arch
+- Arch.EventBus
+- Arch.LowLevel
+- Arch.Relationships
+- Arch.System
+- Collections.Pooled
+- CommunityToolkit.HighPerformance
+- K4os.Compression.LZ4
+- LiteEntitySystem
+- LiteNetLib
+- Microsoft.Extensions.ObjectPool
+- ZeroAllocJobScheduler
+
+Windows release runtime libraries:
+
+- MinGW-w64 runtime
+- winpthreads
+- GCC runtime libraries with runtime exception text
+- zlib runtime DLL
