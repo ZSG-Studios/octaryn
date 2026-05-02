@@ -10,6 +10,7 @@ set(OCTARYN_WORKSPACE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Octaryn
 
 include(Shared/ProjectDefaults)
 include(Shared/CompilerWarnings)
+include(Shared/TargetArchitecture)
 include(Shared/BuildOutputs)
 include(Shared/OwnerBuildLayout)
 include(Platforms/PlatformDispatch)

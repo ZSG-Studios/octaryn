@@ -30,9 +30,98 @@ octaryn_host_core_count() {
   printf '2\n'
 }
 
+octaryn_validate_preset_name() {
+  local preset="${1:-debug-linux}"
+  case "${preset}" in
+    debug-linux|release-linux|debug-windows|release-windows) ;;
+    *)
+      printf '[error] unsupported preset: %s\n' "${preset}" >&2
+      printf '[error] expected one of: debug-linux release-linux debug-windows release-windows\n' >&2
+      exit 2
+      ;;
+  esac
+}
+
+octaryn_target_arch() {
+  local arch="${OCTARYN_TARGET_ARCH:-x64}"
+  case "${arch}" in
+    x64|arm64) printf '%s\n' "${arch}" ;;
+    *)
+      printf '[error] unsupported OCTARYN_TARGET_ARCH: %s\n' "${arch}" >&2
+      printf '[error] expected one of: x64 arm64\n' >&2
+      exit 2
+      ;;
+  esac
+}
+
+octaryn_build_root_name() {
+  local preset="${1:-debug-linux}"
+  local arch="${2:-$(octaryn_target_arch)}"
+  octaryn_validate_preset_name "${preset}"
+  if [[ "${arch}" == "x64" ]]; then
+    printf '%s\n' "${preset}"
+  else
+    printf '%s-%s\n' "${preset}" "${arch}"
+  fi
+}
+
 octaryn_tool_build_root() {
   local preset="${1:-debug-linux}"
-  printf '%s/build/%s/tools\n' "${octaryn_workspace_root}" "${preset}"
+  octaryn_validate_preset_name "${preset}"
+  printf '%s/build/%s/tools\n' "${octaryn_workspace_root}" "$(octaryn_build_root_name "${preset}")"
+}
+
+octaryn_cmake_build_dir() {
+  local preset="${1:-debug-linux}"
+  octaryn_validate_preset_name "${preset}"
+  printf '%s/build/%s/cmake\n' "${octaryn_workspace_root}" "$(octaryn_build_root_name "${preset}")"
+}
+
+octaryn_dependency_build_root() {
+  local preset="${1:-debug-linux}"
+  octaryn_validate_preset_name "${preset}"
+  printf '%s/build/%s/deps/tool-build\n' "${octaryn_workspace_root}" "$(octaryn_build_root_name "${preset}")"
+}
+
+octaryn_preset_target_platform() {
+  local preset="${1:-debug-linux}"
+  octaryn_validate_preset_name "${preset}"
+  case "${preset}" in
+    *-linux) printf 'linux\n' ;;
+    *-windows) printf 'windows\n' ;;
+  esac
+}
+
+octaryn_preset_cmake_system_name() {
+  case "$(octaryn_preset_target_platform "$1")" in
+    linux) printf 'Linux\n' ;;
+    windows) printf 'Windows\n' ;;
+  esac
+}
+
+octaryn_preset_toolchain_file() {
+  case "$(octaryn_preset_target_platform "$1")" in
+    linux) printf '%s\n' "${octaryn_workspace_root}/cmake/Toolchains/Linux/clang.cmake" ;;
+    windows) printf '%s\n' "${octaryn_workspace_root}/cmake/Toolchains/Windows/clang.cmake" ;;
+  esac
+}
+
+octaryn_preset_build_type() {
+  local preset="${1:-debug-linux}"
+  octaryn_validate_preset_name "${preset}"
+  case "${preset}" in
+    debug-*) printf 'Debug\n' ;;
+    release-*) printf 'Release\n' ;;
+  esac
+}
+
+octaryn_target_executable_name() {
+  local preset="$1"
+  local name="$2"
+  case "$(octaryn_preset_target_platform "${preset}")" in
+    windows) printf '%s.exe\n' "${name}" ;;
+    *) printf '%s\n' "${name}" ;;
+  esac
 }
 
 octaryn_dependency_source_root() {

@@ -14,11 +14,15 @@ Tracy is a first-class debug tool. Debug presets stage the wrapper through `octa
 
 ```sh
 tools/build/cmake_build.sh debug-linux --target octaryn_debug_tools
+tools/build/cmake_build.sh debug-windows --target octaryn_debug_tools
 tools/profiling/tracy_tool.sh --preset debug-linux build
 tools/profiling/tracy_tool.sh --preset debug-linux launch-profiler
 tools/profiling/tracy_tool.sh --preset debug-linux --seconds 10 capture
+tools/profiling/tracy_tool.sh --preset debug-windows print-profiler
 ```
 
-The wrapper fetches/builds project-local Tracy from the workspace-managed dependency cache, uses all available cores, writes tool logs under `logs/tools/tracy_tool.log`, and writes capture artifacts under `logs/tools/tracy/`.
+The wrapper stages target-native Tracy tools from the workspace-managed dependency cache. Windows uses the official Tracy release binary package when one exists for the selected tag; Linux builds from source with workspace-managed dependencies and all available cores. Tool logs stay under `logs/tools/tracy_tool.log`, and capture artifacts stay directly under `logs/tools/`.
+
+Linux-host execution is only valid for the Linux preset. Windows presets still stage native profiler/capture/export binaries under `build/<preset>/tools/tracy/`, but those binaries must be launched on Windows.
 
 Scheduler profiling is not accepted until a capture verifies at least two worker threads and scaling behavior on the current host.

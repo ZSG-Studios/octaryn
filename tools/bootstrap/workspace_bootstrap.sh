@@ -18,6 +18,7 @@ Usage: workspace_bootstrap.sh [options] <command>
 Commands:
   detect        Print detected host platform and required external tools.
   clone         Clone the Octaryn workspace when --repo and --destination are set.
+  linux-arm64   Build the workspace-managed Linux ARM64 sysroot.
   podman-arch   Start an Arch Linux Podman builder mounted at the workspace.
 
 Options:
@@ -60,7 +61,6 @@ done
 detect_host() {
   case "$(uname -s)" in
     Linux) printf 'linux\n' ;;
-    Darwin) printf 'macos\n' ;;
     MINGW*|MSYS*|CYGWIN*) printf 'windows\n' ;;
     *) printf 'unknown\n' ;;
   esac
@@ -85,7 +85,7 @@ case "${command}" in
       printf 'podman=missing\n'
       case "${host}" in
         linux) printf 'install_hint=install podman with the host package manager\n' ;;
-        macos|windows) printf 'install_hint=install Podman Desktop or podman machine, then rerun podman-arch\n' ;;
+        windows) printf 'install_hint=install Podman Desktop or podman machine, then rerun podman-arch\n' ;;
       esac
     fi
     ;;
@@ -96,6 +96,9 @@ case "${command}" in
       exit 2
     fi
     git clone "${repo_url}" "${destination}"
+    ;;
+  linux-arm64)
+    "${octaryn_workspace_root}/tools/sysroots/linux_arm64_sysroot.sh" setup
     ;;
   podman-arch)
     require_tool podman

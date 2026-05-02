@@ -26,11 +26,14 @@ function(octaryn_add_dotnet_owner target_name owner project_path)
     add_custom_command(
         OUTPUT "${stamp_file}"
         BYPRODUCTS "${output_dll}"
-        COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}"
+            "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
             "${DOTNET_EXECUTABLE}" build "${project_path}"
             --configuration "${dotnet_configuration}"
             --no-dependencies
             -maxcpucount
+            ${OCTARYN_DOTNET_TARGET_RUNTIME_ARGS}
             "-bl:${owner_log_root}/${target_name}-${OCTARYN_BUILD_PRESET_NAME}.binlog"
         COMMAND "${CMAKE_COMMAND}" -E touch "${stamp_file}"
         DEPENDS

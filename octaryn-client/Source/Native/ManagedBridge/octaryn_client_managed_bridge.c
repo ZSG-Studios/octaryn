@@ -3,10 +3,22 @@
 #include "octaryn_native_crash_diagnostics.h"
 
 #include <coreclr_delegates.h>
-#include <dlfcn.h>
 #include <hostfxr.h>
 #include <stddef.h>
 #include <string.h>
+
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
+#if defined(_WIN32)
+#define OCTARYN_NATIVE_TEXT_IMPL(value) L##value
+#define OCTARYN_NATIVE_TEXT(value) OCTARYN_NATIVE_TEXT_IMPL(value)
+#else
+#define OCTARYN_NATIVE_TEXT(value) value
+#endif
 
 enum {
     OCTARYN_CLIENT_BRIDGE_LOAD_FAILED = -100
@@ -21,9 +33,22 @@ static octaryn_client_tick_fn s_tick;
 static octaryn_client_shutdown_fn s_shutdown;
 static int s_load_result;
 
+static void* octaryn_open_library(const char* path)
+{
+#if defined(_WIN32)
+    return (void*)LoadLibraryA(path);
+#else
+    return dlopen(path, RTLD_NOW | RTLD_LOCAL);
+#endif
+}
+
 static void* octaryn_load_symbol(void* library, const char* symbol)
 {
+#if defined(_WIN32)
+    return (void*)GetProcAddress((HMODULE)library, symbol);
+#else
     return dlsym(library, symbol);
+#endif
 }
 
 static int octaryn_load_hostfxr_symbol(void* library, const char* symbol, void* target, size_t target_size)
@@ -44,7 +69,7 @@ static int octaryn_resolve_managed_method(
     void** target)
 {
     return load_assembly(
-        OCTARYN_CLIENT_MANAGED_ASSEMBLY_PATH,
+        OCTARYN_NATIVE_TEXT(OCTARYN_CLIENT_MANAGED_ASSEMBLY_PATH),
         type_name,
         method_name,
         UNMANAGEDCALLERSONLY_METHOD,
@@ -64,7 +89,7 @@ static int octaryn_client_load_managed_exports(void)
         return s_load_result;
     }
 
-    void* hostfxr = dlopen(OCTARYN_DOTNET_HOSTFXR_PATH, RTLD_NOW | RTLD_LOCAL);
+    void* hostfxr = octaryn_open_library(OCTARYN_DOTNET_HOSTFXR_PATH);
     if (hostfxr == NULL) {
         s_load_result = OCTARYN_CLIENT_BRIDGE_LOAD_FAILED;
         return s_load_result;
@@ -96,7 +121,10 @@ static int octaryn_client_load_managed_exports(void)
     }
 
     hostfxr_handle host_context = NULL;
-    int result = initialize_for_runtime_config(OCTARYN_CLIENT_RUNTIME_CONFIG_PATH, NULL, &host_context);
+    int result = initialize_for_runtime_config(
+        OCTARYN_NATIVE_TEXT(OCTARYN_CLIENT_RUNTIME_CONFIG_PATH),
+        NULL,
+        &host_context);
     if (result < 0 || host_context == NULL) {
         s_load_result = result < 0 ? result : OCTARYN_CLIENT_BRIDGE_LOAD_FAILED;
         return s_load_result;
@@ -115,8 +143,8 @@ static int octaryn_client_load_managed_exports(void)
 
     result = octaryn_resolve_managed_method(
         load_assembly,
-        "Octaryn.Client.ClientHostExports, Octaryn.Client",
-        "Initialize",
+        OCTARYN_NATIVE_TEXT("Octaryn.Client.ClientHostExports, Octaryn.Client"),
+        OCTARYN_NATIVE_TEXT("Initialize"),
         (void**)&s_initialize);
     if (result < 0 || s_initialize == NULL) {
         s_load_result = result < 0 ? result : OCTARYN_CLIENT_BRIDGE_LOAD_FAILED;
@@ -125,8 +153,8 @@ static int octaryn_client_load_managed_exports(void)
 
     result = octaryn_resolve_managed_method(
         load_assembly,
-        "Octaryn.Client.ClientHostExports, Octaryn.Client",
-        "Tick",
+        OCTARYN_NATIVE_TEXT("Octaryn.Client.ClientHostExports, Octaryn.Client"),
+        OCTARYN_NATIVE_TEXT("Tick"),
         (void**)&s_tick);
     if (result < 0 || s_tick == NULL) {
         s_load_result = result < 0 ? result : OCTARYN_CLIENT_BRIDGE_LOAD_FAILED;
@@ -135,8 +163,8 @@ static int octaryn_client_load_managed_exports(void)
 
     result = octaryn_resolve_managed_method(
         load_assembly,
-        "Octaryn.Client.ClientHostExports, Octaryn.Client",
-        "Shutdown",
+        OCTARYN_NATIVE_TEXT("Octaryn.Client.ClientHostExports, Octaryn.Client"),
+        OCTARYN_NATIVE_TEXT("Shutdown"),
         (void**)&s_shutdown);
     if (result < 0 || s_shutdown == NULL) {
         s_load_result = result < 0 ? result : OCTARYN_CLIENT_BRIDGE_LOAD_FAILED;

@@ -2,8 +2,6 @@ include_guard(GLOBAL)
 
 include(Dependencies/SourceDependencyCache)
 
-set(OCTARYN_CLIENT_DEPENDENCIES_SCAFFOLD ON)
-
 set(OCTARYN_CLIENT_SDL3_AVAILABLE OFF)
 
 octaryn_add_dependency_wrapper(octaryn_client_sdl3 octaryn::deps::sdl3)
@@ -31,6 +29,14 @@ if(NOT TARGET octaryn::deps::openal)
         "ALSOFT_EXAMPLES OFF"
         "ALSOFT_TESTS OFF"
         "LIBTYPE STATIC")
+    if(WIN32)
+        list(APPEND octaryn_openal_options
+            "ALSOFT_BACKEND_ALSA OFF"
+            "ALSOFT_BACKEND_JACK OFF"
+            "ALSOFT_BACKEND_PIPEWIRE OFF"
+            "ALSOFT_BACKEND_PULSEAUDIO OFF"
+            "ALSOFT_BACKEND_SNDIO OFF")
+    endif()
     octaryn_fetch_source_dependency(
         OpenALSoft
         GITHUB_REPOSITORY kcat/openal-soft
@@ -189,6 +195,7 @@ if(NOT TARGET octaryn::deps::imgui_node_editor)
         add_library(octaryn_third_party_imgui_node_editor STATIC ${imgui_node_editor_sources})
         target_include_directories(octaryn_third_party_imgui_node_editor PUBLIC "${imgui_node_editor_source_dir}")
         target_link_libraries(octaryn_third_party_imgui_node_editor PUBLIC octaryn_third_party_imgui)
+        target_compile_options(octaryn_third_party_imgui_node_editor PRIVATE "-include" "exception")
         set_target_properties(octaryn_third_party_imgui_node_editor PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
     octaryn_link_first_available_dependency(octaryn_client_imgui_node_editor imgui_node_editor_available octaryn_third_party_imgui_node_editor)
@@ -250,9 +257,14 @@ if(NOT TARGET octaryn::deps::imfiledialog)
         GITHUB_REPOSITORY pthom/ImFileDialog
         GIT_TAG c9819dd90450262efe7682839bb751c38173e1d8)
     set(imgui_shim_include_dir "${CMAKE_BINARY_DIR}/generated/imgui_shim")
+    set(stb_image_shim_include_dir "${CMAKE_BINARY_DIR}/generated/stb_image_shim")
     file(MAKE_DIRECTORY "${imgui_shim_include_dir}/imgui")
+    file(MAKE_DIRECTORY "${stb_image_shim_include_dir}")
     file(WRITE "${imgui_shim_include_dir}/imgui/imgui.h" "#pragma once\n#include <imgui.h>\n")
     file(WRITE "${imgui_shim_include_dir}/imgui/imgui_internal.h" "#pragma once\n#include <imgui_internal.h>\n")
+    if(imguizmo_source_dir AND EXISTS "${imguizmo_source_dir}/example/stb_image.h")
+        file(COPY_FILE "${imguizmo_source_dir}/example/stb_image.h" "${stb_image_shim_include_dir}/stb_image.h" ONLY_IF_DIFFERENT)
+    endif()
     if(imfiledialog_source_dir AND NOT TARGET octaryn_third_party_imfiledialog)
         add_library(octaryn_third_party_imfiledialog STATIC
             "${imfiledialog_source_dir}/ImFileDialog.cpp")
@@ -260,7 +272,8 @@ if(NOT TARGET octaryn::deps::imfiledialog)
             PUBLIC
                 "${imfiledialog_source_dir}"
             PRIVATE
-                "${imgui_shim_include_dir}")
+                "${imgui_shim_include_dir}"
+                "${stb_image_shim_include_dir}")
         target_link_libraries(octaryn_third_party_imfiledialog PUBLIC octaryn_third_party_imgui octaryn::deps::sdl3_image)
         set_target_properties(octaryn_third_party_imfiledialog PROPERTIES POSITION_INDEPENDENT_CODE ON CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     endif()

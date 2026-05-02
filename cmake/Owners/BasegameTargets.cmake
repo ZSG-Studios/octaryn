@@ -2,7 +2,6 @@ include_guard(GLOBAL)
 
 include(Owners/DotNetOwner)
 include(Owners/NativeOwner)
-include(Dependencies/BasegameDependencies)
 
 octaryn_add_native_owner(octaryn_basegame_native)
 add_dependencies(octaryn_basegame_native octaryn_shared_native)

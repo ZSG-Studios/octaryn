@@ -1,23 +1,22 @@
 include_guard(GLOBAL)
 
+include(Shared/TargetArchitecture)
+
 set(OCTARYN_HOST_PLATFORM "Linux")
+octaryn_arch_select(OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT elf64-x86-64 elf64-aarch64)
+find_program(OCTARYN_TARGET_OBJDUMP llvm-objdump)
 set(OCTARYN_LINUX_FAMILY "Unknown" CACHE STRING "Linux distro family for package/tool policy")
-find_program(OCTARYN_WINDOWS_CLANG_C_COMPILER x86_64-w64-mingw32-clang
+octaryn_arch_select(OCTARYN_WINDOWS_CLANG_C_NAME x86_64-w64-mingw32-clang aarch64-w64-mingw32-clang)
+octaryn_arch_select(OCTARYN_WINDOWS_CLANG_CXX_NAME x86_64-w64-mingw32-clang++ aarch64-w64-mingw32-clang++)
+find_program(OCTARYN_WINDOWS_CLANG_C_COMPILER ${OCTARYN_WINDOWS_CLANG_C_NAME}
     PATHS "$ENV{OCTARYN_WINDOWS_CLANG_ROOT}/bin" "/opt/llvm-mingw/bin"
     NO_DEFAULT_PATH)
-find_program(OCTARYN_WINDOWS_CLANG_CXX_COMPILER x86_64-w64-mingw32-clang++
+find_program(OCTARYN_WINDOWS_CLANG_CXX_COMPILER ${OCTARYN_WINDOWS_CLANG_CXX_NAME}
     PATHS "$ENV{OCTARYN_WINDOWS_CLANG_ROOT}/bin" "/opt/llvm-mingw/bin"
-    NO_DEFAULT_PATH)
-find_program(OCTARYN_MACOS_CLANG_C_COMPILER o64-clang
-    PATHS "$ENV{OCTARYN_MACOS_CLANG_ROOT}/bin" "/home/zacharyr/toolchains/osxcross/target/bin"
     NO_DEFAULT_PATH)
 set(OCTARYN_HOST_SUPPORTS_WINDOWS_CLANG_CROSS OFF)
-set(OCTARYN_HOST_SUPPORTS_MACOS_CLANG_CROSS OFF)
 if(OCTARYN_WINDOWS_CLANG_C_COMPILER AND OCTARYN_WINDOWS_CLANG_CXX_COMPILER)
     set(OCTARYN_HOST_SUPPORTS_WINDOWS_CLANG_CROSS ON)
-endif()
-if(OCTARYN_MACOS_CLANG_C_COMPILER)
-    set(OCTARYN_HOST_SUPPORTS_MACOS_CLANG_CROSS ON)
 endif()
 
 if(OCTARYN_LINUX_FAMILY STREQUAL "Unknown" AND EXISTS "/etc/os-release")
@@ -42,6 +41,6 @@ elseif(OCTARYN_LINUX_FAMILY STREQUAL "Fedora")
 elseif(OCTARYN_LINUX_FAMILY STREQUAL "Suse")
     include(Platforms/Linux/SuseFamily)
 else()
-    set(OCTARYN_TARGET_DOTNET_RID "linux-x64")
+    octaryn_arch_select(OCTARYN_TARGET_DOTNET_RID linux-x64 linux-arm64)
     message(STATUS "Octaryn Linux distro family is not classified; distro-specific package hints are disabled.")
 endif()

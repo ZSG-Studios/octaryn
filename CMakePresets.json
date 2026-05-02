@@ -50,26 +50,6 @@
       "cacheVariables": {
         "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
       }
-    },
-    {
-      "name": "debug-macos",
-      "displayName": "Debug macOS",
-      "inherits": "debug-linux",
-      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
-      "cacheVariables": {
-        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
-      }
-    },
-    {
-      "name": "release-macos",
-      "displayName": "Release macOS",
-      "inherits": "release-linux",
-      "binaryDir": "${sourceDir}/build/${presetName}/cmake",
-      "toolchainFile": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
-      "cacheVariables": {
-        "OCTARYN_BUILD_PRESET_NAME": "${presetName}"
-      }
     }
   ],
   "buildPresets": [
@@ -97,20 +77,6 @@
     {
       "name": "release-windows",
       "configurePreset": "release-windows",
-      "targets": [
-        "octaryn_all"
-      ]
-    },
-    {
-      "name": "debug-macos",
-      "configurePreset": "debug-macos",
-      "targets": [
-        "octaryn_all"
-      ]
-    },
-    {
-      "name": "release-macos",
-      "configurePreset": "release-macos",
       "targets": [
         "octaryn_all"
       ]

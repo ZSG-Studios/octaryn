@@ -42,9 +42,6 @@ set(octaryn_cpptrace_options
     "CPPTRACE_GET_SYMBOLS_WITH_ADDR2LINE ON"
     "CPPTRACE_ADDR2LINE_SEARCH_SYSTEM_PATH ON"
     "BUILD_SHARED_LIBS OFF")
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    list(APPEND octaryn_cpptrace_options "CPPTRACE_DISABLE_CXX_20_MODULES ON")
-endif()
 octaryn_fetch_source_dependency(
     cpptrace
     GITHUB_REPOSITORY jeremy-rifkin/cpptrace
@@ -134,6 +131,7 @@ if(NOT TARGET octaryn::deps::zlib)
         GITHUB_REPOSITORY madler/zlib
         GIT_TAG v1.3.2
         OPTIONS
+            "ZLIB_BUILD_TESTING OFF"
             "ZLIB_BUILD_EXAMPLES OFF")
     octaryn_link_first_available_dependency(octaryn_native_zlib zlib_available ZLIB::ZLIB)
     octaryn_link_first_available_dependency(octaryn_native_zlib zlib_available zlibstatic zlib)

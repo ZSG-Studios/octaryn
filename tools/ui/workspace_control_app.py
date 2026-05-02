@@ -13,11 +13,24 @@ from pathlib import Path
 from PySide6 import QtCore, QtGui, QtWidgets
 
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
+def find_workspace_root() -> Path:
+    env_root = os.environ.get("OCTARYN_WORKSPACE_ROOT")
+    if env_root:
+        root = Path(env_root).resolve()
+        if (root / "CMakePresets.json").is_file() and (root / "tools" / "build").is_dir():
+            return root
+
+    for candidate in Path(__file__).resolve().parents:
+        if (candidate / "CMakePresets.json").is_file() and (candidate / "tools" / "build").is_dir():
+            return candidate
+
+    return Path(__file__).resolve().parents[2]
+
+
+WORKSPACE_ROOT = find_workspace_root()
 CMAKE_BUILD_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / "cmake_build.sh"
 CONFIGURE_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / "cmake_configure.sh"
 TRACY_TOOL_SCRIPT = WORKSPACE_ROOT / "tools" / "profiling" / "tracy_tool.sh"
-RENDERDOC_TOOL_SCRIPT = WORKSPACE_ROOT / "tools" / "capture" / "renderdoc_tool.sh"
 BOOTSTRAP_SCRIPT = WORKSPACE_ROOT / "tools" / "bootstrap" / "workspace_bootstrap.sh"
 LOG_ROOT = WORKSPACE_ROOT / "logs" / "tools"
 WARNINGS_LOG = LOG_ROOT / "workspace_control_warnings.log"
@@ -31,47 +44,29 @@ PRESET_DETAILS = {
     "release-linux": "Linux release build from the active Clang preset.",
     "debug-windows": "Windows debug cross-build from Linux through the Windows Clang toolchain.",
     "release-windows": "Windows release cross-build from Linux through the Windows Clang toolchain.",
-    "debug-macos": "macOS debug cross-build from Linux through the macOS Clang toolchain.",
-    "release-macos": "macOS release cross-build from Linux through the macOS Clang toolchain.",
 }
 
 LINUX_DEBUG_PRESET = "debug-linux"
 LINUX_RELEASE_PRESET = "release-linux"
 WINDOWS_DEBUG_PRESET = "debug-windows"
 WINDOWS_RELEASE_PRESET = "release-windows"
-MACOS_DEBUG_PRESET = "debug-macos"
-MACOS_RELEASE_PRESET = "release-macos"
 PRESET_LABELS = {
     LINUX_DEBUG_PRESET: "Linux Debug",
     LINUX_RELEASE_PRESET: "Linux Release",
     WINDOWS_DEBUG_PRESET: "Windows Debug",
     WINDOWS_RELEASE_PRESET: "Windows Release",
-    MACOS_DEBUG_PRESET: "macOS Debug",
-    MACOS_RELEASE_PRESET: "macOS Release",
 }
 BUILD_PRESETS = (
     LINUX_DEBUG_PRESET,
     LINUX_RELEASE_PRESET,
     WINDOWS_DEBUG_PRESET,
     WINDOWS_RELEASE_PRESET,
-    MACOS_DEBUG_PRESET,
-    MACOS_RELEASE_PRESET,
 )
 CROSS_COMPILE_PRESETS = {
     WINDOWS_DEBUG_PRESET,
     WINDOWS_RELEASE_PRESET,
-    MACOS_DEBUG_PRESET,
-    MACOS_RELEASE_PRESET,
 }
 
-CRASH_DIAGNOSTICS_PRESETS = {
-    LINUX_DEBUG_PRESET,
-    LINUX_RELEASE_PRESET,
-    WINDOWS_DEBUG_PRESET,
-    WINDOWS_RELEASE_PRESET,
-    MACOS_DEBUG_PRESET,
-    MACOS_RELEASE_PRESET,
-}
 ACTIVE_PRODUCT = "octaryn-workspace"
 ACTIVE_PRODUCT_LABEL = "Octaryn workspace owners"
 
@@ -84,7 +79,6 @@ class ProbeRunPlan:
 @dataclass
 class ToolSettings:
     launch_tracy_with_probe: bool = True
-    launch_renderdoc_with_probe: bool = True
     capture_tracy_with_probe: bool = False
     tracy_capture_seconds: int = 10
 
@@ -107,12 +101,14 @@ WORKSPACE_VALIDATE_TARGET = "octaryn_validate_all"
 CLIENT_RUN_TARGET = "octaryn_client_launch_probe"
 
 
-def product_build_dir(preset: str) -> Path:
+def product_build_dir(preset: str, arch: str = "x64") -> Path:
+    if arch == "arm64":
+        return WORKSPACE_ROOT / "build" / f"{preset}-arm64"
     return WORKSPACE_ROOT / "build" / preset
 
 
-def resolve_run_path(preset: str) -> Path | None:
-    build_dir = product_build_dir(preset)
+def resolve_run_path(preset: str, arch: str = "x64") -> Path | None:
+    build_dir = product_build_dir(preset, arch)
     candidates = [
         build_dir / "client" / "native" / "bin" / CLIENT_RUN_TARGET,
         build_dir / "client" / "native" / "bin" / f"{CLIENT_RUN_TARGET}.exe",
@@ -157,9 +153,6 @@ def load_tool_settings() -> ToolSettings:
         raw = json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
         return ToolSettings(
             launch_tracy_with_probe=bool(raw.get("launch_tracy_with_probe", True)),
-            launch_renderdoc_with_probe=bool(
-                raw.get("launch_renderdoc_with_probe", True)
-            ),
             capture_tracy_with_probe=bool(raw.get("capture_tracy_with_probe", False)),
             tracy_capture_seconds=int(raw.get("tracy_capture_seconds", 10)),
         )
@@ -187,9 +180,7 @@ def render_log_entry_html(entry: LogEntry) -> str:
 
 
 def preset_summary(preset: str) -> str:
-    details = PRESET_DETAILS.get(preset, "No preset summary available.")
-    crash_state = "ON" if preset in CRASH_DIAGNOSTICS_PRESETS else "OFF"
-    return f"{details}\nCrash diagnostics: {crash_state}"
+    return PRESET_DETAILS.get(preset, "No preset summary available.")
 
 
 def probe_status_summary(preset: str) -> str:
@@ -205,7 +196,35 @@ def build_target_for_preset(preset: str) -> str:
     return WORKSPACE_BUILD_TARGET
 
 
-class EngineControlWindow(QtWidgets.QWidget):
+def tool_exists_from_root(env_var: str, relative_path: str, fallback: Path) -> bool:
+    root = os.environ.get(env_var)
+    if root and (Path(root) / relative_path).is_file():
+        return True
+    return fallback.is_file()
+
+
+def missing_cross_toolchains(arch: str = "x64") -> list[str]:
+    missing: list[str] = []
+    windows_tool = (
+        "bin/aarch64-w64-mingw32-clang"
+        if arch == "arm64"
+        else "bin/x86_64-w64-mingw32-clang"
+    )
+    windows_fallback = (
+        Path("/opt/llvm-mingw/bin/aarch64-w64-mingw32-clang")
+        if arch == "arm64"
+        else Path("/opt/llvm-mingw/bin/x86_64-w64-mingw32-clang")
+    )
+    if not tool_exists_from_root(
+        "OCTARYN_WINDOWS_CLANG_ROOT",
+        windows_tool,
+        windows_fallback,
+    ):
+        missing.append(f"Windows Clang {arch}")
+    return missing
+
+
+class WorkspaceControlWindow(QtWidgets.QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Octaryn Workspace Control")
@@ -251,6 +270,11 @@ class EngineControlWindow(QtWidgets.QWidget):
             self.preset_combo.addItem(PRESET_LABELS[preset], preset)
         self.preset_combo.setCurrentIndex(0)
 
+        self.arch_combo = QtWidgets.QComboBox()
+        self.arch_combo.addItem("x64", "x64")
+        self.arch_combo.addItem("ARM64", "arm64")
+        self.arch_combo.currentIndexChanged.connect(self._refresh_dashboard)
+
         self.configure_checkbox = QtWidgets.QCheckBox("Configure before build")
         self.configure_checkbox.setChecked(True)
         self.preset_combo.currentIndexChanged.connect(self._refresh_dashboard)
@@ -279,14 +303,6 @@ class EngineControlWindow(QtWidgets.QWidget):
         )
         self.launch_tracy_checkbox.toggled.connect(lambda _checked: self._save_tool_settings())
 
-        self.launch_renderdoc_checkbox = QtWidgets.QCheckBox(
-            "Launch RenderDoc with probe"
-        )
-        self.launch_renderdoc_checkbox.setChecked(
-            self.tool_settings.launch_renderdoc_with_probe
-        )
-        self.launch_renderdoc_checkbox.toggled.connect(lambda _checked: self._save_tool_settings())
-
         self.capture_tracy_checkbox = QtWidgets.QCheckBox("Capture Tracy after start")
         self.capture_tracy_checkbox.setChecked(
             self.tool_settings.capture_tracy_with_probe
@@ -304,12 +320,6 @@ class EngineControlWindow(QtWidgets.QWidget):
         self.build_debug_tools_button.clicked.connect(self.build_debug_tools)
         self.capture_tracy_button = QtWidgets.QPushButton("Capture Tracy")
         self.capture_tracy_button.clicked.connect(self.capture_tracy)
-        self.launch_renderdoc_button = QtWidgets.QPushButton("Launch RenderDoc")
-        self.launch_renderdoc_button.clicked.connect(self.launch_renderdoc)
-        self.capture_renderdoc_button = QtWidgets.QPushButton("Capture RenderDoc")
-        self.capture_renderdoc_button.clicked.connect(self.capture_renderdoc)
-        self.launch_debug_tools_button = QtWidgets.QPushButton("Launch Both")
-        self.launch_debug_tools_button.clicked.connect(self.launch_debug_tools)
         self.bootstrap_button = QtWidgets.QPushButton("Bootstrap Check")
         self.bootstrap_button.clicked.connect(self.run_bootstrap_check)
 
@@ -340,9 +350,11 @@ class EngineControlWindow(QtWidgets.QWidget):
         controls_layout = QtWidgets.QGridLayout(controls_group)
         controls_layout.addWidget(QtWidgets.QLabel("Workspace"), 0, 0)
         controls_layout.addWidget(QtWidgets.QLabel("Preset"), 0, 1)
+        controls_layout.addWidget(QtWidgets.QLabel("Arch"), 0, 2)
         controls_layout.addWidget(self.product_label, 1, 0)
         controls_layout.addWidget(self.preset_combo, 1, 1)
-        controls_layout.addWidget(self.configure_checkbox, 1, 2)
+        controls_layout.addWidget(self.arch_combo, 1, 2)
+        controls_layout.addWidget(self.configure_checkbox, 1, 3)
 
         button_row = QtWidgets.QHBoxLayout()
         button_row.addWidget(self.build_button)
@@ -351,10 +363,11 @@ class EngineControlWindow(QtWidgets.QWidget):
         button_row.addWidget(self.stop_button)
         button_row.addWidget(self.status_button)
         button_row.addStretch(1)
-        controls_layout.addLayout(button_row, 2, 0, 1, 3)
-        controls_layout.addWidget(self.status_label, 3, 0, 1, 3)
+        controls_layout.addLayout(button_row, 2, 0, 1, 4)
+        controls_layout.addWidget(self.status_label, 3, 0, 1, 4)
         controls_layout.setColumnStretch(0, 1)
         controls_layout.setColumnStretch(1, 1)
+        controls_layout.setColumnStretch(2, 1)
         controls_layout.setColumnStretch(2, 1)
 
         automation_group = QtWidgets.QGroupBox("Workspace Actions")
@@ -375,17 +388,13 @@ class EngineControlWindow(QtWidgets.QWidget):
         tools_group = QtWidgets.QGroupBox("Debug Tools")
         tools_layout = QtWidgets.QGridLayout(tools_group)
         tools_layout.addWidget(self.launch_tracy_checkbox, 0, 0, 1, 2)
-        tools_layout.addWidget(self.launch_renderdoc_checkbox, 1, 0, 1, 2)
-        tools_layout.addWidget(self.capture_tracy_checkbox, 2, 0, 1, 2)
-        tools_layout.addWidget(QtWidgets.QLabel("Tracy seconds"), 3, 0)
-        tools_layout.addWidget(self.tracy_seconds_spin, 3, 1)
-        tools_layout.addWidget(self.build_debug_tools_button, 4, 0, 1, 2)
-        tools_layout.addWidget(self.launch_tracy_button, 5, 0)
-        tools_layout.addWidget(self.capture_tracy_button, 5, 1)
-        tools_layout.addWidget(self.launch_renderdoc_button, 6, 0)
-        tools_layout.addWidget(self.capture_renderdoc_button, 6, 1)
-        tools_layout.addWidget(self.launch_debug_tools_button, 7, 0)
-        tools_layout.addWidget(self.bootstrap_button, 7, 1)
+        tools_layout.addWidget(self.capture_tracy_checkbox, 1, 0, 1, 2)
+        tools_layout.addWidget(QtWidgets.QLabel("Tracy seconds"), 2, 0)
+        tools_layout.addWidget(self.tracy_seconds_spin, 2, 1)
+        tools_layout.addWidget(self.build_debug_tools_button, 3, 0, 1, 2)
+        tools_layout.addWidget(self.launch_tracy_button, 4, 0)
+        tools_layout.addWidget(self.capture_tracy_button, 4, 1)
+        tools_layout.addWidget(self.bootstrap_button, 5, 0, 1, 2)
         tools_layout.setColumnStretch(0, 1)
         tools_layout.setColumnStretch(1, 1)
         console_group = QtWidgets.QGroupBox("Console")
@@ -431,6 +440,9 @@ class EngineControlWindow(QtWidgets.QWidget):
     def selected_preset(self) -> str:
         return self.preset_combo.currentData() or LINUX_DEBUG_PRESET
 
+    def selected_arch(self) -> str:
+        return self.arch_combo.currentData() or "x64"
+
     def build_workspace(self) -> None:
         preset = self.selected_preset()
         self._start_build_command(
@@ -456,7 +468,7 @@ class EngineControlWindow(QtWidgets.QWidget):
             self.status_label.setText("Cross-build cannot start locally")
             self._write_state("cross-runtime-not-started")
             return
-        run_path = resolve_run_path(preset)
+        run_path = resolve_run_path(preset, self.selected_arch())
         if run_path is None:
             self._log(
                 f"[error] could not find a built client launch probe for {preset}. "
@@ -492,6 +504,10 @@ class EngineControlWindow(QtWidgets.QWidget):
         self.show_status()
 
     def build_all_presets(self) -> None:
+        missing = missing_cross_toolchains(self.selected_arch())
+        if missing:
+            self._log("[error] build all presets requires missing toolchains: " + ", ".join(missing))
+            return
         self.pending_preset_builds = list(BUILD_PRESETS)
         self._start_next_preset_build()
 
@@ -511,9 +527,6 @@ class EngineControlWindow(QtWidgets.QWidget):
         opener_args: list[str] = []
         if sys.platform.startswith("linux"):
             opener = "xdg-open"
-            opener_args = [str(LOG_ROOT)]
-        elif sys.platform == "darwin":
-            opener = "open"
             opener_args = [str(LOG_ROOT)]
         elif os.name == "nt":
             opener = "explorer"
@@ -539,54 +552,36 @@ class EngineControlWindow(QtWidgets.QWidget):
         )
 
     def launch_tracy(self) -> None:
+        preset = self.selected_preset()
+        if preset in CROSS_COMPILE_PRESETS:
+            self._log(
+                f"[warning] {preset} is a cross-build; Tracy profiler must run on the target platform."
+            )
+            return
         self._start_detached_tool(
             "Tracy profiler",
             TRACY_TOOL_SCRIPT,
-            ["--preset", self.selected_preset(), "launch-profiler"],
+            ["--preset", preset, "launch-profiler"],
         )
 
     def capture_tracy(self) -> None:
+        preset = self.selected_preset()
+        if preset in CROSS_COMPILE_PRESETS:
+            self._log(
+                f"[warning] {preset} is a cross-build; Tracy capture must run on the target platform."
+            )
+            return
         self._start_detached_tool(
             "Tracy capture",
             TRACY_TOOL_SCRIPT,
             [
                 "--preset",
-                self.selected_preset(),
+                preset,
                 "--seconds",
                 str(self.tracy_seconds_spin.value()),
                 "capture",
             ],
         )
-
-    def launch_renderdoc(self) -> None:
-        self._start_detached_tool(
-            "RenderDoc UI",
-            RENDERDOC_TOOL_SCRIPT,
-            ["--preset", self.selected_preset(), "launch"],
-        )
-
-    def capture_renderdoc(self) -> None:
-        preset = self.selected_preset()
-        if preset in CROSS_COMPILE_PRESETS:
-            self._log(
-                f"[warning] {preset} is a cross-build; RenderDoc capture must run on the target platform."
-            )
-            return
-        run_path = resolve_run_path(preset)
-        if run_path is None:
-            self._log(
-                f"[error] could not find a built client launch probe for RenderDoc capture on {preset}."
-            )
-            return
-        self._start_detached_tool(
-            "RenderDoc capture",
-            RENDERDOC_TOOL_SCRIPT,
-            ["--preset", preset, "--program", str(run_path), "capture"],
-        )
-
-    def launch_debug_tools(self) -> None:
-        self.launch_tracy()
-        self.launch_renderdoc()
 
     def run_bootstrap_check(self) -> None:
         self._start_command("bootstrap detect", BOOTSTRAP_SCRIPT, ["detect"])
@@ -635,6 +630,9 @@ class EngineControlWindow(QtWidgets.QWidget):
         self._log(f"$ {launch_program} {' '.join(launch_args)}".rstrip())
         self._write_state("running")
         self._starting_process = True
+        process_environment = QtCore.QProcessEnvironment.systemEnvironment()
+        process_environment.insert("OCTARYN_TARGET_ARCH", self.selected_arch())
+        self.process.setProcessEnvironment(process_environment)
         self.process.start(launch_program, launch_args)
         self.process_start_timer.start(3000)
         self._refresh_dashboard()
@@ -867,7 +865,7 @@ class EngineControlWindow(QtWidgets.QWidget):
             self.pending_probe_run = None
             return True
         if completed_label.startswith("probe run build"):
-            run_path = resolve_run_path(plan.preset)
+            run_path = resolve_run_path(plan.preset, self.selected_arch())
             if run_path is None:
                 self._log(
                     f"[error] probe run could not find client launch probe for {ACTIVE_PRODUCT}/{plan.preset}."
@@ -889,15 +887,12 @@ class EngineControlWindow(QtWidgets.QWidget):
             return
         if self.launch_tracy_checkbox.isChecked():
             self.launch_tracy()
-        if self.launch_renderdoc_checkbox.isChecked():
-            self.launch_renderdoc()
         if self.capture_tracy_checkbox.isChecked():
             QtCore.QTimer.singleShot(2000, self.capture_tracy)
 
     def _save_tool_settings(self) -> None:
         self.tool_settings = ToolSettings(
             launch_tracy_with_probe=self.launch_tracy_checkbox.isChecked(),
-            launch_renderdoc_with_probe=self.launch_renderdoc_checkbox.isChecked(),
             capture_tracy_with_probe=self.capture_tracy_checkbox.isChecked(),
             tracy_capture_seconds=self.tracy_seconds_spin.value(),
         )
@@ -927,6 +922,7 @@ class EngineControlWindow(QtWidgets.QWidget):
             "selected_product": ACTIVE_PRODUCT,
             "selected_preset_label": self.selected_preset_label(),
             "selected_preset": preset,
+            "selected_arch": self.selected_arch(),
             "current_label": self.current_label,
             "current_program": self.current_program,
             "current_args": self.current_args,
@@ -940,7 +936,6 @@ class EngineControlWindow(QtWidgets.QWidget):
             "configure_script": str(CONFIGURE_SCRIPT),
             "build_script": str(CMAKE_BUILD_SCRIPT),
             "tracy_tool": str(TRACY_TOOL_SCRIPT),
-            "renderdoc_tool": str(RENDERDOC_TOOL_SCRIPT),
             "bootstrap_script": str(BOOTSTRAP_SCRIPT),
             "tool_settings": asdict(self.tool_settings),
             "pending_probe_run": asdict(self.pending_probe_run)
@@ -970,7 +965,6 @@ def main() -> int:
         not CMAKE_BUILD_SCRIPT.exists()
         or not CONFIGURE_SCRIPT.exists()
         or not TRACY_TOOL_SCRIPT.exists()
-        or not RENDERDOC_TOOL_SCRIPT.exists()
         or not BOOTSTRAP_SCRIPT.exists()
     ):
         print(
@@ -980,7 +974,7 @@ def main() -> int:
         return 1
 
     app = build_application()
-    window = EngineControlWindow()
+    window = WorkspaceControlWindow()
     window.show()
     return app.exec()
 

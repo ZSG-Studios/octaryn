@@ -36,7 +36,6 @@ REQUIRED_TARGETS = {
     "octaryn_client_frame_metrics",
     "octaryn_client_hidden_block_uniforms",
     "octaryn_client_lighting_settings",
-    "octaryn_client_renderdoc_capture",
     "octaryn_client_render_distance",
     "octaryn_client_shader_creation",
     "octaryn_client_shader_metadata_contract",
@@ -76,12 +75,14 @@ REQUIRED_TARGETS = {
 }
 
 FORBIDDEN_TARGET_PATTERNS = (
+    "renderdoc",
     "octaryn_engine",
     "engine_runtime",
 )
 
 REQUIRED_CMAKE_STRUCTURE = (
     "cmake/Shared/ProjectDefaults.cmake",
+    "cmake/Shared/TargetArchitecture.cmake",
     "cmake/Shared/BuildOutputs.cmake",
     "cmake/Shared/OwnerBuildLayout.cmake",
     "cmake/Shared/CompilerWarnings.cmake",
@@ -92,12 +93,11 @@ REQUIRED_CMAKE_STRUCTURE = (
     "cmake/Owners/ToolTargets.cmake",
     "cmake/Owners/DotNetOwner.cmake",
     "cmake/Owners/NativeOwner.cmake",
-    "cmake/Dependencies/BasegameDependencies.cmake",
     "cmake/Dependencies/ClientDependencies.cmake",
     "cmake/Dependencies/DependencyPolicy.cmake",
     "cmake/Dependencies/DotNetHosting.cmake",
     "cmake/Dependencies/NativeDependencyAliases.cmake",
-    "cmake/Dependencies/ServerDependencies.cmake",
+    "cmake/Dependencies/SourceDependencyCache.cmake",
     "cmake/Dependencies/ToolDependencies.cmake",
     "cmake/Platforms/PlatformDispatch.cmake",
     "cmake/Platforms/Windows/WindowsPlatform.cmake",
@@ -106,21 +106,31 @@ REQUIRED_CMAKE_STRUCTURE = (
     "cmake/Platforms/Linux/DebianFamily.cmake",
     "cmake/Platforms/Linux/FedoraFamily.cmake",
     "cmake/Platforms/Linux/SuseFamily.cmake",
-    "cmake/Platforms/MacOS/MacOSPlatform.cmake",
     "cmake/Toolchains/Linux/clang.cmake",
     "cmake/Toolchains/Windows/clang.cmake",
-    "cmake/Toolchains/MacOS/clang.cmake",
     "tools/tooling/tool_environment.sh",
     "tools/profiling/tracy_tool.sh",
-    "tools/capture/renderdoc_tool.sh",
     "tools/bootstrap/workspace_bootstrap.sh",
+    "tools/sysroots/linux_arm64_sysroot.sh",
     "tools/ui/workspace_control_app.py",
 )
 
 FORBIDDEN_CMAKE_PATHS = (
+    "cmake/Platforms/BSD",
+    "cmake/Toolchains/BSD",
+    "cmake/Toolchains/Windows/MinGW",
     "cmake/toolchains",
     "cmake/engine",
     "cmake/runtime",
+)
+
+FORBIDDEN_ACTIVE_WORKSPACE_PATHS = (
+    "engine",
+    "octaryn-engine",
+    "runtime",
+    "docs/validation/renderdoc.md",
+    "octaryn-client/Source/Native/Diagnostics/RenderDocCapture",
+    "tools/capture/renderdoc_tool.sh",
 )
 
 REQUIRED_CONFIGURE_PRESETS = (
@@ -128,8 +138,6 @@ REQUIRED_CONFIGURE_PRESETS = (
     "release-linux",
     "debug-windows",
     "release-windows",
-    "debug-macos",
-    "release-macos",
 )
 
 REQUIRED_CONFIGURED_GRAPH_PRESETS = (
@@ -137,8 +145,6 @@ REQUIRED_CONFIGURED_GRAPH_PRESETS = (
     "release-linux",
     "debug-windows",
     "release-windows",
-    "debug-macos",
-    "release-macos",
 )
 
 REQUIRED_CONFIGURE_PRESET_TOOLCHAINS = {
@@ -146,8 +152,6 @@ REQUIRED_CONFIGURE_PRESET_TOOLCHAINS = {
     "release-linux": "${sourceDir}/cmake/Toolchains/Linux/clang.cmake",
     "debug-windows": "${sourceDir}/cmake/Toolchains/Windows/clang.cmake",
     "release-windows": "${sourceDir}/cmake/Toolchains/Windows/clang.cmake",
-    "debug-macos": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
-    "release-macos": "${sourceDir}/cmake/Toolchains/MacOS/clang.cmake",
 }
 
 REQUIRED_BUILD_PRESETS = (
@@ -155,8 +159,6 @@ REQUIRED_BUILD_PRESETS = (
     "release-linux",
     "debug-windows",
     "release-windows",
-    "debug-macos",
-    "release-macos",
 )
 
 STATIC_ALLOWED_BUILD_ROOTS = (
@@ -175,6 +177,11 @@ ALLOWED_LOG_ROOTS = (
 FORBIDDEN_BUILD_SUBROOT_NAMES = (
     "_deps",
     "cpm-cache",
+    "CPM_modules",
+)
+
+FORBIDDEN_BUILD_FILE_NAMES = (
+    "cpm-package-lock.cmake",
 )
 
 ALLOWED_PRESET_SUBROOTS = (
@@ -187,12 +194,20 @@ ALLOWED_PRESET_SUBROOTS = (
     "tools",
 )
 
-HOSTFXR_REAL_OUTPUTS = (
-    "client/native/lib/liboctaryn_client_managed_bridge.so",
-    "server/native/lib/liboctaryn_server_managed_bridge.so",
-    "client/native/bin/octaryn_client_launch_probe",
-    "server/native/bin/octaryn_server_launch_probe",
-)
+HOSTFXR_REAL_OUTPUTS_BY_PLATFORM = {
+    "linux": (
+        "client/native/lib/liboctaryn_client_managed_bridge.so",
+        "server/native/lib/liboctaryn_server_managed_bridge.so",
+        "client/native/bin/octaryn_client_launch_probe",
+        "server/native/bin/octaryn_server_launch_probe",
+    ),
+    "windows": (
+        "client/native/bin/liboctaryn_client_managed_bridge.dll",
+        "server/native/bin/liboctaryn_server_managed_bridge.dll",
+        "client/native/bin/octaryn_client_launch_probe.exe",
+        "server/native/bin/octaryn_server_launch_probe.exe",
+    ),
+}
 
 HOSTFXR_SKIP_MESSAGES = (
     "Skipping client managed bridge: .NET native hosting unavailable",
@@ -226,21 +241,30 @@ def load_targets(build_file):
     return targets
 
 
-def validate_hostfxr_target_state(build_text):
+def preset_platform(preset_name):
+    if preset_name.endswith("-arm64"):
+        preset_name = preset_name[:-6]
+    if preset_name.endswith("-windows"):
+        return "windows"
+    return "linux"
+
+
+def validate_hostfxr_target_state(build_text, preset_name):
     errors = []
     is_skipped = "Skipping hostfxr bridge export validation" in build_text
+    real_outputs = HOSTFXR_REAL_OUTPUTS_BY_PLATFORM[preset_platform(preset_name)]
 
     if is_skipped:
         missing_messages = [message for message in HOSTFXR_SKIP_MESSAGES if message not in build_text]
         if missing_messages:
             errors.append(f"hostfxr skip state is missing skip commands: {missing_messages}")
 
-        real_outputs = [output for output in HOSTFXR_REAL_OUTPUTS if output in build_text]
-        if real_outputs:
-            errors.append(f"hostfxr skip state still references real outputs: {real_outputs}")
+        skip_real_outputs = [output for output in real_outputs if output in build_text]
+        if skip_real_outputs:
+            errors.append(f"hostfxr skip state still references real outputs: {skip_real_outputs}")
         return errors
 
-    missing_outputs = [output for output in HOSTFXR_REAL_OUTPUTS if output not in build_text]
+    missing_outputs = [output for output in real_outputs if output not in build_text]
     if missing_outputs:
         errors.append(f"hostfxr real state is missing bridge/probe outputs: {missing_outputs}")
 
@@ -327,6 +351,17 @@ def configure_preset_build_dirs(repo_root):
     return build_dirs
 
 
+def allowed_build_root_names(repo_root):
+    preset_names = {
+        preset_name
+        for preset_name, _build_dir in configure_preset_build_dirs(repo_root)
+    }
+    names = set(STATIC_ALLOWED_BUILD_ROOTS)
+    names.update(preset_names)
+    names.update(f"{preset_name}-arm64" for preset_name in preset_names)
+    return names
+
+
 def validate_aggregate_dependencies(build_text):
     errors = []
     validate_all_lines = [
@@ -364,8 +399,7 @@ def validate_generated_layout(repo_root):
         preset_name
         for preset_name, _build_dir in configure_preset_build_dirs(repo_root)
     }
-    allowed_build_roots = set(STATIC_ALLOWED_BUILD_ROOTS)
-    allowed_build_roots.update(configured_preset_names)
+    allowed_build_roots = allowed_build_root_names(repo_root)
     for root_name, allowed in (("build", allowed_build_roots), ("logs", ALLOWED_LOG_ROOTS)):
         root = repo_root / root_name
         if not root.exists():
@@ -409,6 +443,8 @@ def validate_generated_layout(repo_root):
             for path in preset_root.rglob("*"):
                 if path.is_dir() and path.name in FORBIDDEN_BUILD_SUBROOT_NAMES:
                     forbidden_build_subroots.append(path.relative_to(repo_root).as_posix())
+                if path.is_file() and path.name in FORBIDDEN_BUILD_FILE_NAMES:
+                    forbidden_build_subroots.append(path.relative_to(repo_root).as_posix())
 
             for path in preset_root.iterdir():
                 if path.is_dir() and path.name not in ALLOWED_PRESET_SUBROOTS:
@@ -424,6 +460,17 @@ def validate_generated_layout(repo_root):
                 f"{sorted(stale_preset_subroots)}")
 
     return errors
+
+
+def validate_active_workspace_paths(repo_root):
+    forbidden_paths = [
+        path
+        for path in FORBIDDEN_ACTIVE_WORKSPACE_PATHS
+        if (repo_root / path).exists()
+    ]
+    if forbidden_paths:
+        return [f"forbidden active workspace structure paths: {forbidden_paths}"]
+    return []
 
 
 def validate_configured_preset_graphs(repo_root, current_build_dir):
@@ -483,7 +530,8 @@ def validate_single_build_dir(build_dir, repo_root):
     if forbidden_paths:
         errors.append(f"forbidden active CMake structure paths: {forbidden_paths}")
 
-    errors.extend(validate_hostfxr_target_state(build_text))
+    preset_name = build_dir.parent.name if build_dir.name == "cmake" else build_dir.name
+    errors.extend(validate_hostfxr_target_state(build_text, preset_name))
     errors.extend(validate_presets(repo_root))
     errors.extend(validate_aggregate_dependencies(build_text))
     errors.extend(validate_critical_command_snippets(build_text))
@@ -493,6 +541,7 @@ def validate_single_build_dir(build_dir, repo_root):
 
 def validate(build_dir, repo_root):
     errors = validate_single_build_dir(build_dir, repo_root)
+    errors.extend(validate_active_workspace_paths(repo_root))
     errors.extend(validate_generated_layout(repo_root))
     errors.extend(validate_configured_preset_graphs(repo_root, build_dir))
     return errors

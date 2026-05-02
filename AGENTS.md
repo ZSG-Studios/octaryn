@@ -101,15 +101,15 @@
 - Keep root `cmake/` split by responsibility: `Shared/` for repo-wide build policy, `Owners/` for owner target construction, `Dependencies/` for dependency aliases/groups, `Platforms/` for host/platform facts, and `Toolchains/` for compiler/target files.
 - Do not copy old monolithic CMake modules into root `cmake/`. Port old `old-architecture/cmake/` behavior by splitting it into shared policy, owner targets, dependency wrappers, platform modules, and toolchains.
 - Toolchain files must describe compilers, target triples, sysroots, find-root behavior, and target platform knobs only. They must not create Octaryn targets, fetch dependencies, or set gameplay/render/server policy.
-- Keep platform logic isolated: Windows policy under `cmake/Platforms/Windows/`, Linux distro-family policy under `cmake/Platforms/Linux/`, and macOS SDK/framework/signing metadata under `cmake/Platforms/MacOS/`.
+- Keep platform logic isolated: Windows policy under `cmake/Platforms/Windows/` and Linux distro-family policy under `cmake/Platforms/Linux/`.
 - Linux distro differences should be represented as family modules only when real package/tool behavior differs, such as Arch-family, Debian-family, and Fedora-family dependency hints.
 - Windows cross-builds from Linux must use the explicit Windows toolchain under `cmake/Toolchains/Windows/clang.cmake`; LLVM MinGW is an implementation detail of that toolchain, not a public platform folder or preset name.
-- Linux-hosted builds are Clang-only. Public presets are exactly `debug-linux`, `release-linux`, `debug-windows`, `release-windows`, `debug-macos`, and `release-macos`.
-- Cross-platform builds are expected to run from Linux/Arch first, with future Podman wrappers spinning up the correct Linux-hosted toolchain environment for Linux, Windows, and macOS targets.
+- Linux-hosted builds are Clang-only. Public presets are exactly `debug-linux`, `release-linux`, `debug-windows`, and `release-windows`.
+- Cross-platform builds are expected to run from Linux/Arch first, with future Podman wrappers spinning up the correct Linux-hosted toolchain environment for Linux and Windows targets.
 - Owner CMake modules may call shared helpers and dependency aliases, but must not contain host platform detection. Platform modules report capabilities; owner targets decide whether to use them.
 - New root presets must target owner outputs such as `octaryn_client_bundle`, `octaryn_server`, `octaryn_basegame`, `octaryn_shared`, and tools. Old `octaryn_engine_*` presets remain only under `old-architecture/` until retired.
 - Build outputs must stay preset-first and owner-partitioned: owner builds under `build/<preset>/<owner>/`, third-party build/stamp outputs under `build/<preset>/deps/`, shared third-party source/download caches under `build/dependencies/`, and logs under `logs/<owner>/` or `logs/build/`.
-- Active root `cmake/` placeholder folders are not implementation. Do not claim Windows, Linux, macOS, owner target, dependency, or preset coverage until the concrete CMake module exists and has a targeted configure check when practical.
+- Active root `cmake/` placeholder folders are not implementation. Do not claim Windows, Linux, owner target, dependency, or preset coverage until the concrete CMake module exists and has a targeted configure check when practical.
 - Include distro-family modules only for real package/tool differences; current planned families include Arch, Debian, Fedora, and Suse/openSUSE because the old dependency installer has distinct logic for them.
 
 ## Multiplayer And C# Basegame API Direction
@@ -176,7 +176,7 @@
 
 - Do not use smoke tests as a validation path unless the user explicitly asks for a smoke test.
 - Do not run `ctest` unless the user explicitly asks for `ctest`.
-- For performance work, validate with direct runtime runs, targeted benchmarks, RenderDoc captures, Tracy captures, and focused profiling logs instead of smoke or `ctest` wrappers.
+- For performance work, validate with direct runtime runs, targeted benchmarks, Tracy captures, focused profiling logs, and external GPU captures when a developer has a local capture tool installed instead of smoke or `ctest` wrappers.
 - For architecture-only blank structure work, verify with file tree inspection and empty-file checks instead of pretending a build is meaningful.
 
 ## Naming

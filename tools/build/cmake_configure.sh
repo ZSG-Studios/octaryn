@@ -1,5 +1,26 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -eu
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../tooling/tool_environment.sh
+source "${script_dir}/../tooling/tool_environment.sh"
+
 preset="${1:-debug-linux}"
-exec cmake --preset "$preset"
+octaryn_validate_preset_name "${preset}"
+target_arch="$(octaryn_target_arch)"
+if [[ "${target_arch}" == "arm64" && "$(octaryn_preset_target_platform "${preset}")" == "linux" && -z "${OCTARYN_LINUX_ARM64_SYSROOT:-}" ]]; then
+  sysroot_path="$("${octaryn_workspace_root}/tools/sysroots/linux_arm64_sysroot.sh" setup)"
+  export OCTARYN_LINUX_ARM64_SYSROOT="${sysroot_path}"
+fi
+if [[ "${target_arch}" == "x64" ]]; then
+  exec cmake --preset "$preset" -DOCTARYN_TARGET_ARCH="${target_arch}"
+fi
+
+exec cmake -S "${octaryn_workspace_root}" -B "$(octaryn_cmake_build_dir "${preset}")" -G Ninja \
+  -DCMAKE_BUILD_TYPE="$(octaryn_preset_build_type "${preset}")" \
+  -DCMAKE_C_STANDARD=17 \
+  -DCMAKE_CXX_STANDARD=23 \
+  -DCMAKE_CXX_EXTENSIONS=OFF \
+  -DCMAKE_TOOLCHAIN_FILE="$(octaryn_preset_toolchain_file "${preset}")" \
+  -DOCTARYN_BUILD_PRESET_NAME="${preset}" \
+  -DOCTARYN_TARGET_ARCH="${target_arch}"

@@ -31,16 +31,14 @@ set(octaryn_tool_basegame_manifest_json "${tool_basegame_build_root}/generated/o
 set(octaryn_debug_tool_files
     "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/tooling/tool_environment.sh"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/profiling/tracy_tool.sh"
-    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/capture/renderdoc_tool.sh"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/bootstrap/workspace_bootstrap.sh"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/ui/workspace_control_app.py")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_custom_target(octaryn_debug_tools
+    set(octaryn_debug_tool_build_commands
         COMMAND "${CMAKE_COMMAND}" -E make_directory
             "${octaryn_debug_tool_root}/tooling"
             "${octaryn_debug_tool_root}/profiling"
-            "${octaryn_debug_tool_root}/capture"
             "${octaryn_debug_tool_root}/bootstrap"
             "${octaryn_debug_tool_root}/ui"
             "${octaryn_debug_tool_log_root}"
@@ -51,22 +49,24 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
             "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/profiling/tracy_tool.sh"
             "${octaryn_debug_tool_root}/profiling/tracy_tool.sh"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/capture/renderdoc_tool.sh"
-            "${octaryn_debug_tool_root}/capture/renderdoc_tool.sh"
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/bootstrap/workspace_bootstrap.sh"
             "${octaryn_debug_tool_root}/bootstrap/workspace_bootstrap.sh"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/ui/workspace_control_app.py"
             "${octaryn_debug_tool_root}/ui/workspace_control_app.py"
+        COMMAND chmod 755
+            "${octaryn_debug_tool_root}/tooling/tool_environment.sh"
+            "${octaryn_debug_tool_root}/profiling/tracy_tool.sh"
+            "${octaryn_debug_tool_root}/bootstrap/workspace_bootstrap.sh"
+            "${octaryn_debug_tool_root}/ui/workspace_control_app.py"
         COMMAND "${CMAKE_COMMAND}" -E env "OCTARYN_WORKSPACE_ROOT=${OCTARYN_WORKSPACE_ROOT_DIR}"
             "${octaryn_debug_tool_root}/profiling/tracy_tool.sh"
             --preset "${OCTARYN_BUILD_PRESET_NAME}"
             build
-        COMMAND "${CMAKE_COMMAND}" -E env "OCTARYN_WORKSPACE_ROOT=${OCTARYN_WORKSPACE_ROOT_DIR}"
-            "${octaryn_debug_tool_root}/capture/renderdoc_tool.sh"
-            --preset "${OCTARYN_BUILD_PRESET_NAME}"
-            build
+    )
+
+    add_custom_target(octaryn_debug_tools
+        ${octaryn_debug_tool_build_commands}
         DEPENDS
             ${octaryn_debug_tool_files}
         WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
@@ -134,10 +134,10 @@ add_custom_target(octaryn_validate_module_manifest_files
     VERBATIM)
 
 add_custom_target(octaryn_validate_module_manifest_probe
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleManifestProbe/Octaryn.ModuleManifestProbe.csproj"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleManifestProbe/Octaryn.ModuleManifestProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
@@ -148,10 +148,10 @@ add_custom_target(octaryn_validate_module_manifest_probe
     VERBATIM)
 
 add_custom_target(octaryn_validate_module_source_api
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleApiProbe/Octaryn.ModuleApiProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
@@ -162,10 +162,10 @@ add_custom_target(octaryn_validate_module_source_api
     VERBATIM)
 
 add_custom_target(octaryn_validate_module_binary_sandbox
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.ModuleBinarySandboxProbe/Octaryn.ModuleBinarySandboxProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
@@ -245,7 +245,7 @@ if(OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT)
     add_custom_target(octaryn_validate_native_archive_format
         COMMAND python3
             "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_native_archive_format.py"
-            --archive "${OCTARYN_WORKSPACE_ROOT_DIR}/build/${OCTARYN_BUILD_PRESET_NAME}/shared/native/lib/liboctaryn_shared_host_abi.a"
+            --archive "${OCTARYN_BUILD_PRESET_ROOT}/shared/native/lib/liboctaryn_shared_host_abi.a"
             --expected-format "${OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT}"
             --objdump "${OCTARYN_TARGET_OBJDUMP}"
         DEPENDS
@@ -259,10 +259,10 @@ else()
 endif()
 
 add_custom_target(octaryn_validate_dotnet_owners
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/Octaryn.DotNet.sln"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" build
         "${OCTARYN_WORKSPACE_ROOT_DIR}/Octaryn.DotNet.sln"
         --configuration "${CMAKE_BUILD_TYPE}"
@@ -283,10 +283,10 @@ add_custom_target(octaryn_validate_scheduler_contract
     VERBATIM)
 
 add_custom_target(octaryn_validate_scheduler_probe
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
@@ -295,10 +295,10 @@ add_custom_target(octaryn_validate_scheduler_probe
     VERBATIM)
 
 add_custom_target(octaryn_validate_owner_module_validation_probe
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" restore
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}" "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" run
         --project "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn.OwnerModuleValidationProbe.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"

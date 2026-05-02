@@ -210,27 +210,6 @@ if(OCTARYN_CLIENT_SDL3_AVAILABLE)
             OCTARYN_CLIENT_SHADER_CREATION_USE_SDL3)
 endif()
 
-octaryn_add_native_static_library(
-    octaryn_client_renderdoc_capture
-    client
-    SOURCES
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Diagnostics/RenderDocCapture/octaryn_client_renderdoc_capture.cpp"
-    PUBLIC_INCLUDE_DIRS
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Source/Native/Diagnostics/RenderDocCapture"
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeLogging"
-        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-shared/Source/Diagnostics/NativeProfiling"
-    PRIVATE_LINKS
-        octaryn_native_logging
-        octaryn_native_profiling)
-
-add_dependencies(octaryn_client_native octaryn_client_renderdoc_capture)
-
-if(CMAKE_DL_LIBS)
-    target_link_libraries(octaryn_client_renderdoc_capture
-        PRIVATE
-            ${CMAKE_DL_LIBS})
-endif()
-
 if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     octaryn_add_native_shared_library(
         octaryn_client_managed_bridge
@@ -269,6 +248,8 @@ if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     target_compile_definitions(octaryn_client_launch_probe
         PRIVATE
             OCTARYN_CLIENT_LAUNCH_PROBE_LOG_PATH="${client_log_root}/octaryn_client_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
+
+    add_dependencies(octaryn_client_native octaryn_client_launch_probe)
 else()
     add_custom_target(octaryn_client_managed_bridge
         COMMAND "${CMAKE_COMMAND}" -E echo "Skipping client managed bridge: .NET native hosting unavailable for ${OCTARYN_TARGET_PLATFORM}."
@@ -321,13 +302,16 @@ add_custom_command(
         "${octaryn_client_bundle_dir}/Schedulers.dll"
     COMMAND "${CMAKE_COMMAND}" -E rm -rf "${octaryn_client_bundle_dir}"
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${octaryn_client_bundle_dir}"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env
+        "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}"
+        "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" publish "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Octaryn.Client.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --framework net10.0
         --output "${octaryn_client_bundle_dir}"
         --no-self-contained
         --no-build
+        ${OCTARYN_DOTNET_TARGET_RUNTIME_ARGS}
         "-bl:${client_log_root}/octaryn_client_bundle-${OCTARYN_BUILD_PRESET_NAME}.binlog"
     COMMAND "${CMAKE_COMMAND}" -E touch "${octaryn_client_bundle_stamp}"
     DEPENDS

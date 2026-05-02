@@ -2,8 +2,6 @@ include_guard(GLOBAL)
 
 include(Dependencies/SourceDependencyCache)
 
-set(OCTARYN_TOOL_DEPENDENCIES_SCAFFOLD ON)
-
 if(NOT TARGET octaryn::deps::glaze)
     octaryn_add_dependency_wrapper(octaryn_tool_glaze octaryn::deps::glaze)
     octaryn_fetch_source_dependency(
@@ -168,6 +166,19 @@ if(NOT TARGET octaryn::deps::fastgltf)
 endif()
 
 if(NOT TARGET octaryn::deps::ktx)
+    set(octaryn_ktx_astc_options
+        "ASTCENC_INVARIANCE OFF")
+    if(OCTARYN_TARGET_ARCH STREQUAL "arm64")
+        list(APPEND octaryn_ktx_astc_options
+            "ASTCENC_ISA_NONE ON"
+            "ASTCENC_ISA_AVX2 OFF"
+            "ASTCENC_ISA_SSE41 OFF"
+            "ASTCENC_ISA_SSE2 OFF"
+            "ASTCENC_ISA_NEON OFF"
+            "ASTCENC_X86_GATHERS OFF"
+            "BASISU_SUPPORT_SSE OFF")
+    endif()
+
     octaryn_add_dependency_wrapper(octaryn_tool_ktx octaryn::deps::ktx)
     octaryn_fetch_source_dependency(
         KTX-Software
@@ -181,7 +192,7 @@ if(NOT TARGET octaryn::deps::ktx)
             "KTX_FEATURE_TOOLS OFF"
             "KTX_FEATURE_LOADTEST_APPS OFF"
             "KTX_FEATURE_GL_UPLOAD OFF"
-            "ASTCENC_INVARIANCE OFF")
+            ${octaryn_ktx_astc_options})
     octaryn_link_first_available_dependency(octaryn_tool_ktx ktx_available KTX::ktx)
 endif()
 

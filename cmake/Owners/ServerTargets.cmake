@@ -2,7 +2,6 @@ include_guard(GLOBAL)
 
 include(Owners/DotNetOwner)
 include(Owners/NativeOwner)
-include(Dependencies/ServerDependencies)
 
 octaryn_owner_build_root(server_build_root server)
 octaryn_owner_log_root(server_log_root server)
@@ -51,6 +50,8 @@ if(OCTARYN_DOTNET_HOSTING_AVAILABLE)
     target_compile_definitions(octaryn_server_launch_probe
         PRIVATE
             OCTARYN_SERVER_LAUNCH_PROBE_LOG_PATH="${server_log_root}/octaryn_server_launch_probe-${OCTARYN_BUILD_PRESET_NAME}.log")
+
+    add_dependencies(octaryn_server_native octaryn_server_launch_probe)
 else()
     add_custom_target(octaryn_server_managed_bridge
         COMMAND "${CMAKE_COMMAND}" -E echo "Skipping server managed bridge: .NET native hosting unavailable for ${OCTARYN_TARGET_PLATFORM}."
@@ -104,13 +105,16 @@ add_custom_command(
         "${octaryn_server_bundle_dir}/Schedulers.dll"
     COMMAND "${CMAKE_COMMAND}" -E rm -rf "${octaryn_server_bundle_dir}"
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${octaryn_server_bundle_dir}"
-    COMMAND "${CMAKE_COMMAND}" -E env "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
+    COMMAND "${CMAKE_COMMAND}" -E env
+        "NUGET_PACKAGES=${OCTARYN_NUGET_PACKAGES_DIR}"
+        "OctarynBuildPresetName=${OCTARYN_BUILD_PRESET_NAME}"
         "${DOTNET_EXECUTABLE}" publish "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-server/Octaryn.Server.csproj"
         --configuration "${CMAKE_BUILD_TYPE}"
         --framework net10.0
         --output "${octaryn_server_bundle_dir}"
         --no-self-contained
         --no-build
+        ${OCTARYN_DOTNET_TARGET_RUNTIME_ARGS}
         "-bl:${server_log_root}/octaryn_server_bundle-${OCTARYN_BUILD_PRESET_NAME}.binlog"
     COMMAND "${CMAKE_COMMAND}" -E touch "${octaryn_server_bundle_stamp}"
     DEPENDS

@@ -14,4 +14,4 @@ Rendering is client-owned. Server and basegame code must not own GPU upload, sha
 
 ## Validation
 
-Rendering changes should be validated with direct runtime runs, RenderDoc captures, focused profiling logs, or targeted shader/tool checks. Do not use `ctest` unless explicitly requested.
+Rendering changes should be validated with direct runtime runs, external GPU captures when a developer has a local capture tool installed, focused profiling logs, or targeted shader/tool checks. Do not use `ctest` unless explicitly requested.

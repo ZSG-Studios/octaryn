@@ -24,6 +24,10 @@ EXCLUDED_PATH_PARTS = {
     "obj",
 }
 
+FORBIDDEN_NAMESPACE_TOKENS = (
+    "Octaryn.Engine",
+)
+
 
 def discover_project_files(repo_root):
     projects = []
@@ -59,6 +63,7 @@ def main():
             errors.extend(validate_project_reference_boundaries.validate(repo_root, project_file))
         except RuntimeError as error:
             errors.append(str(error))
+    errors.extend(validate_forbidden_namespaces(repo_root))
 
     if errors:
         for error in errors:
@@ -66,6 +71,30 @@ def main():
         return 1
 
     return 0
+
+
+def validate_forbidden_namespaces(repo_root):
+    errors = []
+    for root_name in ACTIVE_PROJECT_ROOTS:
+        root = repo_root / root_name
+        if not root.exists():
+            continue
+
+        for source_file in sorted(root.rglob("*.cs")):
+            relative_parts = source_file.relative_to(repo_root).parts
+            if any(part in EXCLUDED_PATH_PARTS for part in relative_parts):
+                continue
+
+            text = source_file.read_text(encoding="utf-8")
+            for token in FORBIDDEN_NAMESPACE_TOKENS:
+                index = text.find(token)
+                if index == -1:
+                    continue
+
+                line_number = text.count("\n", 0, index) + 1
+                relative = source_file.relative_to(repo_root).as_posix()
+                errors.append(f"{relative}:{line_number}: forbidden namespace token {token}")
+    return errors
 
 
 if __name__ == "__main__":

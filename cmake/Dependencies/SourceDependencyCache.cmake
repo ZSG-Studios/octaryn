@@ -35,6 +35,8 @@ set(OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT
 set(FETCHCONTENT_BASE_DIR "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}" CACHE PATH "Octaryn FetchContent cache root." FORCE)
 set(FETCHCONTENT_QUIET OFF CACHE BOOL "Show FetchContent dependency progress." FORCE)
 set(CPM_SOURCE_CACHE "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}" CACHE PATH "Shared source cache for dependencies that use CPM internally." FORCE)
+set(CPM_MODULE_PATH "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}/cpm-modules" CACHE PATH "Preset-scoped CPM module path." FORCE)
+set(CPM_DONT_CREATE_PACKAGE_LOCK ON CACHE BOOL "Do not generate preset-local CPM lock files in build output." FORCE)
 set(CMAKE_SKIP_INSTALL_RULES ON CACHE BOOL "Workspace dependency builds do not generate install rules." FORCE)
 
 function(octaryn_dependency_github_url output_var repository)
@@ -206,8 +208,7 @@ function(octaryn_fetch_header_dependency dependency_name output_var)
 
     if(OCTARYN_USE_GITHUB_ARCHIVES_FOR_HEADER_DEPENDENCIES AND dependency_github_repository)
         octaryn_dependency_github_archive_url(dependency_archive_url "${dependency_github_repository}" "${dependency_tag}")
-        FetchContent_Declare(
-            ${dependency_name}
+        set(populate_args
             URL "${dependency_archive_url}"
             DOWNLOAD_EXTRACT_TIMESTAMP TRUE
             DOWNLOAD_DIR "${OCTARYN_SOURCE_DEPENDENCY_DOWNLOAD_ROOT}/${dependency_key}"
@@ -215,8 +216,7 @@ function(octaryn_fetch_header_dependency dependency_name output_var)
             BINARY_DIR "${OCTARYN_SOURCE_DEPENDENCY_BUILD_ROOT}/${dependency_key}"
             SUBBUILD_DIR "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}/${dependency_key}")
     else()
-        FetchContent_Declare(
-            ${dependency_name}
+        set(populate_args
             GIT_REPOSITORY "${dependency_repository}"
             GIT_TAG "${dependency_tag}"
             GIT_SHALLOW TRUE
@@ -226,19 +226,11 @@ function(octaryn_fetch_header_dependency dependency_name output_var)
             SUBBUILD_DIR "${OCTARYN_SOURCE_DEPENDENCY_STAMP_ROOT}/${dependency_key}")
     endif()
 
-    FetchContent_GetProperties(${dependency_name})
-    if(NOT ${dependency_name}_POPULATED)
-        if(POLICY CMP0169)
-            cmake_policy(PUSH)
-            cmake_policy(SET CMP0169 OLD)
-        endif()
-        FetchContent_Populate(${dependency_name})
-        if(POLICY CMP0169)
-            cmake_policy(POP)
-        endif()
+    file(GLOB dependency_source_entries LIST_DIRECTORIES true "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}/${dependency_key}/*")
+    if(NOT dependency_source_entries)
+        FetchContent_Populate(${dependency_name} ${populate_args})
     endif()
 
-    FetchContent_GetProperties(${dependency_name})
     set(${output_var} "${OCTARYN_SOURCE_DEPENDENCY_SOURCE_ROOT}/${dependency_key}" PARENT_SCOPE)
 endfunction()
 

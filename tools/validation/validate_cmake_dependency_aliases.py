@@ -34,10 +34,6 @@ REQUIRED_ALIASES = {
         "octaryn::deps::imfiledialog",
         "octaryn::deps::ozz_animation",
     ),
-    "cmake/Dependencies/ServerDependencies.cmake": (
-        "octaryn::deps::fastnoise2",
-        "octaryn::deps::jolt",
-    ),
     "cmake/Dependencies/ToolDependencies.cmake": (
         "octaryn::deps::shadercross",
         "octaryn::deps::shaderc",

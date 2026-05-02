@@ -23,6 +23,8 @@ TOOLCHAIN_FORBIDDEN = (
     r"\btarget_[A-Za-z_]+\s*\(",
     r"include\s*\(\s*Owners/",
     r"include\s*\(\s*Dependencies/",
+    r"\b[a-z0-9_-]*gcc\b",
+    r"\b[a-z0-9_-]*g\+\+\b",
 )
 
 PLATFORM_FORBIDDEN = (
@@ -37,20 +39,15 @@ REQUIRED_TOOLCHAIN_SNIPPETS = {
     "cmake/Toolchains/Linux/clang.cmake": ("set(CMAKE_SYSTEM_NAME Linux)",),
     "cmake/Toolchains/Windows/clang.cmake": (
         "set(CMAKE_SYSTEM_NAME Windows)",
-        "x86_64-w64-mingw32-clang",
+        "OCTARYN_WINDOWS_CLANG_TRIPLE",
+        "aarch64-w64-mingw32",
         "CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY",
-    ),
-    "cmake/Toolchains/MacOS/clang.cmake": (
-        "set(CMAKE_SYSTEM_NAME Darwin)",
-        "OCTARYN_MACOS_CLANG_ROOT",
-        "o64-clang",
     ),
 }
 
 REQUIRED_PLATFORM_SNIPPETS = (
     "include(Platforms/Linux/LinuxPlatform)",
     "include(Platforms/Windows/WindowsPlatform)",
-    "include(Platforms/MacOS/MacOSPlatform)",
 )
 
 REQUIRED_OWNER_SNIPPETS = {
@@ -64,15 +61,16 @@ REQUIRED_PLATFORM_FILE_SNIPPETS = {
     "cmake/Platforms/Linux/ArchFamily.cmake": (
         "OCTARYN_TARGET_DOTNET_RID",
         "arch-x64",
+        "linux-arm64",
     ),
     "cmake/Platforms/Windows/WindowsPlatform.cmake": (
         "OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT",
         "OCTARYN_TARGET_DOTNET_RID",
         "OCTARYN_TARGET_OBJDUMP",
     ),
-    "cmake/Platforms/MacOS/MacOSPlatform.cmake": (
-        "OCTARYN_MACOS_PLATFORM_SCAFFOLD",
-        "OCTARYN_TARGET_DOTNET_RID",
+    "cmake/Platforms/Linux/LinuxPlatform.cmake": (
+        "OCTARYN_TARGET_NATIVE_ARCHIVE_FORMAT",
+        "OCTARYN_TARGET_OBJDUMP",
     ),
 }
 
@@ -80,6 +78,7 @@ REQUIRED_DEPENDENCY_SNIPPETS = {
     "cmake/Dependencies/SourceDependencyCache.cmake": (
         "OCTARYN_DEPENDENCY_BUILD_ROOT",
         "FETCHCONTENT_BASE_DIR",
+        "CPM_MODULE_PATH",
         "octaryn_fetch_source_dependency",
     ),
     "cmake/Dependencies/DotNetHosting.cmake": (
