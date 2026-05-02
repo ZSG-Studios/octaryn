@@ -19,7 +19,7 @@ internal sealed class ClientChunkMeshPlanner
 
         for (var x = 0; x < ClientChunkNeighborhoodSnapshot.Width; x++)
         for (var y = 0; y < ClientChunkNeighborhoodSnapshot.Height; y++)
-        for (var z = 0; z < ClientChunkNeighborhoodSnapshot.Width; z++)
+        for (var z = 0; z < ClientChunkNeighborhoodSnapshot.Depth; z++)
         {
             var block = snapshot.LocalBlock(1, 1, x, y, z);
             var properties = _rules.Properties(block);
