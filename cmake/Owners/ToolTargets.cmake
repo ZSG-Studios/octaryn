@@ -340,6 +340,10 @@ add_custom_target(octaryn_validate_dotnet_owners
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)
 
+add_dependencies(octaryn_validate_dotnet_owners
+    octaryn_client_bundle
+    octaryn_server_bundle)
+
 add_custom_target(octaryn_validate_scheduler_contract
     COMMAND python3
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_scheduler_contract.py"
