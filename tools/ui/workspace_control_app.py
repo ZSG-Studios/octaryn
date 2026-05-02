@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import json
 import os
+import platform
 import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -28,10 +29,14 @@ def find_workspace_root() -> Path:
 
 
 WORKSPACE_ROOT = find_workspace_root()
-CMAKE_BUILD_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / "cmake_build.sh"
-CONFIGURE_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / "cmake_configure.sh"
+PODMAN_BUILD_SCRIPT = WORKSPACE_ROOT / "tools" / "build" / (
+    "podman_build.bat" if os.name == "nt" else "podman_build.sh"
+)
 TRACY_TOOL_SCRIPT = WORKSPACE_ROOT / "tools" / "profiling" / "tracy_tool.sh"
 BOOTSTRAP_SCRIPT = WORKSPACE_ROOT / "tools" / "bootstrap" / "workspace_bootstrap.sh"
+HOST_SETUP_SCRIPT = WORKSPACE_ROOT / "tools" / "setup" / (
+    "windows_build_environment.bat" if os.name == "nt" else "linux_build_environment.sh"
+)
 LOG_ROOT = WORKSPACE_ROOT / "logs" / "tools"
 WARNINGS_LOG = LOG_ROOT / "workspace_control_warnings.log"
 ERRORS_LOG = LOG_ROOT / "workspace_control_errors.log"
@@ -123,6 +128,8 @@ def command_invocation(program: Path, args: list[str]) -> tuple[str, list[str]]:
     if program.suffix == ".sh":
         shell = QtCore.QStandardPaths.findExecutable("bash") or "/usr/bin/bash"
         return shell, [str(program), *args]
+    if program.suffix == ".bat":
+        return "cmd.exe", ["/c", str(program), *args]
     return str(program), list(args)
 
 
@@ -183,13 +190,63 @@ def preset_summary(preset: str) -> str:
     return PRESET_DETAILS.get(preset, "No preset summary available.")
 
 
-def probe_status_summary(preset: str) -> str:
-    if preset in CROSS_COMPILE_PRESETS:
-        return "Probe: cross-build"
-    run_path = resolve_run_path(preset)
+def host_platform() -> str:
+    if sys.platform.startswith("linux"):
+        return "linux"
+    if os.name == "nt":
+        return "windows"
+    return "unknown"
+
+
+def host_arch() -> str:
+    machine = platform.machine().lower()
+    if machine in {"x86_64", "amd64"}:
+        return "x64"
+    if machine in {"aarch64", "arm64"}:
+        return "arm64"
+    return machine or "unknown"
+
+
+def preset_target_platform(preset: str) -> str:
+    if preset.endswith("-windows"):
+        return "windows"
+    if preset.endswith("-linux"):
+        return "linux"
+    return "unknown"
+
+
+def host_status_summary() -> str:
+    return f"Host: {host_platform()}/{host_arch()}"
+
+
+def podman_build_environment_summary() -> str:
+    podman = QtCore.QStandardPaths.findExecutable("podman")
+    image = os.environ.get(
+        "OCTARYN_PODMAN_BUILD_IMAGE",
+        os.environ.get("OCTARYN_ARCH_BUILDER_IMAGE", "localhost/octaryn-arch-builder:latest"),
+    )
+    if not PODMAN_BUILD_SCRIPT.exists():
+        return "Podman build env: missing wrapper"
+    if not podman:
+        return f"Podman build env: missing podman ({image})"
+    return f"Podman build env: ready ({image})"
+
+
+def native_run_state_summary(preset: str, arch: str) -> tuple[bool, str]:
+    target_platform = preset_target_platform(preset)
+    current_platform = host_platform()
+    if target_platform != current_platform:
+        return (
+            False,
+            f"Native run: blocked (target {target_platform}, host {current_platform})",
+        )
+    current_arch = host_arch()
+    if arch != current_arch:
+        return False, f"Native run: blocked (target {arch}, host {current_arch})"
+    run_path = resolve_run_path(preset, arch)
     if run_path is None:
-        return "Probe: missing"
-    return f"Probe: ready ({run_path.name})"
+        return False, "Native run: missing client probe"
+    return True, f"Native run: ready ({run_path.name})"
 
 
 def build_target_for_preset(preset: str) -> str:
@@ -233,7 +290,6 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         LOG_ROOT.mkdir(parents=True, exist_ok=True)
         self.pending_probe_run: ProbeRunPlan | None = None
         self.pending_command_after_configure: PendingCommand | None = None
-        self.pending_preset_builds: list[str] = []
         self.all_log_lines: list[LogEntry] = []
         self.pending_log_entries: list[LogEntry] = []
         self._starting_process = False
@@ -429,7 +485,7 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         self._refresh_dashboard()
         self._write_state("idle")
         self._log(
-            "Octaryn control ready. Build uses root tools/build helpers and the active preset-first owner layout."
+            "Octaryn control ready. Configure, build, validate, and build-all run through the Podman build wrapper."
         )
         self._log(f"Workspace: {WORKSPACE_ROOT}")
         self._log(f"Logs: {LOG_ROOT}")
@@ -457,16 +513,16 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
             f"validate/{preset}",
             preset,
             WORKSPACE_VALIDATE_TARGET,
+            "validate",
         )
 
     def start_probe(self) -> None:
         preset = self.selected_preset()
-        if preset in CROSS_COMPILE_PRESETS:
-            self._log(
-                f"[warning] {preset} is a cross-build and cannot be started directly on this Linux host."
-            )
-            self.status_label.setText("Cross-build cannot start locally")
-            self._write_state("cross-runtime-not-started")
+        runnable, run_state = native_run_state_summary(preset, self.selected_arch())
+        if not runnable and "blocked" in run_state:
+            self._log(f"[warning] {run_state}. Native runtime launch stays outside Podman.")
+            self.status_label.setText(run_state)
+            self._write_state("native-runtime-blocked")
             return
         run_path = resolve_run_path(preset, self.selected_arch())
         if run_path is None:
@@ -497,27 +553,22 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         self._write_state("idle")
 
     def show_status(self) -> None:
-        cmake = Path(QtCore.QStandardPaths.findExecutable("cmake") or "/usr/bin/cmake")
-        self._start_command("list build presets", cmake, ["--list-presets=build"])
+        self._start_command("list build presets", PODMAN_BUILD_SCRIPT, ["list-presets"])
 
     def run_build_doctor(self) -> None:
         self.show_status()
 
     def build_all_presets(self) -> None:
-        missing = missing_cross_toolchains(self.selected_arch())
-        if missing:
-            self._log("[error] build all presets requires missing toolchains: " + ", ".join(missing))
-            return
-        self.pending_preset_builds = list(BUILD_PRESETS)
-        self._start_next_preset_build()
+        self._start_command("build all presets", PODMAN_BUILD_SCRIPT, ["build-all"])
 
     def start_probe_run(self) -> None:
-        self.preset_combo.setCurrentText(PRESET_LABELS[LINUX_DEBUG_PRESET])
-        self.pending_probe_run = ProbeRunPlan(preset=LINUX_DEBUG_PRESET)
+        host_debug_preset = WINDOWS_DEBUG_PRESET if host_platform() == "windows" else LINUX_DEBUG_PRESET
+        self.preset_combo.setCurrentText(PRESET_LABELS[host_debug_preset])
+        self.pending_probe_run = ProbeRunPlan(preset=host_debug_preset)
         if not self._start_build_command(
-            f"probe run build {LINUX_DEBUG_PRESET}",
-            LINUX_DEBUG_PRESET,
-            build_target_for_preset(LINUX_DEBUG_PRESET),
+            f"probe run build {host_debug_preset}",
+            host_debug_preset,
+            build_target_for_preset(host_debug_preset),
         ):
             self.pending_probe_run = None
 
@@ -584,22 +635,26 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         )
 
     def run_bootstrap_check(self) -> None:
-        self._start_command("bootstrap detect", BOOTSTRAP_SCRIPT, ["detect"])
+        self._start_command("validate build environment", HOST_SETUP_SCRIPT, [])
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if self.process.state() != QtCore.QProcess.ProcessState.NotRunning:
             self.stop_command()
         super().closeEvent(event)
 
-    def _start_build_command(self, label: str, preset: str, target: str) -> bool:
+    def _start_build_command(
+        self, label: str, preset: str, target: str, action: str = "build"
+    ) -> bool:
         build_command = PendingCommand(
             label=label,
-            program=CMAKE_BUILD_SCRIPT,
-            args=[preset, "--target", target],
+            program=PODMAN_BUILD_SCRIPT,
+            args=[action, preset]
+            if action == "validate"
+            else [action, preset, "--target", target],
         )
         if self.configure_checkbox.isChecked():
             if self._start_command(
-                f"configure {preset}", CONFIGURE_SCRIPT, [preset]
+                f"configure {preset}", PODMAN_BUILD_SCRIPT, ["configure", preset]
             ):
                 self.pending_command_after_configure = build_command
                 return True
@@ -709,21 +764,9 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         if self._continue_pending_after_configure(exit_code, completed_label):
             return
         continued = self._continue_probe_run(exit_code, completed_label)
-        if succeeded and not continued and self._start_next_preset_build():
-            return
-        if succeeded and not continued:
+        if succeeded and not continued and not completed_label.startswith(("client probe ", "probe run ")):
             self._launch_post_command_tools(completed_label)
         self._refresh_dashboard()
-
-    def _start_next_preset_build(self) -> bool:
-        if not self.pending_preset_builds:
-            return False
-        preset = self.pending_preset_builds.pop(0)
-        return self._start_build_command(
-            f"build {preset}",
-            preset,
-            WORKSPACE_BUILD_TARGET,
-        )
 
     def _continue_pending_after_configure(
         self, exit_code: int, completed_label: str
@@ -844,10 +887,13 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         preset = self.selected_preset()
         preset_label = self.selected_preset_label()
         current_run = self.current_label or "idle"
+        _runnable, run_state = native_run_state_summary(preset, self.selected_arch())
         self.status_label.setText(
             f"{ACTIVE_PRODUCT}/{preset_label} • preset {preset}"
-            f" • {current_run} • {preset_summary(preset).replace(chr(10), ' • ')}"
-            f" • {probe_status_summary(preset)}"
+            f" • {current_run} • {host_status_summary()}"
+            f" • {podman_build_environment_summary()}"
+            f" • {preset_summary(preset).replace(chr(10), ' • ')}"
+            f" • {run_state}"
         )
         self.build_button.setText(f"Build {preset_label}")
         self.validate_button.setEnabled(True)
@@ -933,10 +979,13 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
             "warnings_log": str(WARNINGS_LOG),
             "errors_log": str(ERRORS_LOG),
             "dashboard_log": str(DASHBOARD_LOG),
-            "configure_script": str(CONFIGURE_SCRIPT),
-            "build_script": str(CMAKE_BUILD_SCRIPT),
+            "podman_build_script": str(PODMAN_BUILD_SCRIPT),
+            "host_platform": host_platform(),
+            "host_arch": host_arch(),
+            "podman_build_environment": podman_build_environment_summary(),
             "tracy_tool": str(TRACY_TOOL_SCRIPT),
             "bootstrap_script": str(BOOTSTRAP_SCRIPT),
+            "host_setup_script": str(HOST_SETUP_SCRIPT),
             "tool_settings": asdict(self.tool_settings),
             "pending_probe_run": asdict(self.pending_probe_run)
             if self.pending_probe_run
@@ -962,10 +1011,9 @@ def build_application() -> QtWidgets.QApplication:
 
 def main() -> int:
     if (
-        not CMAKE_BUILD_SCRIPT.exists()
-        or not CONFIGURE_SCRIPT.exists()
+        not PODMAN_BUILD_SCRIPT.exists()
         or not TRACY_TOOL_SCRIPT.exists()
-        or not BOOTSTRAP_SCRIPT.exists()
+        or not HOST_SETUP_SCRIPT.exists()
     ):
         print(
             "Expected Octaryn root tools were not found under tools/.",

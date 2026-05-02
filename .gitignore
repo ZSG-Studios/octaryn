@@ -16,6 +16,9 @@
 
 bin/
 obj/
+__pycache__/
+*.py[cod]
+*$py.class
 *.user
 *.suo
 *.tmp

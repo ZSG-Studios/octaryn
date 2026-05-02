@@ -2,6 +2,44 @@ include_guard(GLOBAL)
 
 include(Dependencies/SourceDependencyCache)
 
+function(octaryn_link_spirv_cross_targets wrapper_target)
+    foreach(octaryn_spirv_cross_target
+        spirv-cross-core
+        spirv-cross-reflect
+        spirv-cross-msl
+        SPIRV-Cross::spirv-cross-core
+        SPIRV-Cross::spirv-cross-reflect
+        SPIRV-Cross::spirv-cross-msl)
+        if(TARGET "${octaryn_spirv_cross_target}")
+            target_link_libraries("${wrapper_target}" INTERFACE "${octaryn_spirv_cross_target}")
+        endif()
+    endforeach()
+endfunction()
+
+function(octaryn_require_spirv_cross)
+    if(TARGET octaryn::deps::spirv_cross)
+        return()
+    endif()
+
+    octaryn_add_dependency_wrapper(octaryn_tool_spirv_cross octaryn::deps::spirv_cross)
+    octaryn_fetch_source_dependency(
+        SPIRV-Cross
+        GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
+        GIT_TAG vulkan-sdk-1.4.341.0
+        OPTIONS
+            "SPIRV_CROSS_CLI OFF"
+            "SPIRV_CROSS_ENABLE_TESTS OFF"
+            "SPIRV_CROSS_ENABLE_GLSL ON"
+            "SPIRV_CROSS_ENABLE_HLSL ON"
+            "SPIRV_CROSS_ENABLE_MSL ON"
+            "SPIRV_CROSS_ENABLE_REFLECT ON"
+            "SPIRV_CROSS_ENABLE_CPP OFF")
+    octaryn_link_spirv_cross_targets(octaryn_tool_spirv_cross)
+    if(TARGET spirv-cross-c AND NOT TARGET spirv_cross_c)
+        add_library(spirv_cross_c ALIAS spirv-cross-c)
+    endif()
+endfunction()
+
 if(NOT TARGET octaryn::deps::glaze)
     octaryn_add_dependency_wrapper(octaryn_tool_glaze octaryn::deps::glaze)
     octaryn_fetch_source_dependency(
@@ -17,35 +55,7 @@ endif()
 
 if(NOT TARGET octaryn::deps::shadercross)
     octaryn_add_dependency_wrapper(octaryn_tool_shadercross octaryn::deps::shadercross)
-    if(NOT TARGET octaryn::deps::spirv_cross)
-        octaryn_add_dependency_wrapper(octaryn_tool_spirv_cross octaryn::deps::spirv_cross)
-        octaryn_fetch_source_dependency(
-            SPIRV-Cross
-            GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
-            GIT_TAG vulkan-sdk-1.4.341.0
-            OPTIONS
-                "SPIRV_CROSS_CLI OFF"
-                "SPIRV_CROSS_ENABLE_TESTS OFF"
-                "SPIRV_CROSS_ENABLE_GLSL ON"
-                "SPIRV_CROSS_ENABLE_HLSL ON"
-                "SPIRV_CROSS_ENABLE_MSL ON"
-                "SPIRV_CROSS_ENABLE_REFLECT ON"
-                "SPIRV_CROSS_ENABLE_CPP OFF")
-        foreach(octaryn_spirv_cross_target
-            spirv-cross-core
-            spirv-cross-reflect
-            spirv-cross-msl
-            SPIRV-Cross::spirv-cross-core
-            SPIRV-Cross::spirv-cross-reflect
-            SPIRV-Cross::spirv-cross-msl)
-            if(TARGET "${octaryn_spirv_cross_target}")
-                target_link_libraries(octaryn_tool_spirv_cross INTERFACE "${octaryn_spirv_cross_target}")
-            endif()
-        endforeach()
-        if(TARGET spirv-cross-c AND NOT TARGET spirv_cross_c)
-            add_library(spirv_cross_c ALIAS spirv-cross-c)
-        endif()
-    endif()
+    octaryn_require_spirv_cross()
     octaryn_fetch_source_dependency(
         SDL3_shadercross
         GITHUB_REPOSITORY libsdl-org/SDL_shadercross
@@ -126,32 +136,7 @@ if(NOT TARGET octaryn::deps::spirv_tools)
     endif()
 endif()
 
-if(NOT TARGET octaryn::deps::spirv_cross)
-    octaryn_add_dependency_wrapper(octaryn_tool_spirv_cross octaryn::deps::spirv_cross)
-    octaryn_fetch_source_dependency(
-        SPIRV-Cross
-        GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
-        GIT_TAG vulkan-sdk-1.4.341.0
-        OPTIONS
-            "SPIRV_CROSS_CLI OFF"
-            "SPIRV_CROSS_ENABLE_TESTS OFF"
-            "SPIRV_CROSS_ENABLE_GLSL ON"
-            "SPIRV_CROSS_ENABLE_HLSL ON"
-            "SPIRV_CROSS_ENABLE_MSL ON"
-            "SPIRV_CROSS_ENABLE_REFLECT ON"
-            "SPIRV_CROSS_ENABLE_CPP OFF")
-    foreach(octaryn_spirv_cross_target
-        spirv-cross-core
-        spirv-cross-reflect
-        spirv-cross-msl
-        SPIRV-Cross::spirv-cross-core
-        SPIRV-Cross::spirv-cross-reflect
-        SPIRV-Cross::spirv-cross-msl)
-        if(TARGET "${octaryn_spirv_cross_target}")
-            target_link_libraries(octaryn_tool_spirv_cross INTERFACE "${octaryn_spirv_cross_target}")
-        endif()
-    endforeach()
-endif()
+octaryn_require_spirv_cross()
 
 if(NOT TARGET octaryn::deps::fastgltf)
     octaryn_add_dependency_wrapper(octaryn_tool_fastgltf octaryn::deps::fastgltf)

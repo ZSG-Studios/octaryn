@@ -101,29 +101,6 @@ tracy_source() {
   octaryn_fetch_git_tag tracy "https://github.com/wolfpld/tracy.git" "${tag}"
 }
 
-patch_tracy_source_for_toolchain() {
-  local source_root="$1"
-  local config_file="${source_root}/cmake/config.cmake"
-  if [[ ! -f "${config_file}" ]]; then
-    return
-  fi
-
-  python3 - "${config_file}" "${target_platform}" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-target_platform = sys.argv[2]
-text = path.read_text(encoding="utf-8")
-if target_platform == "windows":
-    text = text.replace(
-        "if(WIN32)\n    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)\n    add_compile_options(/MP)\nendif()",
-        "if(WIN32)\n    add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)\n    if(MSVC)\n        add_compile_options(/MP)\n    endif()\nendif()",
-    )
-path.write_text(text, encoding="utf-8")
-PY
-}
-
 build_cmake_tool() {
   local source_dir="$1"
   local build_dir="$2"
@@ -263,7 +240,6 @@ build_tracy_tools() {
 
   local source_root
   source_root="$(tracy_source)"
-  patch_tracy_source_for_toolchain "${source_root}"
   build_cmake_tool "${source_root}/profiler" "${profiler_build_dir}" tracy-profiler "${profiler_binary}"
   build_cmake_tool "${source_root}/capture" "${capture_build_dir}" tracy-capture "${capture_binary}"
   build_cmake_tool "${source_root}/csvexport" "${csvexport_build_dir}" tracy-csvexport "${csvexport_binary}"

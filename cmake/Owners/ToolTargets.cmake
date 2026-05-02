@@ -29,6 +29,14 @@ set(octaryn_tool_basegame_assets "${tool_basegame_build_root}/managed-obj/projec
 set(octaryn_tool_basegame_manifest_json "${tool_basegame_build_root}/generated/octaryn.basegame.manifest.json")
 
 set(octaryn_debug_tool_files
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/run_workspace_ui.sh"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/run_workspace_ui.bat"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/build/podman_build.sh"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/build/podman_build.bat"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/setup/linux_build_environment.sh"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/setup/windows_build_environment.bat"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/podman/Containerfile.arch-build"
+    "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/podman/arch_packages.txt"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/tooling/tool_environment.sh"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/profiling/tracy_tool.sh"
     "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/bootstrap/workspace_bootstrap.sh"
@@ -37,11 +45,38 @@ set(octaryn_debug_tool_files
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(octaryn_debug_tool_build_commands
         COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "${octaryn_debug_tool_root}/build"
             "${octaryn_debug_tool_root}/tooling"
+            "${octaryn_debug_tool_root}/setup"
+            "${octaryn_debug_tool_root}/podman"
             "${octaryn_debug_tool_root}/profiling"
             "${octaryn_debug_tool_root}/bootstrap"
             "${octaryn_debug_tool_root}/ui"
             "${octaryn_debug_tool_log_root}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/run_workspace_ui.sh"
+            "${octaryn_debug_tool_root}/run_workspace_ui.sh"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/run_workspace_ui.bat"
+            "${octaryn_debug_tool_root}/run_workspace_ui.bat"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/build/podman_build.sh"
+            "${octaryn_debug_tool_root}/build/podman_build.sh"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/build/podman_build.bat"
+            "${octaryn_debug_tool_root}/build/podman_build.bat"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/setup/linux_build_environment.sh"
+            "${octaryn_debug_tool_root}/setup/linux_build_environment.sh"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/setup/windows_build_environment.bat"
+            "${octaryn_debug_tool_root}/setup/windows_build_environment.bat"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/podman/Containerfile.arch-build"
+            "${octaryn_debug_tool_root}/podman/Containerfile.arch-build"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/podman/arch_packages.txt"
+            "${octaryn_debug_tool_root}/podman/arch_packages.txt"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/tooling/tool_environment.sh"
             "${octaryn_debug_tool_root}/tooling/tool_environment.sh"
@@ -55,6 +90,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
             "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/ui/workspace_control_app.py"
             "${octaryn_debug_tool_root}/ui/workspace_control_app.py"
         COMMAND chmod 755
+            "${octaryn_debug_tool_root}/run_workspace_ui.sh"
+            "${octaryn_debug_tool_root}/build/podman_build.sh"
+            "${octaryn_debug_tool_root}/setup/linux_build_environment.sh"
             "${octaryn_debug_tool_root}/tooling/tool_environment.sh"
             "${octaryn_debug_tool_root}/profiling/tracy_tool.sh"
             "${octaryn_debug_tool_root}/bootstrap/workspace_bootstrap.sh"

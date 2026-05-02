@@ -102,7 +102,7 @@ if(NOT OCTARYN_TARGET_PLATFORM STREQUAL "Windows")
             "${OCTARYN_DOTNET_NETHOST_LIBRARY}")
 endif()
 
-if(UNIX AND NOT APPLE)
+if(OCTARYN_TARGET_PLATFORM STREQUAL "Linux")
     target_link_libraries(octaryn_dotnet_hosting INTERFACE dl)
 endif()
 

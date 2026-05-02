@@ -109,6 +109,14 @@ REQUIRED_CMAKE_STRUCTURE = (
     "cmake/Toolchains/Linux/clang.cmake",
     "cmake/Toolchains/Windows/clang.cmake",
     "tools/tooling/tool_environment.sh",
+    "tools/run_workspace_ui.sh",
+    "tools/run_workspace_ui.bat",
+    "tools/setup/linux_build_environment.sh",
+    "tools/setup/windows_build_environment.bat",
+    "tools/podman/Containerfile.arch-build",
+    "tools/podman/arch_packages.txt",
+    "tools/build/podman_build.sh",
+    "tools/build/podman_build.bat",
     "tools/profiling/tracy_tool.sh",
     "tools/bootstrap/workspace_bootstrap.sh",
     "tools/sysroots/linux_arm64_sysroot.sh",
@@ -145,6 +153,10 @@ REQUIRED_CONFIGURED_GRAPH_PRESETS = (
     "release-linux",
     "debug-windows",
     "release-windows",
+    "debug-linux-arm64",
+    "release-linux-arm64",
+    "debug-windows-arm64",
+    "release-windows-arm64",
 )
 
 REQUIRED_CONFIGURE_PRESET_TOOLCHAINS = {
@@ -172,6 +184,13 @@ ALLOWED_LOG_ROOTS = (
     "server",
     "shared",
     "tools",
+)
+
+FORBIDDEN_LOG_NAME_PATTERNS = (
+    "macos",
+    "darwin",
+    "debug-macos",
+    "release-macos",
 )
 
 FORBIDDEN_BUILD_SUBROOT_NAMES = (
@@ -351,6 +370,15 @@ def configure_preset_build_dirs(repo_root):
     return build_dirs
 
 
+def configured_graph_build_dirs(repo_root):
+    build_dirs = list(configure_preset_build_dirs(repo_root))
+    build_dirs.extend(
+        (f"{preset_name}-arm64", build_dir.parent.parent / f"{preset_name}-arm64" / "cmake")
+        for preset_name, build_dir in configure_preset_build_dirs(repo_root)
+    )
+    return build_dirs
+
+
 def allowed_build_root_names(repo_root):
     preset_names = {
         preset_name
@@ -419,6 +447,7 @@ def validate_generated_layout(repo_root):
 
         if root_name == "logs":
             nested_log_dirs = []
+            stale_log_files = []
             for owner in ALLOWED_LOG_ROOTS:
                 owner_root = root / owner
                 if not owner_root.exists():
@@ -428,8 +457,14 @@ def validate_generated_layout(repo_root):
                     path.relative_to(repo_root).as_posix()
                     for path in owner_root.rglob("*")
                     if path.is_dir())
+                stale_log_files.extend(
+                    path.relative_to(repo_root).as_posix()
+                    for path in owner_root.rglob("*")
+                    if path.is_file() and any(pattern in path.name.lower() for pattern in FORBIDDEN_LOG_NAME_PATTERNS))
             if nested_log_dirs:
                 errors.append(f"forbidden nested generated log roots: {sorted(nested_log_dirs)}")
+            if stale_log_files:
+                errors.append(f"generated logs reference inactive presets/platforms: {sorted(stale_log_files)}")
 
     build_root = repo_root / "build"
     if build_root.exists():
@@ -449,6 +484,10 @@ def validate_generated_layout(repo_root):
             for path in preset_root.iterdir():
                 if path.is_dir() and path.name not in ALLOWED_PRESET_SUBROOTS:
                     stale_preset_subroots.append(path.relative_to(repo_root).as_posix())
+
+            cmake_generated_root = preset_root / "cmake" / "generated"
+            if cmake_generated_root.exists():
+                stale_preset_subroots.append(cmake_generated_root.relative_to(repo_root).as_posix())
 
         if forbidden_build_subroots:
             errors.append(
@@ -473,11 +512,36 @@ def validate_active_workspace_paths(repo_root):
     return []
 
 
+def validate_workspace_ui_build_entrypoints(repo_root):
+    ui_path = repo_root / "tools/ui/workspace_control_app.py"
+    if not ui_path.exists():
+        return []
+
+    ui_text = ui_path.read_text(encoding="utf-8")
+    forbidden_direct_build_helpers = (
+        "cmake_build.sh",
+        "cmake_configure.sh",
+    )
+    direct_hits = [
+        helper
+        for helper in forbidden_direct_build_helpers
+        if helper in ui_text
+    ]
+    if direct_hits:
+        return [
+            "workspace UI must build through tools/build/podman_build.* only; "
+            f"direct helper references found: {direct_hits}"
+        ]
+    if "podman_build" not in ui_text:
+        return ["workspace UI does not reference the Podman build wrapper"]
+    return []
+
+
 def validate_configured_preset_graphs(repo_root, current_build_dir):
     errors = []
     current = current_build_dir.resolve()
     required_presets = set(REQUIRED_CONFIGURED_GRAPH_PRESETS)
-    for preset_name, build_dir in configure_preset_build_dirs(repo_root):
+    for preset_name, build_dir in configured_graph_build_dirs(repo_root):
         build_file = build_dir / "build.ninja"
         if not build_file.exists():
             if preset_name in required_presets:
@@ -542,6 +606,7 @@ def validate_single_build_dir(build_dir, repo_root):
 def validate(build_dir, repo_root):
     errors = validate_single_build_dir(build_dir, repo_root)
     errors.extend(validate_active_workspace_paths(repo_root))
+    errors.extend(validate_workspace_ui_build_entrypoints(repo_root))
     errors.extend(validate_generated_layout(repo_root))
     errors.extend(validate_configured_preset_graphs(repo_root, build_dir))
     return errors
