@@ -13,14 +13,12 @@ The active work is the AAA modular port: client presentation, server authority, 
 - `tools/`: repo-wide build, validation, profiling, launch, and developer operations.
 - `cmake/`: build policy, owner target construction, dependency wrappers, platform facts, and toolchains.
 - `docs/`: architecture, migration, validation, and GitHub Pages documentation.
-- `information/`: quick documentation index for humans browsing the checkout.
 - `old-architecture/`: old implementation source material used for the port. It is not the destination architecture.
 
 No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `helpers`, or catch-all owner is part of the target layout.
 
 ## Documentation
 
-- [Information index](information/README.md)
 - [GitHub Pages entry](docs/index.md)
 - [API guide](docs/api/index.md)
 - [API examples](docs/api/examples.md)
