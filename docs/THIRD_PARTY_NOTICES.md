@@ -37,40 +37,127 @@ Release packages that include generated atlas assets from this pack must include
 
 ## Runtime Library Sources
 
-Release packages that bundle runtime binaries must include the matching upstream license and notice files under `THIRD_PARTY/`.
+Configured source dependencies are fetched into generated build caches such as `build/dependencies/`. They are not source-vendored in this repository, but source archives, binary releases, and generated release packages must keep the matching upstream license and notice files.
 
-Native libraries:
+Core native dependencies:
 
-- SDL3
-- SDL3_image
-- mimalloc
-- OpenAL Soft
-- miniaudio
-- FastNoise2
-- Jolt Physics
-- ozz-animation
-- zlib
-- Zstandard
+- spdlog `v1.17.0`, <https://github.com/gabime/spdlog>
+- cpptrace `v1.0.4`, <https://github.com/jeremy-rifkin/cpptrace>
+- mimalloc `v3.3.1`, <https://github.com/microsoft/mimalloc>
+- Tracy `v0.13.1`, <https://github.com/wolfpld/tracy>
+- Taskflow `v4.0.0`, <https://github.com/taskflow/taskflow>
+- Eigen `5.0.0`, <https://gitlab.com/libeigen/eigen>
+- ankerl::unordered_dense `v4.8.1`, <https://github.com/martinus/unordered_dense>
+- zlib `v1.3.2`, <https://github.com/madler/zlib>
+- LZ4 `v1.10.0`, <https://github.com/lz4/lz4>
+- Zstandard `v1.5.7`, <https://github.com/facebook/zstd>
 
-Linux release runtime and managed packages:
+Client, rendering, audio, and UI dependencies:
+
+- SDL3 `release-3.4.4`, <https://github.com/libsdl-org/SDL>
+- OpenAL Soft `1.25.1`, <https://github.com/kcat/openal-soft>
+- miniaudio `0.11.25`, <https://github.com/mackron/miniaudio>
+- glaze `v7.4.0`, <https://github.com/stephenberry/glaze>
+- SDL3_image `release-3.4.2`, <https://github.com/libsdl-org/SDL_image>
+- SDL3_ttf `release-3.2.2`, <https://github.com/libsdl-org/SDL_ttf>
+- Dear ImGui, <https://github.com/pthom/imgui>
+- ImPlot, <https://github.com/pthom/implot>
+- ImPlot3D, <https://github.com/pthom/implot3d>
+- imgui-node-editor, <https://github.com/pthom/imgui-node-editor>
+- ImGuizmo, <https://github.com/pthom/ImGuizmo>
+- ImAnim, <https://github.com/pthom/ImAnim>
+- ImFileDialog, <https://github.com/pthom/ImFileDialog>
+- ozz-animation `0.16.0`, <https://github.com/guillaumeblanc/ozz-animation>
+
+Shader, texture, and asset tooling dependencies:
+
+- SPIRV-Cross `vulkan-sdk-1.4.341.0`, <https://github.com/KhronosGroup/SPIRV-Cross>
+- SDL_shadercross, <https://github.com/libsdl-org/SDL_shadercross>
+- SPIRV-Headers `vulkan-sdk-1.4.341.0`, <https://github.com/KhronosGroup/SPIRV-Headers>
+- SPIRV-Tools `vulkan-sdk-1.4.341.0`, <https://github.com/KhronosGroup/SPIRV-Tools>
+- glslang `vulkan-sdk-1.4.341.0`, <https://github.com/KhronosGroup/glslang>
+- shaderc `v2026.2`, <https://github.com/google/shaderc>
+- fastgltf `v0.9.0`, <https://github.com/spnda/fastgltf>
+- KTX-Software `v4.4.2`, <https://github.com/KhronosGroup/KTX-Software>
+- meshoptimizer `v1.1.1`, <https://github.com/zeux/meshoptimizer>
+
+Additional contained runtime dependencies:
+
+- FastNoise2, <https://github.com/Auburn/FastNoise2>
+- Jolt Physics, <https://github.com/jrouwe/JoltPhysics>
+
+## .NET Package Sources
+
+Package pins in `Directory.Packages.props` are tracked here even when a package is build-only or analyzer-only. A pin is not permission for module use; module-facing package access is controlled by the architecture allowlist.
+
+- Arch `2.1.0`
+- Arch.LowLevel `1.1.5`
+- Arch.System `1.1.0`
+- Arch.System.SourceGenerator `2.1.0`
+- Arch.EventBus `1.0.2`
+- Arch.Relationships `1.0.1`
+- Collections.Pooled `2.0.0-preview.27`
+- CommunityToolkit.HighPerformance `8.2.2`
+- Humanizer.Core `2.2.0`
+- Microsoft.Bcl.AsyncInterfaces `5.0.0`
+- Microsoft.CodeAnalysis.Analyzers `3.3.3`
+- Microsoft.CodeAnalysis.Common `4.1.0`
+- Microsoft.CodeAnalysis.CSharp `4.1.0`
+- Microsoft.CodeAnalysis.CSharp.Workspaces `4.1.0`
+- Microsoft.CodeAnalysis.Workspaces.Common `4.1.0`
+- Microsoft.Extensions.ObjectPool `7.0.0`
+- Microsoft.NETCore.Platforms `1.1.0`
+- NETStandard.Library `1.6.1`
+- System.Composition `1.0.31`
+- System.Composition.AttributedModel `1.0.31`
+- System.Composition.Convention `1.0.31`
+- System.Composition.Hosting `1.0.31`
+- System.Composition.Runtime `1.0.31`
+- System.Composition.TypedParts `1.0.31`
+- ZeroAllocJobScheduler `1.1.2`
+- LiteNetLib `2.1.3`
+- LiteEntitySystem `1.2.2`
+
+Packaged runtime payloads may also include transitive NuGet assemblies and package-local notices. The current Linux shareable runtime package includes:
 
 - Microsoft .NET `nethost`
-- Arch
-- Arch.EventBus
-- Arch.LowLevel
-- Arch.Relationships
-- Arch.System
-- Collections.Pooled
-- CommunityToolkit.HighPerformance
-- K4os.Compression.LZ4
-- LiteEntitySystem
-- LiteNetLib
-- Microsoft.Extensions.ObjectPool
-- ZeroAllocJobScheduler
+- Arch `2.1.0`
+- Arch.EventBus `1.0.2`
+- Arch.LowLevel `1.1.5`
+- Arch.Relationships `1.0.1`
+- Arch.System `1.1.0`
+- Collections.Pooled `2.0.0-preview.27`
+- CommunityToolkit.HighPerformance `8.2.2`
+- K4os.Compression.LZ4 `1.3.8`
+- LiteEntitySystem `1.2.2`
+- LiteNetLib `2.1.3`
+- Microsoft.Extensions.ObjectPool `7.0.0`
+- ZeroAllocJobScheduler `1.1.2`
+- RefMagic, from LiteEntitySystem
+- Schedulers, from ZeroAllocJobScheduler
+
+## Packaged Runtime Payloads
+
+Release packages that bundle binaries must include a package-level `THIRD_PARTY_NOTICES.txt` and license files under `THIRD_PARTY/` for the exact files shipped.
+
+Linux release runtime libraries:
+
+- `libSDL3.so.0`
+- `libSDL3_image.so.0`
+- `libmimalloc-debug.so.3`
+- `libopenal.so.1`
+- `libminiaudio.so`
+- `libFastNoiseD.so`
+- `libJolt.so`
+- `libozz_animation.so`
+- `libozz_base.so`
+- `libz.so.1`
+- `libzstd.so.1`
+- `libnethost.so`
 
 Windows release runtime libraries:
 
-- MinGW-w64 runtime
-- winpthreads
-- GCC runtime libraries with runtime exception text
-- zlib runtime DLL
+- `libgcc_s_seh-1.dll`
+- `libstdc++-6.dll`
+- `libwinpthread-1.dll`
+- `libzd.dll`
