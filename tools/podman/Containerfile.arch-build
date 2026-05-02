@@ -16,7 +16,7 @@ COPY --from=llvm_mingw /opt/llvm-mingw /opt/llvm-mingw
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV OCTARYN_WINDOWS_CLANG_ROOT=/opt/llvm-mingw
-ENV PATH=/opt/llvm-mingw/bin:/usr/local/sbin:/usr/local/bin:/usr/bin
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/bin
 
 WORKDIR /workspace
 CMD ["/usr/bin/bash"]

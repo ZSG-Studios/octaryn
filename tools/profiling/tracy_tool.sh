@@ -117,10 +117,27 @@ build_cmake_tool() {
   configure_args=(
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_TOOLCHAIN_FILE="${toolchain_file}"
+    -DCMAKE_C_COMPILER_LAUNCHER=
+    -DCMAKE_CXX_COMPILER_LAUNCHER=
+    -DCCACHE=CCACHE-NOTFOUND
     -DFETCHCONTENT_BASE_DIR="${dependency_build_root}/${target}"
     -DCPM_MODULE_PATH="${dependency_build_root}/${target}/cpm-modules"
     -DCPM_DONT_CREATE_PACKAGE_LOCK=ON
   )
+  if [[ "${target_platform}" == "linux" ]]; then
+    configure_args+=(
+      -DCMAKE_C_COMPILER=/usr/bin/clang
+      -DCMAKE_CXX_COMPILER=/usr/bin/clang++
+      -DCMAKE_AR=/usr/bin/llvm-ar
+      -DCMAKE_RANLIB=/usr/bin/llvm-ranlib
+      -DCMAKE_LINKER=/usr/bin/ld.lld
+      -DCMAKE_NM=/usr/bin/llvm-nm
+      -DCMAKE_OBJCOPY=/usr/bin/llvm-objcopy
+      -DCMAKE_OBJDUMP=/usr/bin/llvm-objdump
+      -DCMAKE_READELF=/usr/bin/llvm-readelf
+      -DCMAKE_STRIP=/usr/bin/llvm-strip
+    )
+  fi
   if [[ "${target_platform}" != "linux" ]]; then
     configure_args+=(-DNO_ISA_EXTENSIONS=ON)
     configure_args+=(
@@ -138,6 +155,9 @@ build_cmake_tool() {
   fi
   octaryn_ensure_dir "${dependency_build_root}/empty-pkgconfig"
   environment_args=(GIT_TERMINAL_PROMPT=0 CPM_SOURCE_CACHE="${source_cache_root}")
+  if [[ "${target_platform}" == "linux" ]]; then
+    environment_args+=(PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/bin")
+  fi
   if [[ "${target_platform}" != "linux" ]]; then
     environment_args+=(PKG_CONFIG_LIBDIR="${dependency_build_root}/empty-pkgconfig")
   fi

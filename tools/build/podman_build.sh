@@ -48,7 +48,11 @@ require_tool() {
 
 ensure_builder_image() {
   require_tool podman
-  if [[ "${OCTARYN_PODMAN_REBUILD:-0}" != "1" ]] && podman image exists "${image}" >/dev/null 2>&1; then
+  local fingerprint
+  fingerprint="$(builder_fingerprint)"
+  if [[ "${OCTARYN_PODMAN_REBUILD:-0}" != "1" ]] \
+    && podman image exists "${image}" >/dev/null 2>&1 \
+    && [[ "$(image_fingerprint)" == "${fingerprint}" ]]; then
     return
   fi
   if [[ ! -f "${containerfile}" ]]; then
@@ -56,7 +60,21 @@ ensure_builder_image() {
     exit 1
   fi
   printf '[info] building Octaryn Podman build image: %s\n' "${image}"
-  podman build --file "${containerfile}" --tag "${image}" "${podman_context}"
+  podman build \
+    --file "${containerfile}" \
+    --label "org.octaryn.arch-builder.fingerprint=${fingerprint}" \
+    --tag "${image}" \
+    "${podman_context}"
+}
+
+builder_fingerprint() {
+  sha256sum "${containerfile}" "${podman_context}/arch_packages.txt" | sha256sum | awk '{print $1}'
+}
+
+image_fingerprint() {
+  podman image inspect \
+    --format '{{ index .Config.Labels "org.octaryn.arch-builder.fingerprint" }}' \
+    "${image}" 2>/dev/null || true
 }
 
 workspace_volume="${octaryn_workspace_root}:${workspace_container_path}"

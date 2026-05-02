@@ -372,8 +372,6 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
 
         self.launch_tracy_button = QtWidgets.QPushButton("Launch Tracy")
         self.launch_tracy_button.clicked.connect(self.launch_tracy)
-        self.build_debug_tools_button = QtWidgets.QPushButton("Build Tools")
-        self.build_debug_tools_button.clicked.connect(self.build_debug_tools)
         self.capture_tracy_button = QtWidgets.QPushButton("Capture Tracy")
         self.capture_tracy_button.clicked.connect(self.capture_tracy)
         self.bootstrap_button = QtWidgets.QPushButton("Bootstrap Check")
@@ -447,10 +445,9 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
         tools_layout.addWidget(self.capture_tracy_checkbox, 1, 0, 1, 2)
         tools_layout.addWidget(QtWidgets.QLabel("Tracy seconds"), 2, 0)
         tools_layout.addWidget(self.tracy_seconds_spin, 2, 1)
-        tools_layout.addWidget(self.build_debug_tools_button, 3, 0, 1, 2)
-        tools_layout.addWidget(self.launch_tracy_button, 4, 0)
-        tools_layout.addWidget(self.capture_tracy_button, 4, 1)
-        tools_layout.addWidget(self.bootstrap_button, 5, 0, 1, 2)
+        tools_layout.addWidget(self.launch_tracy_button, 3, 0)
+        tools_layout.addWidget(self.capture_tracy_button, 3, 1)
+        tools_layout.addWidget(self.bootstrap_button, 4, 0, 1, 2)
         tools_layout.setColumnStretch(0, 1)
         tools_layout.setColumnStretch(1, 1)
         console_group = QtWidgets.QGroupBox("Console")
@@ -588,19 +585,6 @@ class WorkspaceControlWindow(QtWidgets.QWidget):
             return
 
         QtCore.QProcess.startDetached(opener, opener_args, str(WORKSPACE_ROOT))
-
-    def build_debug_tools(self) -> None:
-        preset = self.selected_preset()
-        if not preset.startswith("debug-"):
-            self._log(
-                f"[warning] {preset} is not a debug preset. Debug tools ship with debug presets only."
-            )
-            return
-        self._start_build_command(
-            f"debug tools {preset}",
-            preset,
-            "octaryn_debug_tools",
-        )
 
     def launch_tracy(self) -> None:
         preset = self.selected_preset()
