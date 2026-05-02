@@ -19,9 +19,12 @@ No new top-level `engine/`, `octaryn-engine/`, generic `runtime/`, `common`, `he
 
 ## Documentation
 
-- [GitHub Pages entry](docs/index.md)
-- [API guide](docs/api/index.md)
-- [API examples](docs/api/examples/index.md)
+- [Live documentation site](https://zsg-studios.github.io/Octaryn/)
+- [Live API documentation](https://zsg-studios.github.io/Octaryn/api/)
+- [Live API examples](https://zsg-studios.github.io/Octaryn/api/examples/)
+- [GitHub Pages entry source](docs/index.html)
+- [API guide source](docs/api/index.html)
+- [API examples source](docs/api/examples/index.html)
 - [AAA port structure](docs/architecture/aaa-port-structure.md)
 - [Old architecture map](docs/migration/old-architecture-map.md)
 - [Build matrix](docs/validation/build-matrix.md)

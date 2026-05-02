@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Octaryn API Documentation</title>
+  <link rel="stylesheet" href="../assets/octaryn-docs.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="../">Octaryn API</a>
+      <p class="tagline">Shared contracts and module boundaries for the AAA modular port.</p>
+      <nav>
+        <div class="nav-group">
+          <p class="nav-title">API</p>
+          <a class="nav-link" href="#introduction">Introduction</a>
+          <a class="nav-link" href="#owners">Owner Model</a>
+          <a class="nav-link" href="#shared-contracts">Shared Contracts</a>
+          <a class="nav-link" href="#module-registration">Module Registration</a>
+          <a class="nav-link" href="#validation">Validation</a>
+          <a class="nav-link" href="#scheduling">Scheduling</a>
+          <a class="nav-link" href="#commands-snapshots">Commands And Snapshots</a>
+          <a class="nav-link" href="#threading">Threading</a>
+          <a class="nav-link" href="#build-layout">Build Layout</a>
+        </div>
+        <div class="nav-group">
+          <p class="nav-title">Reference</p>
+          <a class="nav-link" href="examples/">Examples</a>
+          <a class="nav-link" href="../architecture/aaa-port-structure.html">AAA Port Structure</a>
+          <a class="nav-link" href="../validation/build-matrix.html">Build Matrix</a>
+          <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section id="introduction">
+        <p class="eyebrow">Octaryn API</p>
+        <h1>Contracts first. Owners stay separate.</h1>
+        <p class="lead">The Octaryn API is the narrow, implementation-free boundary between client, server, basegame, and future modules. It exposes stable contracts, IDs, manifest policy, scheduling declarations, world value types, commands, and snapshots without leaking host internals.</p>
+        <div class="quick-links">
+          <a class="button primary" href="examples/">Examples</a>
+          <a class="button" href="../">Docs Home</a>
+          <a class="button" href="https://github.com/ZSG-Studios/Octaryn">Source</a>
+        </div>
+        <p class="note">Current status: this documents the active port surface in the repository. It is intentionally strict and grows only through explicit owner and capability boundaries.</p>
+      </section>
+
+      <section id="owners">
+        <h2>Owner Model</h2>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Owner</th>
+              <th>Owns</th>
+              <th>Must Not Own</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>octaryn-client</code></td>
+              <td>Windowing, input, rendering, shaders, overlays, prediction, client host integration.</td>
+              <td>Server authority, persistence, save ownership, authoritative validation.</td>
+            </tr>
+            <tr>
+              <td><code>octaryn-server</code></td>
+              <td>Simulation, validation, persistence, server ticks, replication, transport hosting.</td>
+              <td>Presentation rendering, UI, GPU upload, client-only prediction.</td>
+            </tr>
+            <tr>
+              <td><code>octaryn-shared</code></td>
+              <td>Contracts, IDs, manifests, capability policy, scheduling contracts, value types.</td>
+              <td>Client rendering implementation, server persistence implementation, product gameplay rules.</td>
+            </tr>
+            <tr>
+              <td><code>octaryn-basegame</code></td>
+              <td>Bundled gameplay rules, blocks, items, recipes, tags, interactions, content data.</td>
+              <td>Host internals, transport implementation, persistence internals, rendering internals.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="shared-contracts">
+        <h2>Shared Contracts</h2>
+        <p><code>octaryn-shared/</code> is the API surface. It stays package-light, implementation-free, and stable enough for client, server, basegame, and future modules to agree on behavior.</p>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Namespace</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Octaryn.Shared.GameModules</code></td>
+              <td>Module manifests, registration, instances, validation reports, and frame contexts.</td>
+            </tr>
+            <tr>
+              <td><code>Octaryn.Shared.ApiExposure</code></td>
+              <td>Capability IDs and host API IDs exposed to modules.</td>
+            </tr>
+            <tr>
+              <td><code>Octaryn.Shared.FrameworkAllowlist</code></td>
+              <td>Approved package and framework API groups.</td>
+            </tr>
+            <tr>
+              <td><code>Octaryn.Shared.Host</code></td>
+              <td>Scheduling declarations, resource access, frame snapshots, command sinks, and host work policy.</td>
+            </tr>
+            <tr>
+              <td><code>Octaryn.Shared.Networking</code></td>
+              <td>Client command frames, server snapshot headers, replication IDs, and replication changes.</td>
+            </tr>
+            <tr>
+              <td><code>Octaryn.Shared.World</code></td>
+              <td>Block IDs, block positions, chunk constants, chunk positions, and chunk snapshots.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="module-registration">
+        <h2>Module Registration</h2>
+        <p>Modules expose a registration object with a manifest and an instance factory. Basegame uses the same path future game modules and mods should use.</p>
+        <pre><code class="language-csharp">public interface IGameModuleRegistration
+{
+    GameModuleManifest Manifest { get; }
+
+    IGameModuleInstance CreateInstance(ModuleHostContext context);
+}</code></pre>
+        <h3>Manifest Fields</h3>
+        <p><code>GameModuleManifest</code> declares identity, compatibility, requested capabilities, host APIs, runtime packages, build packages, framework API groups, dependencies, content, assets, scheduled systems, and multiplayer/save compatibility.</p>
+      </section>
+
+      <section id="validation">
+        <h2>Deny-By-Default Validation</h2>
+        <p><code>GameModuleValidator</code> validates manifests before activation. A package version pin does not grant module permission; every capability, host API, runtime package, build package, and framework API group must be explicitly allowed.</p>
+        <ul>
+          <li>Identity and compatibility fields are required.</li>
+          <li>Versions and host API ranges must be valid.</li>
+          <li>Capabilities, dependencies, content, assets, and scheduled systems must be unique.</li>
+          <li>Content, asset, and system IDs must be module-owned.</li>
+          <li>Schedule graphs and resource access conflicts are checked.</li>
+          <li>Command writes require command host API access and the matching capability.</li>
+        </ul>
+      </section>
+
+      <section id="scheduling">
+        <h2>Scheduling</h2>
+        <p>Modules declare work. Hosts own execution. Scheduled systems declare phase, owner, read/write resources, ordering, flags, and commit barrier.</p>
+        <pre><code class="language-csharp">public sealed record ScheduledSystemDeclaration(
+    string SystemId,
+    HostWorkPhase Phase,
+    string FrameOrTickOwner,
+    IReadOnlyList&lt;ScheduledResourceAccess&gt; Reads,
+    IReadOnlyList&lt;ScheduledResourceAccess&gt; Writes,
+    IReadOnlyList&lt;string&gt; RunsAfter,
+    IReadOnlyList&lt;string&gt; RunsBefore,
+    HostWorkScheduleFlags Flags,
+    string CommitBarrier);</code></pre>
+      </section>
+
+      <section id="commands-snapshots">
+        <h2>Commands And Snapshots</h2>
+        <p>Shared networking contracts define message shape, not transport implementation. Client and server owners decide how bytes move.</p>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Contract</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ClientCommandFrame</code></td>
+              <td>Versioned command batch for a tick.</td>
+            </tr>
+            <tr>
+              <td><code>ServerSnapshotHeader</code></td>
+              <td>Versioned snapshot header with replication and change counts.</td>
+            </tr>
+            <tr>
+              <td><code>ReplicationChange</code></td>
+              <td>Compact change payload shared by native and managed owners.</td>
+            </tr>
+            <tr>
+              <td><code>ReplicationId</code></td>
+              <td>Stable replicated-state identity.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="threading">
+        <h2>Threading</h2>
+        <p>The host owns all threading: one main thread, one coordinator thread, and a worker pool. Modules must not create raw threads, private schedulers, timers, unmanaged worker loops, or private worker pools.</p>
+      </section>
+
+      <section id="build-layout">
+        <h2>Build Layout</h2>
+        <p>Outputs stay preset-first and owner-partitioned.</p>
+        <pre><code>build/&lt;preset&gt;/client/
+build/&lt;preset&gt;/server/
+build/&lt;preset&gt;/shared/
+build/&lt;preset&gt;/basegame/
+build/&lt;preset&gt;/tools/
+logs/client/
+logs/server/
+logs/shared/
+logs/basegame/
+logs/tools/</code></pre>
+      </section>
+
+      <p class="footer">See <a href="examples/">API examples</a> for small module and validation snippets.</p>
+    </main>
+  </div>
+</body>
+</html>

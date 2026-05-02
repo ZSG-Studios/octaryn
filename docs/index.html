@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Octaryn Documentation</title>
+  <link rel="stylesheet" href="assets/octaryn-docs.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="./">Octaryn</a>
+      <p class="tagline">AAA modular client, server, shared API, and basegame documentation.</p>
+      <nav>
+        <div class="nav-group">
+          <p class="nav-title">Documentation</p>
+          <a class="nav-link" href="api/">API Documentation</a>
+          <a class="nav-link" href="api/examples/">API Examples</a>
+          <a class="nav-link" href="architecture/aaa-port-structure.html">AAA Port Structure</a>
+        </div>
+        <div class="nav-group">
+          <p class="nav-title">Migration</p>
+          <a class="nav-link" href="migration/old-architecture-map.html">Old Architecture Map</a>
+          <a class="nav-link" href="migration/gameplay-migration.html">Gameplay Migration</a>
+          <a class="nav-link" href="migration/rendering-migration.html">Rendering Migration</a>
+          <a class="nav-link" href="migration/shader-migration.html">Shader Migration</a>
+        </div>
+        <div class="nav-group">
+          <p class="nav-title">Validation</p>
+          <a class="nav-link" href="validation/build-matrix.html">Build Matrix</a>
+          <a class="nav-link" href="validation/runtime-runs.html">Runtime Runs</a>
+          <a class="nav-link" href="validation/tracy.html">Tracy</a>
+        </div>
+      </nav>
+    </aside>
+    <main class="content">
+      <p class="eyebrow">Octaryn Documentation</p>
+      <h1>Owner-split API and architecture docs.</h1>
+      <p class="lead">Octaryn is being ported from a monolithic engine tree into a clean AAA modular platform with strict separation between client presentation, server authority, shared contracts, and basegame implementation.</p>
+      <div class="quick-links">
+        <a class="button primary" href="api/">Open API Docs</a>
+        <a class="button" href="api/examples/">View Examples</a>
+        <a class="button" href="https://github.com/ZSG-Studios/Octaryn">GitHub Repository</a>
+      </div>
+
+      <section id="owners">
+        <h2>Owner Boundaries</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Client</h3>
+            <p><code>octaryn-client/</code> owns windowing, input, rendering, shaders, overlays, prediction, and client host integration.</p>
+          </article>
+          <article class="card">
+            <h3>Server</h3>
+            <p><code>octaryn-server/</code> owns authoritative simulation, validation, persistence, ticks, replication, and transport hosting.</p>
+          </article>
+          <article class="card">
+            <h3>Shared</h3>
+            <p><code>octaryn-shared/</code> owns implementation-free contracts, IDs, snapshots, manifests, capability IDs, host API IDs, and validation policy.</p>
+          </article>
+          <article class="card">
+            <h3>Basegame</h3>
+            <p><code>octaryn-basegame/</code> owns bundled gameplay, content declarations, assets, data, and basegame-specific tools.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="policy">
+        <h2>API Policy</h2>
+        <p>The API boundary is deny-by-default. Modules use explicit shared contracts and approved capabilities. They do not see client rendering internals, server persistence internals, native bridges, raw threading, transport internals, or broad host services.</p>
+        <ul class="pill-list">
+          <li>capability-scoped</li>
+          <li>host-owned scheduling</li>
+          <li>implementation-free shared contracts</li>
+          <li>module validation before activation</li>
+          <li>owner-partitioned outputs</li>
+        </ul>
+      </section>
+
+      <section id="start">
+        <h2>Start Points</h2>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="api/">API Documentation</a></td>
+              <td>Shared contracts, module manifests, validation, scheduling, commands, snapshots, and owner rules.</td>
+            </tr>
+            <tr>
+              <td><a href="api/examples/">API Examples</a></td>
+              <td>Small C# examples for module registration, validation, scheduled command access, and snapshot checks.</td>
+            </tr>
+            <tr>
+              <td><a href="architecture/aaa-port-structure.html">AAA Port Structure</a></td>
+              <td>Active port plan and source-to-destination ownership rules.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p class="footer">Generated from the repository docs in <code>docs/</code>. Source material in <code>old-architecture/</code> is not destination architecture.</p>
+    </main>
+  </div>
+</body>
+</html>

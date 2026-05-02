@@ -1,11 +1,41 @@
-# API Examples
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Octaryn API Examples</title>
+  <link rel="stylesheet" href="../../assets/octaryn-docs.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="../">API Examples</a>
+      <p class="tagline">Small examples for the current shared contract shape.</p>
+      <nav>
+        <div class="nav-group">
+          <p class="nav-title">Examples</p>
+          <a class="nav-link" href="#register-module">Register A Module</a>
+          <a class="nav-link" href="#module-instance">Implement An Instance</a>
+          <a class="nav-link" href="#validate-manifest">Validate A Manifest</a>
+          <a class="nav-link" href="#command-access">Request Command Access</a>
+          <a class="nav-link" href="#snapshot-contracts">Read Snapshot Contracts</a>
+        </div>
+        <div class="nav-group">
+          <p class="nav-title">Navigation</p>
+          <a class="nav-link" href="../">API Documentation</a>
+          <a class="nav-link" href="../../">Docs Home</a>
+          <a class="nav-link" href="https://github.com/ZSG-Studios/Octaryn">GitHub</a>
+        </div>
+      </nav>
+    </aside>
+    <main class="content">
+      <p class="eyebrow">Octaryn API Examples</p>
+      <h1>Minimal examples for strict module boundaries.</h1>
+      <p class="lead">These examples demonstrate current contract shape only. They avoid host internals and use the shared API concepts the module validator understands.</p>
 
-These examples show the current contract shape. They are intentionally small and focus on boundaries.
-
-## Register A Module
-
-```csharp
-using Octaryn.Shared.ApiExposure;
+      <section id="register-module">
+        <h2>Register A Module</h2>
+        <pre><code class="language-csharp">using Octaryn.Shared.ApiExposure;
 using Octaryn.Shared.FrameworkAllowlist;
 using Octaryn.Shared.GameModules;
 using Octaryn.Shared.Host;
@@ -61,13 +91,12 @@ public sealed class ExampleModuleRegistration : IGameModuleRegistration
     {
         return new ExampleModule();
     }
-}
-```
+}</code></pre>
+      </section>
 
-## Implement A Module Instance
-
-```csharp
-using Octaryn.Shared.GameModules;
+      <section id="module-instance">
+        <h2>Implement A Module Instance</h2>
+        <pre><code class="language-csharp">using Octaryn.Shared.GameModules;
 
 public sealed class ExampleModule : IGameModuleInstance
 {
@@ -80,13 +109,12 @@ public sealed class ExampleModule : IGameModuleInstance
     public void Dispose()
     {
     }
-}
-```
+}</code></pre>
+      </section>
 
-## Validate A Manifest
-
-```csharp
-using Octaryn.Shared.GameModules;
+      <section id="validate-manifest">
+        <h2>Validate A Manifest</h2>
+        <pre><code class="language-csharp">using Octaryn.Shared.GameModules;
 
 IGameModuleRegistration registration = new ExampleModuleRegistration();
 ModuleValidationReport report = GameModuleValidator.Validate(registration.Manifest);
@@ -97,15 +125,13 @@ if (!report.IsValid)
     {
         Console.Error.WriteLine($"{issue.Severity}: {issue.Code} - {issue.Message}");
     }
-}
-```
+}</code></pre>
+      </section>
 
-## Request Command Access
-
-Command access is capability-scoped. A module that writes host commands must request `HostApiIds.Commands`, declare a scheduled write to that host API, and request the capability that permits the command family.
-
-```csharp
-RequiredCapabilities:
+      <section id="command-access">
+        <h2>Request Command Access</h2>
+        <p>Command writes must request <code>HostApiIds.Commands</code>, declare a scheduled write to that host API, and request the matching capability.</p>
+        <pre><code class="language-csharp">RequiredCapabilities:
 [
     ModuleCapabilityIds.WorldBlockEdits
 ],
@@ -132,21 +158,20 @@ Schedule: new GameModuleScheduleDeclaration(
         RunsBefore: [],
         Flags: HostWorkScheduleFlags.DeterministicOrder | HostWorkScheduleFlags.RequiresTickBarrier,
         CommitBarrier: HostScheduleIds.FrameOrTickEndBarrier)
-])
-```
+])</code></pre>
+      </section>
 
-## Read Snapshot Contracts
-
-Shared snapshot structs are versioned and packed so native and managed owners can agree on layout.
-
-```csharp
-using Octaryn.Shared.Networking;
+      <section id="snapshot-contracts">
+        <h2>Read Snapshot Contracts</h2>
+        <pre><code class="language-csharp">using Octaryn.Shared.Networking;
 
 static bool IsSupported(in ServerSnapshotHeader header)
 {
     return header.Version == ServerSnapshotHeader.VersionValue &&
            header.Size == ServerSnapshotHeader.SizeValue;
-}
-```
-
-Transport code decides how bytes move. Shared contracts define what the bytes mean.
+}</code></pre>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
