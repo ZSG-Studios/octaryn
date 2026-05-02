@@ -5,9 +5,10 @@ namespace Octaryn.Client.WorldPresentation;
 internal sealed class ClientChunkNeighborhoodSnapshot
 {
     public const int Width = ClientPresentationChunkKey.Width;
-    public const int Height = 256;
+    public const int Height = ClientPresentationChunkKey.Height;
+    public const int Depth = ClientPresentationChunkKey.Depth;
     private const int ChunkCount = 3;
-    private const int BlocksPerChunk = Width * Height * Width;
+    private const int BlocksPerChunk = Width * Height * Depth;
 
     private readonly ClientNeighborhoodBoundaryBlocks _boundaries;
     private readonly BlockId[] _blocks;
@@ -29,22 +30,24 @@ internal sealed class ClientChunkNeighborhoodSnapshot
         ClientNeighborhoodBoundaryBlocks boundaries,
         IReadOnlyDictionary<BlockPosition, BlockId> source)
     {
-        var blocks = new BlockId[BlocksPerChunk * ChunkCount * ChunkCount];
+        var blocks = new BlockId[BlocksPerChunk * ChunkCount * ChunkCount * ChunkCount];
         foreach (var (position, block) in source)
         {
-            var chunk = ClientPresentationChunkKey.FromBlock(position.X, position.Z);
+            var chunk = ClientPresentationChunkKey.FromBlock(position);
             var chunkX = chunk.X - center.X + 1;
+            var chunkY = chunk.Y - center.Y + 1;
             var chunkZ = chunk.Z - center.Z + 1;
             if (chunkX is < 0 or > 2 ||
-                chunkZ is < 0 or > 2 ||
-                position.Y is < 0 or >= Height)
+                chunkY is < 0 or > 2 ||
+                chunkZ is < 0 or > 2)
             {
                 continue;
             }
 
-            var localX = ClientPresentationChunkKey.LocalBlockCoordinate(position.X);
-            var localZ = ClientPresentationChunkKey.LocalBlockCoordinate(position.Z);
-            blocks[SnapshotIndex(chunkX, chunkZ, localX, position.Y, localZ)] = block;
+            var localX = ClientPresentationChunkKey.LocalBlockCoordinate(position.X, Width);
+            var localY = ClientPresentationChunkKey.LocalBlockCoordinate(position.Y, Height);
+            var localZ = ClientPresentationChunkKey.LocalBlockCoordinate(position.Z, Depth);
+            blocks[SnapshotIndex(chunkX, chunkY, chunkZ, localX, localY, localZ)] = block;
         }
 
         return new ClientChunkNeighborhoodSnapshot(center, boundaries, blocks);
@@ -52,13 +55,18 @@ internal sealed class ClientChunkNeighborhoodSnapshot
 
     public BlockId LocalBlock(int chunkX, int chunkZ, int blockX, int blockY, int blockZ)
     {
-        if (chunkX < 0 || chunkX > 2 || chunkZ < 0 || chunkZ > 2)
+        return LocalBlock(chunkX, 1, chunkZ, blockX, blockY, blockZ);
+    }
+
+    public BlockId LocalBlock(int chunkX, int chunkY, int chunkZ, int blockX, int blockY, int blockZ)
+    {
+        if (chunkX < 0 || chunkX > 2 || chunkY < 0 || chunkY > 2 || chunkZ < 0 || chunkZ > 2)
         {
             return BlockId.Air;
         }
 
         return WorldBlock(
-            new ClientPresentationChunkKey(Center.X + chunkX - 1, Center.Z + chunkZ - 1),
+            new ClientPresentationChunkKey(Center.X + chunkX - 1, Center.Y + chunkY - 1, Center.Z + chunkZ - 1),
             blockX,
             blockY,
             blockZ);
@@ -70,6 +78,7 @@ internal sealed class ClientChunkNeighborhoodSnapshot
         var y = blockY + dy;
         var z = blockZ + dz;
         var chunkX = 1;
+        var chunkY = 1;
         var chunkZ = 1;
 
         while (x < 0)
@@ -84,47 +93,61 @@ internal sealed class ClientChunkNeighborhoodSnapshot
             chunkX++;
         }
 
+        while (y < 0)
+        {
+            y += ClientPresentationChunkKey.Height;
+            chunkY--;
+        }
+
+        while (y >= ClientPresentationChunkKey.Height)
+        {
+            y -= ClientPresentationChunkKey.Height;
+            chunkY++;
+        }
+
         while (z < 0)
         {
-            z += ClientPresentationChunkKey.Width;
+            z += ClientPresentationChunkKey.Depth;
             chunkZ--;
         }
 
-        while (z >= ClientPresentationChunkKey.Width)
+        while (z >= ClientPresentationChunkKey.Depth)
         {
-            z -= ClientPresentationChunkKey.Width;
+            z -= ClientPresentationChunkKey.Depth;
             chunkZ++;
         }
 
-        return LocalBlock(chunkX, chunkZ, x, y, z);
+        return LocalBlock(chunkX, chunkY, chunkZ, x, y, z);
     }
 
     private BlockId WorldBlock(ClientPresentationChunkKey chunk, int localX, int y, int localZ)
     {
-        if (y < 0)
+        var worldY = chunk.Y * ClientPresentationChunkKey.Height + y;
+        if (worldY < ChunkConstants.WorldMinY)
         {
             return _boundaries.BelowWorldBlock;
         }
 
-        if (y >= Height)
+        if (worldY >= ChunkConstants.WorldMaxYExclusive)
         {
             return BlockId.Air;
         }
 
         var chunkX = chunk.X - Center.X + 1;
+        var chunkY = chunk.Y - Center.Y + 1;
         var chunkZ = chunk.Z - Center.Z + 1;
-        if (chunkX is < 0 or > 2 || chunkZ is < 0 or > 2)
+        if (chunkX is < 0 or > 2 || chunkY is < 0 or > 2 || chunkZ is < 0 or > 2)
         {
             return BlockId.Air;
         }
 
-        return _blocks[SnapshotIndex(chunkX, chunkZ, localX, y, localZ)];
+        return _blocks[SnapshotIndex(chunkX, chunkY, chunkZ, localX, y, localZ)];
     }
 
-    private static int SnapshotIndex(int chunkX, int chunkZ, int localX, int y, int localZ)
+    private static int SnapshotIndex(int chunkX, int chunkY, int chunkZ, int localX, int y, int localZ)
     {
-        return (chunkX * ChunkCount + chunkZ) * BlocksPerChunk +
-            (localX * Height + y) * Width +
+        return ((chunkX * ChunkCount + chunkY) * ChunkCount + chunkZ) * BlocksPerChunk +
+            (localX * Height + y) * Depth +
             localZ;
     }
 }

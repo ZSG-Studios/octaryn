@@ -7,7 +7,7 @@ import sys
 CONTENT_DIRS = ("Data", "Assets", "Shaders")
 ALLOWED_DATA_SUFFIXES = {".json", ".toml", ".yaml", ".yml", ".txt", ".csv"}
 ALLOWED_ASSET_SUFFIXES = {".json", ".png", ".jpg", ".jpeg", ".ktx2", ".glb", ".gltf", ".ogg", ".wav", ".txt"}
-ALLOWED_SHADER_SUFFIXES = {".glsl", ".hlsl", ".wgsl", ".json", ".txt"}
+ALLOWED_SHADER_SUFFIXES = {".glsl", ".hlsl", ".inc", ".wgsl", ".json", ".txt"}
 
 
 def file_id(root, path):

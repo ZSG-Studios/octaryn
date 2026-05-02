@@ -25,7 +25,7 @@ internal sealed class ClientBlockPresentationStore
             _blocks[position] = block;
         }
 
-        var ownerChunk = ClientPresentationChunkKey.FromBlock(position.X, position.Z);
+        var ownerChunk = ClientPresentationChunkKey.FromBlock(position);
         MarkDirtyChunks(position, ownerChunk);
         _updates.Enqueue(new ClientBlockPresentationUpdate(position, block, ownerChunk));
         return true;
@@ -63,24 +63,42 @@ internal sealed class ClientBlockPresentationStore
     {
         _dirtyChunks.Add(ownerChunk);
 
-        var localX = ClientPresentationChunkKey.LocalBlockCoordinate(position.X);
+        var localX = ClientPresentationChunkKey.LocalBlockCoordinate(position.X, ClientPresentationChunkKey.Width);
         if (localX == 0)
         {
-            _dirtyChunks.Add(new ClientPresentationChunkKey(ownerChunk.X - 1, ownerChunk.Z));
+            _dirtyChunks.Add(ownerChunk with { X = ownerChunk.X - 1 });
         }
         else if (localX == ClientPresentationChunkKey.Width - 1)
         {
-            _dirtyChunks.Add(new ClientPresentationChunkKey(ownerChunk.X + 1, ownerChunk.Z));
+            _dirtyChunks.Add(ownerChunk with { X = ownerChunk.X + 1 });
         }
 
-        var localZ = ClientPresentationChunkKey.LocalBlockCoordinate(position.Z);
+        var localY = ClientPresentationChunkKey.LocalBlockCoordinate(position.Y, ClientPresentationChunkKey.Height);
+        if (localY == 0)
+        {
+            AddDirtyVerticalNeighbor(ownerChunk, ownerChunk.Y - 1);
+        }
+        else if (localY == ClientPresentationChunkKey.Height - 1)
+        {
+            AddDirtyVerticalNeighbor(ownerChunk, ownerChunk.Y + 1);
+        }
+
+        var localZ = ClientPresentationChunkKey.LocalBlockCoordinate(position.Z, ClientPresentationChunkKey.Depth);
         if (localZ == 0)
         {
-            _dirtyChunks.Add(new ClientPresentationChunkKey(ownerChunk.X, ownerChunk.Z - 1));
+            _dirtyChunks.Add(ownerChunk with { Z = ownerChunk.Z - 1 });
         }
-        else if (localZ == ClientPresentationChunkKey.Width - 1)
+        else if (localZ == ClientPresentationChunkKey.Depth - 1)
         {
-            _dirtyChunks.Add(new ClientPresentationChunkKey(ownerChunk.X, ownerChunk.Z + 1));
+            _dirtyChunks.Add(ownerChunk with { Z = ownerChunk.Z + 1 });
+        }
+    }
+
+    private void AddDirtyVerticalNeighbor(ClientPresentationChunkKey ownerChunk, int y)
+    {
+        if (ClientPresentationChunkKey.ContainsSectionY(y))
+        {
+            _dirtyChunks.Add(ownerChunk with { Y = y });
         }
     }
 }

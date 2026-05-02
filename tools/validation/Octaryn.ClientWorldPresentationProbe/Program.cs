@@ -25,28 +25,47 @@ internal static class ClientWorldPresentationProbe
         Require(store.TryDequeueUpdate(out var first), "first update dequeues");
         Require(first.Position == origin, "first update position");
         Require(first.Block.Value == 7, "first update block");
-        Require(first.Chunk == new ClientPresentationChunkKey(0, 0), "first update chunk");
+        Require(first.Chunk == new ClientPresentationChunkKey(0, 0, 0), "first update chunk");
 
         var negative = new BlockPosition(-1, 5, -33);
         Require(store.Apply(negative, new BlockId(8)), "negative block updates presentation store");
         Require(store.TryDequeueUpdate(out var second), "negative update dequeues");
-        Require(second.Chunk == new ClientPresentationChunkKey(-1, -2), "negative block uses floor chunk coordinates");
+        Require(second.Chunk == new ClientPresentationChunkKey(-1, 0, -2), "negative block uses floor chunk coordinates");
 
         var initialDirty = store.DrainDirtyChunks();
         Require(initialDirty.Count == 4, "drain returns dirty chunks");
         Require(initialDirty.Contains(first.Chunk), "drain includes first dirty chunk");
         Require(initialDirty.Contains(second.Chunk), "drain includes second dirty chunk");
-        Require(initialDirty.Contains(new ClientPresentationChunkKey(0, -2)), "drain includes negative x border chunk");
-        Require(initialDirty.Contains(new ClientPresentationChunkKey(-1, -1)), "drain includes negative z border chunk");
+        Require(initialDirty.Contains(new ClientPresentationChunkKey(0, 0, -2)), "drain includes negative x border chunk");
+        Require(initialDirty.Contains(new ClientPresentationChunkKey(-1, 0, -1)), "drain includes negative z border chunk");
         Require(store.DirtyChunkCount == 0, "drain clears dirty chunks");
 
         var border = new BlockPosition(31, 5, 0);
         Require(store.Apply(border, new BlockId(9)), "border block updates presentation store");
         var borderDirty = store.DrainDirtyChunks();
-        Require(borderDirty.Contains(new ClientPresentationChunkKey(0, 0)), "border edit marks owner chunk");
-        Require(borderDirty.Contains(new ClientPresentationChunkKey(1, 0)), "border edit marks east chunk");
-        Require(borderDirty.Contains(new ClientPresentationChunkKey(0, -1)), "border edit marks north chunk");
+        Require(borderDirty.Contains(new ClientPresentationChunkKey(0, 0, 0)), "border edit marks owner chunk");
+        Require(borderDirty.Contains(new ClientPresentationChunkKey(1, 0, 0)), "border edit marks east chunk");
+        Require(borderDirty.Contains(new ClientPresentationChunkKey(0, 0, -1)), "border edit marks north chunk");
         Require(borderDirty.Count == 3, "border edit marks only needed chunks");
+
+        var verticalBorder = new BlockPosition(4, 0, 4);
+        Require(store.Apply(verticalBorder, new BlockId(10)), "vertical border block updates presentation store");
+        var verticalDirty = store.DrainDirtyChunks();
+        Require(verticalDirty.Contains(new ClientPresentationChunkKey(0, 0, 0)), "vertical border marks owner section");
+        Require(verticalDirty.Contains(new ClientPresentationChunkKey(0, -1, 0)), "vertical border marks lower section");
+        Require(verticalDirty.Count == 2, "vertical border marks only needed sections");
+
+        var bottomStore = new ClientBlockPresentationStore();
+        Require(bottomStore.Apply(new BlockPosition(4, ChunkConstants.WorldMinY, 4), new BlockId(11)), "world bottom block updates presentation store");
+        var bottomDirty = bottomStore.DrainDirtyChunks();
+        Require(bottomDirty.Contains(new ClientPresentationChunkKey(0, ClientPresentationChunkKey.MinSectionY, 0)), "world bottom marks owner section");
+        Require(bottomDirty.Count == 1, "world bottom does not mark below-world section");
+
+        var topStore = new ClientBlockPresentationStore();
+        Require(topStore.Apply(new BlockPosition(4, ChunkConstants.WorldMaxYExclusive - 1, 4), new BlockId(12)), "world top block updates presentation store");
+        var topDirty = topStore.DrainDirtyChunks();
+        Require(topDirty.Contains(new ClientPresentationChunkKey(0, ClientPresentationChunkKey.MaxSectionYExclusive - 1, 0)), "world top marks owner section");
+        Require(topDirty.Count == 1, "world top does not mark above-world section");
 
         Require(store.Apply(origin, BlockId.Air), "air removes presented block");
         Require(store.GetBlock(origin) == BlockId.Air, "air removal visible");
@@ -73,7 +92,7 @@ internal static class ClientWorldPresentationProbe
         Require(store.Apply(new BlockPosition(64, 4, 1), new BlockId(16)), "snapshot outside source block");
 
         var snapshot = store.CaptureNeighborhood(
-            new ClientPresentationChunkKey(0, 0),
+            new ClientPresentationChunkKey(0, 0, 0),
             new ClientNeighborhoodBoundaryBlocks(new BlockId(1)));
         Require(snapshot.LocalBlock(1, 1, 1, 4, 1).Value == 11, "snapshot center local block");
         Require(snapshot.NeighborhoodBlock(31, 4, 1, 1, 0, 0).Value == 12, "snapshot samples east neighbor");
@@ -81,11 +100,27 @@ internal static class ClientWorldPresentationProbe
         Require(snapshot.NeighborhoodBlock(1, 4, 31, 0, 0, 1).Value == 14, "snapshot samples south neighbor");
         Require(snapshot.NeighborhoodBlock(1, 4, 0, 0, 0, -1).Value == 15, "snapshot samples north neighbor");
         Require(snapshot.NeighborhoodBlock(31, 4, 1, 33, 0, 0) == BlockId.Air, "snapshot outside neighborhood is air");
-        Require(snapshot.NeighborhoodBlock(1, 0, 1, 0, -1, 0).Value == 1, "snapshot below world is grass");
-        Require(snapshot.NeighborhoodBlock(1, ClientChunkNeighborhoodSnapshot.Height - 1, 1, 0, 1, 0) == BlockId.Air, "snapshot above world is air");
+        Require(snapshot.NeighborhoodBlock(1, 0, 1, 0, -1, 0) == BlockId.Air, "snapshot missing lower section is air");
+        Require(snapshot.NeighborhoodBlock(1, ClientChunkNeighborhoodSnapshot.Height - 1, 1, 0, 1, 0) == BlockId.Air, "snapshot missing upper section is air");
 
         Require(store.Apply(new BlockPosition(1, 4, 1), new BlockId(20)), "snapshot source mutates after capture");
         Require(snapshot.LocalBlock(1, 1, 1, 4, 1).Value == 11, "snapshot is immutable after capture");
+
+        var worldBottomStore = new ClientBlockPresentationStore();
+        Require(worldBottomStore.Apply(new BlockPosition(1, ChunkConstants.WorldMinY, 1), new BlockId(21)), "snapshot world bottom source block");
+        var worldBottom = worldBottomStore.CaptureNeighborhood(
+            new ClientPresentationChunkKey(0, ChunkConstants.WorldMinY / ClientChunkNeighborhoodSnapshot.Height, 0),
+            new ClientNeighborhoodBoundaryBlocks(new BlockId(1)));
+        Require(worldBottom.LocalBlock(1, 1, 1, 0, 1).Value == 21, "snapshot captures centered world bottom block");
+        Require(worldBottom.NeighborhoodBlock(1, 0, 1, 0, -1, 0).Value == 1, "snapshot below world uses boundary block");
+
+        var worldTopStore = new ClientBlockPresentationStore();
+        Require(worldTopStore.Apply(new BlockPosition(1, ChunkConstants.WorldMaxYExclusive - 1, 1), new BlockId(22)), "snapshot world top source block");
+        var worldTop = worldTopStore.CaptureNeighborhood(
+            new ClientPresentationChunkKey(0, (ChunkConstants.WorldMaxYExclusive - 1) / ClientChunkNeighborhoodSnapshot.Height, 0),
+            new ClientNeighborhoodBoundaryBlocks(new BlockId(1)));
+        Require(worldTop.LocalBlock(1, 1, 1, ClientChunkNeighborhoodSnapshot.Height - 1, 1).Value == 22, "snapshot captures centered world top block");
+        Require(worldTop.NeighborhoodBlock(1, ClientChunkNeighborhoodSnapshot.Height - 1, 1, 0, 1, 0) == BlockId.Air, "snapshot above world is air");
     }
 
     private static void ValidateBlockRenderRules()
@@ -161,22 +196,25 @@ internal static class ClientWorldPresentationProbe
         Require(store.Apply(new BlockPosition(1, 5, -1), new BlockId(9)), "north boundary sprite neighbor");
         Require(store.Apply(new BlockPosition(4, ClientChunkNeighborhoodSnapshot.Height - 1, 4), new BlockId(1)), "top face center block");
         Require(store.Apply(new BlockPosition(5, 0, 5), new BlockId(1)), "bottom face center block");
+        Require(store.Apply(new BlockPosition(5, -1, 5), new BlockId(1)), "lower section bottom occluder");
 
         var snapshot = store.CaptureNeighborhood(
-            new ClientPresentationChunkKey(0, 0),
+            new ClientPresentationChunkKey(0, 0, 0),
             new ClientNeighborhoodBoundaryBlocks(new BlockId(1)));
 
         Require(!ContainsFace(rules, snapshot, 31, 5, 1, Direction.PositiveX), "opaque east neighbor hides boundary face");
         Require(ContainsFace(rules, snapshot, 0, 5, 1, Direction.NegativeX), "leaves west neighbor exposes boundary face");
         Require(ContainsFace(rules, snapshot, 1, 5, 31, Direction.PositiveZ), "glass south neighbor exposes boundary face");
         Require(ContainsFace(rules, snapshot, 1, 5, 0, Direction.NegativeZ), "sprite north neighbor exposes boundary face");
-        Require(ContainsFace(rules, snapshot, 4, ClientChunkNeighborhoodSnapshot.Height - 1, 4, Direction.PositiveY), "above world exposes top face");
-        Require(!ContainsFace(rules, snapshot, 5, 0, 5, Direction.NegativeY), "below world grass hides bottom face");
+        Require(ContainsFace(rules, snapshot, 4, ClientChunkNeighborhoodSnapshot.Height - 1, 4, Direction.PositiveY), "missing upper section exposes top face");
+        Require(!ContainsFace(rules, snapshot, 5, 0, 5, Direction.NegativeY), "lower section block hides bottom face");
 
-        var airBelowSnapshot = store.CaptureNeighborhood(
-            new ClientPresentationChunkKey(0, 0),
+        var airBelowStore = new ClientBlockPresentationStore();
+        Require(airBelowStore.Apply(new BlockPosition(5, 0, 5), new BlockId(1)), "air lower section center block");
+        var airBelowSnapshot = airBelowStore.CaptureNeighborhood(
+            new ClientPresentationChunkKey(0, 0, 0),
             new ClientNeighborhoodBoundaryBlocks(BlockId.Air));
-        Require(ContainsFace(rules, airBelowSnapshot, 5, 0, 5, Direction.NegativeY), "below world air exposes bottom face");
+        Require(ContainsFace(rules, airBelowSnapshot, 5, 0, 5, Direction.NegativeY), "missing lower section exposes bottom face");
     }
 
     private static void ValidateChunkMeshPlanner()
@@ -196,7 +234,7 @@ internal static class ClientWorldPresentationProbe
         Require(store.Apply(new BlockPosition(16, 4, 16), new BlockId(8)), "planner cloud block");
 
         var snapshot = store.CaptureNeighborhood(
-            new ClientPresentationChunkKey(0, 0),
+            new ClientPresentationChunkKey(0, 0, 0),
             new ClientNeighborhoodBoundaryBlocks(BlockId.Air));
         var plan = planner.Build(snapshot);
         var repeatedPlan = planner.Build(snapshot);
@@ -344,7 +382,7 @@ internal static class ClientWorldPresentationProbe
         Require(store.Apply(new BlockPosition(12, 6, 12), new BlockId(8)), "pipeline hidden block");
 
         var snapshot = store.CaptureNeighborhood(
-            new ClientPresentationChunkKey(0, 0),
+            new ClientPresentationChunkKey(0, 0, 0),
             new ClientNeighborhoodBoundaryBlocks(BlockId.Air));
         var plan = planner.Build(snapshot);
         var repeatedPlan = planner.Build(snapshot);
@@ -425,7 +463,7 @@ internal static class ClientWorldPresentationProbe
         Require(store.Apply(new BlockPosition(8, 6, 8), new BlockId(9)), "upload plan sprite block");
 
         var packed = packer.Pack(planner.Build(store.CaptureNeighborhood(
-            new ClientPresentationChunkKey(0, 0),
+            new ClientPresentationChunkKey(0, 0, 0),
             new ClientNeighborhoodBoundaryBlocks(BlockId.Air))));
         var upload = ClientPackedMeshUploadValidator.CreateNonFluidPlan(packed);
         Require(upload.OpaqueFaceCount == packed.OpaqueCubeFaces.Count, "upload plan opaque count");

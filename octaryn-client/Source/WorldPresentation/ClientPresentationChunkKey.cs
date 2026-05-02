@@ -1,18 +1,32 @@
+using Octaryn.Shared.World;
+
 namespace Octaryn.Client.WorldPresentation;
 
-internal readonly record struct ClientPresentationChunkKey(int X, int Z)
+internal readonly record struct ClientPresentationChunkKey(int X, int Y, int Z)
 {
-    public const int Width = 32;
+    public const int Width = ChunkConstants.Width;
+    public const int Height = ChunkConstants.SectionHeight;
+    public const int Depth = ChunkConstants.Depth;
+    public const int MinSectionY = ChunkConstants.WorldMinY / Height;
+    public const int MaxSectionYExclusive = ChunkConstants.WorldMaxYExclusive / Height;
 
-    public static ClientPresentationChunkKey FromBlock(int x, int z)
+    public static ClientPresentationChunkKey FromBlock(BlockPosition position)
     {
-        return new ClientPresentationChunkKey(FloorDivide(x, Width), FloorDivide(z, Width));
+        return new ClientPresentationChunkKey(
+            FloorDivide(position.X, Width),
+            FloorDivide(position.Y, Height),
+            FloorDivide(position.Z, Depth));
     }
 
-    public static int LocalBlockCoordinate(int value)
+    public static int LocalBlockCoordinate(int value, int size)
     {
-        var local = value % Width;
-        return local < 0 ? local + Width : local;
+        var local = value % size;
+        return local < 0 ? local + size : local;
+    }
+
+    public static bool ContainsSectionY(int y)
+    {
+        return y >= MinSectionY && y < MaxSectionYExclusive;
     }
 
     private static int FloorDivide(int value, int divisor)
