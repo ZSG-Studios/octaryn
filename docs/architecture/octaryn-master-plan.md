@@ -1139,6 +1139,7 @@ octaryn_validate_scheduler_probe
 octaryn_validate_world_time_probe
 octaryn_validate_owner_module_validation_probe
 octaryn_validate_server_world_blocks_probe
+octaryn_validate_server_world_generation_probe
 octaryn_validate_basegame_player_probe
 octaryn_validate_basegame_interaction_probe
 octaryn_validate_client_world_presentation_probe
@@ -1393,6 +1394,7 @@ If a plan change claims current bundle/module behavior, also use the matching ta
 - `octaryn_validate_module_manifest_probe`
 - `octaryn_validate_module_layout`
 - `octaryn_validate_basegame_block_catalog`
+- `octaryn_validate_server_world_generation_probe`
 - `octaryn_validate_client_server_app`
 - `octaryn_validate_bundle_module_payload`
 

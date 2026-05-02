@@ -78,6 +78,7 @@ tools/build/cmake_build.sh debug-linux --target octaryn_validate_scheduler_contr
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_scheduler_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_world_time_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_server_world_blocks_probe
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_server_world_generation_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_basegame_player_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_basegame_interaction_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_client_world_presentation_probe
@@ -94,6 +95,7 @@ dotnet run --project tools/validation/Octaryn.OwnerModuleValidationProbe/Octaryn
 dotnet run --project tools/validation/Octaryn.SchedulerProbe/Octaryn.SchedulerProbe.csproj --configuration Debug
 dotnet run --project tools/validation/Octaryn.WorldTimeProbe/Octaryn.WorldTimeProbe.csproj --configuration Debug
 dotnet run --project tools/validation/Octaryn.ServerWorldBlocksProbe/Octaryn.ServerWorldBlocksProbe.csproj --configuration Debug
+dotnet run --project tools/validation/Octaryn.ServerWorldGenerationProbe/Octaryn.ServerWorldGenerationProbe.csproj --configuration Debug
 dotnet run --project tools/validation/Octaryn.BasegamePlayerProbe/Octaryn.BasegamePlayerProbe.csproj --configuration Debug
 dotnet run --project tools/validation/Octaryn.BasegameInteractionProbe/Octaryn.BasegameInteractionProbe.csproj --configuration Debug
 dotnet run --project tools/validation/Octaryn.ClientWorldPresentationProbe/Octaryn.ClientWorldPresentationProbe.csproj --configuration Debug
@@ -121,7 +123,7 @@ python3 tools/validation/validate_owner_launch_probe_logs.py --owner server --lo
 
 ## Notes
 
-- Root CMake currently builds managed owner targets, the shared native ABI library, client/server native bridge facades, native owner aggregate targets, and client/server publish bundles. `octaryn_all` is build-only; `octaryn_validate_all` runs direct module policy validators, bundle payload validation, .NET owner validation, CMake target inventory validation, scheduler contract validation, hostfxr bridge validation, and owner launch probe validation.
+- Root CMake currently builds managed owner targets, the shared native ABI library, client/server native bridge facades, native owner aggregate targets, and client/server publish bundles. `octaryn_all` is build-only; `octaryn_validate_all` runs direct module policy validators, bundle payload validation, .NET owner validation, CMake target inventory validation, scheduler contract validation, server world generation validation, hostfxr bridge validation, and owner launch probe validation.
 - Debug builds stage first-class root tools through `octaryn_debug_tools`: the PySide workspace control app, Tracy wrapper, shared tool environment, native UI launchers, setup helpers, Podman builder files, and Podman build wrappers under `build/<preset>/tools/`. RenderDoc is intentionally not workspace-managed; use an external RenderDoc install when needed.
 - `Octaryn.DotNet.sln` includes shared/client/server/basegame plus the validation probe projects, so solution restore/build covers the managed validators used by CMake.
 - Owner launch probe validation runs native client/server probe executables, calls valid bridge initialize/tick/command/snapshot/shutdown paths, and writes logs under `logs/client/` and `logs/server/`.

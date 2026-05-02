@@ -61,6 +61,7 @@ add_custom_target(octaryn_validate_all
         octaryn_validate_scheduler_probe
         octaryn_validate_world_time_probe
         octaryn_validate_server_world_blocks_probe
+        octaryn_validate_server_world_generation_probe
         octaryn_validate_basegame_player_probe
         octaryn_validate_basegame_interaction_probe
         octaryn_validate_client_world_presentation_probe
