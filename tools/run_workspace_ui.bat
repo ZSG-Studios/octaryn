@@ -23,7 +23,7 @@ exit /b 0
 :main
 set "IMAGE_NAME=localhost/octaryn-arch-builder:latest"
 if not "%OCTARYN_ARCH_BUILDER_IMAGE%"=="" set "IMAGE_NAME=%OCTARYN_ARCH_BUILDER_IMAGE%"
-set "BUILDER_VERSION=20260421-2"
+set "BUILDER_VERSION=20260501-1"
 
 echo [workspace-ui] starting one-shot setup from %REPO_ROOT%
 call "%REPO_ROOT%\tools\setup\windows_build_environment.bat" --yes
