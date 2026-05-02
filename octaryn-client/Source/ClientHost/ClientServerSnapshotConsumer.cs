@@ -16,8 +16,14 @@ internal sealed class ClientServerSnapshotConsumer(ClientBlockPresentationStore 
             return -1;
         }
 
+        if (snapshotHeader->TickId < _lastAppliedTickId)
+        {
+            return -3;
+        }
+
         if (snapshotHeader->ChangeCount == 0)
         {
+            _lastAppliedTickId = snapshotHeader->TickId;
             return 0;
         }
 
@@ -25,11 +31,6 @@ internal sealed class ClientServerSnapshotConsumer(ClientBlockPresentationStore 
         if (changes is null)
         {
             return -1;
-        }
-
-        if (snapshotHeader->TickId < _lastAppliedTickId)
-        {
-            return -3;
         }
 
         for (var index = 0u; index < snapshotHeader->ChangeCount; index++)

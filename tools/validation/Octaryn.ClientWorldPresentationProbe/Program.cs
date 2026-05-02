@@ -524,6 +524,15 @@ internal static class ClientWorldPresentationProbe
 
         var stale = new ServerSnapshotHeader(0, 1, 9, 0, (ulong)changes);
         Require(consumer.Apply(&stale) == -3, "consumer rejects stale snapshot");
+
+        var emptyNewer = new ServerSnapshotHeader(0, 0, 12, 0, 0);
+        Require(consumer.Apply(&emptyNewer) == 0, "consumer accepts empty newer snapshot");
+
+        var staleAfterEmpty = new ServerSnapshotHeader(0, 1, 11, 0, (ulong)changes);
+        Require(consumer.Apply(&staleAfterEmpty) == -3, "consumer rejects change older than empty snapshot");
+
+        var emptyStale = new ServerSnapshotHeader(0, 0, 11, 0, 0);
+        Require(consumer.Apply(&emptyStale) == -3, "consumer rejects empty stale snapshot");
     }
 
     private static void Require(bool condition, string name)
