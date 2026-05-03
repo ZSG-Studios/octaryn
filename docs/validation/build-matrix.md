@@ -68,6 +68,7 @@ tools/build/cmake_build.sh debug-linux --target octaryn_validate_module_manifest
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_module_manifest_files
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_module_manifest_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_bundle_module_payload
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_client_server_app
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_module_source_api
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_client_shader_bundle
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_module_binary_sandbox
