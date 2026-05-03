@@ -63,7 +63,7 @@ internal sealed class ServerTerrainGenerator(IWorldGenerationRules rules)
         {
             AddIfValid(blocks, new BlockEdit(
                 new BlockPosition(column.WorldX, y, column.WorldZ),
-                new BlockId(14)));
+                rules.WaterBlock));
         }
     }
 

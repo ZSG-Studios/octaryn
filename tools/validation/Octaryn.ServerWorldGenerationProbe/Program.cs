@@ -24,6 +24,7 @@ internal static class ServerWorldGenerationProbe
     {
         var rules = new BasegameWorldGenerationRules();
         Require(rules.WaterHeight == 30, "water height matches old worldgen");
+        Require(rules.WaterBlock == BasegameBlockCatalog.WaterSource, "water fill uses stable basegame water block");
 
         var sand = rules.PlanTerrainColumn(Sample(0, 0, 0.0f, -1.0f, -1.0f));
         Require(sand.TerrainHeight == 18, "lowland noise adjusts old low terrain");
@@ -138,6 +139,8 @@ internal static class ServerWorldGenerationProbe
     {
         public int WaterHeight => 30;
 
+        public BlockId WaterBlock => BasegameBlockCatalog.WaterSource;
+
         public TerrainColumnPlan PlanTerrainColumn(TerrainColumnSample sample)
         {
             return new TerrainColumnPlan(
@@ -149,8 +152,8 @@ internal static class ServerWorldGenerationProbe
                 sample.LocalDepth,
                 TerrainHeight: 18,
                 DecorationY: 30,
-                SurfaceBlock: new BlockId(3),
-                FillBlock: new BlockId(3),
+                SurfaceBlock: BasegameBlockCatalog.Sand,
+                FillBlock: BasegameBlockCatalog.Sand,
                 IsLowland: true,
                 HasGrassSurface: false);
         }

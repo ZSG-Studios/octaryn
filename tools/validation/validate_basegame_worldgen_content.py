@@ -10,6 +10,7 @@ FEATURE_FIELDS = {"id", "noiseThreshold", "blocks", "trunk", "leaves"}
 TERRAIN_RULE_FIELDS = {
     "schema",
     "waterHeight",
+    "waterBlock",
     "heightScale",
     "heightExponent",
     "baseHeight",
@@ -32,7 +33,7 @@ def validate(block_catalog_path, biomes_path, features_path, terrain_rule_path):
     block_ids = collect_block_ids(errors, block_catalog_path)
     feature_ids = collect_feature_ids(errors, features_path, block_ids)
     validate_biomes(errors, biomes_path, block_ids, feature_ids)
-    validate_terrain_rule(errors, terrain_rule_path)
+    validate_terrain_rule(errors, terrain_rule_path, block_ids)
     return errors
 
 
@@ -141,7 +142,7 @@ def validate_biomes(errors, path, block_ids, feature_ids):
                 errors.append(f"{path}: biome {biome_id!r} references unknown feature id {feature_id}")
 
 
-def validate_terrain_rule(errors, path):
+def validate_terrain_rule(errors, path, block_ids):
     document = load_json(path)
     unknown = sorted(set(document) - TERRAIN_RULE_FIELDS)
     for field in unknown:
@@ -152,7 +153,8 @@ def validate_terrain_rule(errors, path):
 
     if document.get("schema") != "octaryn.basegame.terrain_generation_rule.v1":
         errors.append(f"{path}: schema must be octaryn.basegame.terrain_generation_rule.v1")
-    for field in TERRAIN_RULE_FIELDS - {"schema"}:
+    validate_block_reference(errors, path, "terrain_generation", "waterBlock", document.get("waterBlock"), block_ids)
+    for field in TERRAIN_RULE_FIELDS - {"schema", "waterBlock"}:
         value = document.get(field)
         if not is_number(value):
             errors.append(f"{path}: terrain generation rule field {field} must be numeric")

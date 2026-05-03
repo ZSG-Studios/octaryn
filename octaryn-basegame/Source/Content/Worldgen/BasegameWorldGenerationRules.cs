@@ -16,6 +16,8 @@ public sealed class BasegameWorldGenerationRules : IWorldGenerationRules
 
     public int WaterHeight => 30;
 
+    public BlockId WaterBlock => BasegameBlockCatalog.WaterSource;
+
     public TerrainColumnPlan PlanTerrainColumn(TerrainColumnSample sample)
     {
         var height = (float)global::System.Math.Pow(global::System.Math.Max(sample.HeightNoise * 50.0f, 0.0f), 1.3f) + 30.0f;
