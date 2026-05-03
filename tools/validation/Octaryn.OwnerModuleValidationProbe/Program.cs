@@ -51,6 +51,10 @@ internal static class OwnerModuleValidationProbe
             ]))),
             "client.module.host_api.replication_not_supported");
         ExpectInvalid(
+            "client rejects multiplayer",
+            ClientModuleValidation.Validate(Module(ValidManifest(supportsMultiplayer: true))),
+            "client.module.multiplayer.not_supported");
+        ExpectInvalid(
             "server rejects missing commands API",
             ServerModuleValidation.Validate(Module(ValidManifest(requestedHostApis: [HostApiIds.Frame]))),
             "server.module.host_api.required");

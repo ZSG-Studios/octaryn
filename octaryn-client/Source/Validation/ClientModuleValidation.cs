@@ -43,6 +43,13 @@ internal static class ClientModuleValidation
                     $"Client modules cannot declare server authority phases. System: {system.SystemId}");
             }
         }
+
+        if (manifest.Compatibility.SupportsMultiplayer)
+        {
+            report.AddError(
+                "client.module.multiplayer.not_supported",
+                "Client multiplayer policy is deny-by-default until replication contracts are implemented.");
+        }
     }
 
     private static void RequireHostApi(ModuleValidationReport report, GameModuleManifest manifest, string hostApi)
