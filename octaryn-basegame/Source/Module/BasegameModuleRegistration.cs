@@ -82,13 +82,7 @@ public sealed class BasegameModuleRegistration : IGameModuleRegistration, IBlock
                 "rule",
                 "Data/Rules/octaryn.basegame.rule.terrain_generation.json")
         ],
-        AssetDeclarations:
-        [
-            new GameModuleAssetDeclaration(
-                "octaryn.basegame.texture.placeholder",
-                "texture",
-                "Assets/Textures/octaryn.basegame.texture.placeholder.txt")
-        ],
+        AssetDeclarations: [],
         Schedule: new GameModuleScheduleDeclaration(
         [
             BasegameScheduleDeclarations.FrameTick

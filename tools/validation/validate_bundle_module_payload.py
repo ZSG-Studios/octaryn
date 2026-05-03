@@ -29,8 +29,8 @@ def validate(bundle_root, module_id, expected_manifest_path=None):
         expected_manifest = json.loads(expected_manifest_path.read_text(encoding="utf-8"))
         if normalize_manifest(manifest) != normalize_manifest(expected_manifest):
             errors.append(f"{descriptor_path}: bundled module descriptor does not match {expected_manifest_path}")
-    elif not manifest.get("ContentDeclarations") or not manifest.get("AssetDeclarations"):
-        errors.append(f"{descriptor_path}: module descriptor must declare content and assets")
+    elif not manifest.get("ContentDeclarations"):
+        errors.append(f"{descriptor_path}: module descriptor must declare content")
 
     declared_payloads = set()
     for declaration in manifest.get("ContentDeclarations", []):

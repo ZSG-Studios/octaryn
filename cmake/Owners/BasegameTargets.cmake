@@ -32,7 +32,6 @@ add_custom_command(
         "${octaryn_basegame_bundle_dir}/Data/Items/octaryn.basegame.item.hand.json"
         "${octaryn_basegame_bundle_dir}/Data/Rules/octaryn.basegame.rule.default_interaction.json"
         "${octaryn_basegame_bundle_dir}/Data/Rules/octaryn.basegame.rule.terrain_generation.json"
-        "${octaryn_basegame_bundle_dir}/Assets/Textures/octaryn.basegame.texture.placeholder.txt"
     COMMAND "${CMAKE_COMMAND}" -E rm -rf "${octaryn_basegame_bundle_dir}"
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${octaryn_basegame_bundle_dir}"
     COMMAND "${CMAKE_COMMAND}" -E rm -rf "${octaryn_basegame_bundle_obj_dir}"

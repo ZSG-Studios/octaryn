@@ -67,13 +67,7 @@
       "RelativePath": "Data/Rules/octaryn.basegame.rule.terrain_generation.json"
     }
   ],
-  "AssetDeclarations": [
-    {
-      "AssetId": "octaryn.basegame.texture.placeholder",
-      "AssetKind": "texture",
-      "RelativePath": "Assets/Textures/octaryn.basegame.texture.placeholder.txt"
-    }
-  ],
+  "AssetDeclarations": [],
   "Schedule": {
     "Systems": [
       {

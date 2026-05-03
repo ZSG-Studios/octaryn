@@ -97,7 +97,6 @@ add_custom_command(
         "${octaryn_server_bundle_dir}/Data/Items/octaryn.basegame.item.hand.json"
         "${octaryn_server_bundle_dir}/Data/Rules/octaryn.basegame.rule.default_interaction.json"
         "${octaryn_server_bundle_dir}/Data/Rules/octaryn.basegame.rule.terrain_generation.json"
-        "${octaryn_server_bundle_dir}/Assets/Textures/octaryn.basegame.texture.placeholder.txt"
         "${octaryn_server_bundle_dir}/Octaryn.Shared.dll"
         "${octaryn_server_bundle_dir}/Octaryn.Server.pdb"
         "${octaryn_server_bundle_dir}/Octaryn.Basegame.pdb"
