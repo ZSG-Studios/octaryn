@@ -5,7 +5,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=tool_environment.sh
 source "${script_dir}/tool_environment.sh"
 
-image="${OCTARYN_PODMAN_BUILD_IMAGE:-${OCTARYN_ARCH_BUILDER_IMAGE:-localhost/octaryn-arch-builder:latest}}"
+image="${OCTARYN_PODMAN_BUILD_IMAGE:-localhost/octaryn-arch-builder:latest}"
 containerfile="${octaryn_workspace_root}/tools/build/Containerfile.arch-build"
 podman_context="${octaryn_workspace_root}/tools/build"
 workspace_container_path="${octaryn_workspace_root}"
@@ -26,7 +26,6 @@ Commands:
 Environment:
   OCTARYN_TARGET_ARCH          x64 or arm64. Default: x64.
   OCTARYN_PODMAN_BUILD_IMAGE   Local builder image tag.
-  OCTARYN_ARCH_BUILDER_IMAGE   Backward-compatible builder image tag override.
   OCTARYN_PODMAN_REBUILD       Set to 1 to rebuild the builder image before running.
 USAGE
 }

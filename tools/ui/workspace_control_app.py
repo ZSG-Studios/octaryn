@@ -215,7 +215,7 @@ def podman_build_environment_summary() -> str:
     podman = QtCore.QStandardPaths.findExecutable("podman")
     image = os.environ.get(
         "OCTARYN_PODMAN_BUILD_IMAGE",
-        os.environ.get("OCTARYN_ARCH_BUILDER_IMAGE", "localhost/octaryn-arch-builder:latest"),
+        "localhost/octaryn-arch-builder:latest",
     )
     if not PODMAN_BUILD_SCRIPT.exists():
         return "Podman build env: missing wrapper"

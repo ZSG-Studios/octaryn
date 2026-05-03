@@ -2,9 +2,6 @@ FROM docker.io/mstorsjo/llvm-mingw:dev-20260421 AS llvm_mingw
 
 FROM docker.io/archlinux:latest
 
-ARG OCTARYN_ARCH_BUILDER_VERSION=20260421-2
-LABEL org.octaryn.arch-builder.version="${OCTARYN_ARCH_BUILDER_VERSION}"
-
 COPY arch_packages.txt /tmp/octaryn-arch-packages.txt
 RUN pacman -Syu --noconfirm \
     && pacman -S --needed --noconfirm $(grep -Ev '^[[:space:]]*(#|$)' /tmp/octaryn-arch-packages.txt) \

@@ -24,8 +24,7 @@ repo_root="$(find_repo_root)"
 setup_script="${repo_root}/tools/build/linux_build_environment.sh"
 podman_dir="${repo_root}/tools/build"
 containerfile="${podman_dir}/Containerfile.arch-build"
-image_name="${OCTARYN_ARCH_BUILDER_IMAGE:-localhost/octaryn-arch-builder:latest}"
-builder_version="20260421-2"
+image_name="${OCTARYN_PODMAN_BUILD_IMAGE:-localhost/octaryn-arch-builder:latest}"
 
 run_setup() {
   if [[ ! -f "${setup_script}" ]]; then
@@ -96,20 +95,26 @@ ensure_arch_image() {
     printf '[error] missing Podman builder files under %s\n' "${podman_dir}" >&2
     exit 1
   fi
-  local current_version=""
+  local fingerprint
+  local current_fingerprint=""
+  fingerprint="$(builder_fingerprint)"
   if podman image exists "${image_name}"; then
-    current_version="$(podman image inspect "${image_name}" --format '{{ index .Config.Labels "org.octaryn.arch-builder.version" }}' 2>/dev/null || true)"
+    current_fingerprint="$(podman image inspect "${image_name}" --format '{{ index .Config.Labels "org.octaryn.arch-builder.fingerprint" }}' 2>/dev/null || true)"
   fi
-  if [[ "${current_version}" == "${builder_version}" ]]; then
+  if [[ "${current_fingerprint}" == "${fingerprint}" ]]; then
     log "Arch builder image ready: ${image_name}"
     return 0
   fi
   log "building Arch builder image ${image_name}"
   podman build \
-    --build-arg "OCTARYN_ARCH_BUILDER_VERSION=${builder_version}" \
+    --label "org.octaryn.arch-builder.fingerprint=${fingerprint}" \
     -t "${image_name}" \
     -f "${containerfile}" \
     "${podman_dir}"
+}
+
+builder_fingerprint() {
+  sha256sum "${containerfile}" "${podman_dir}/arch_packages.txt" | sha256sum | awk '{print $1}'
 }
 
 validate_workspace_mount() {
