@@ -140,7 +140,7 @@ def render_int_values(values):
 
 
 def render_members(block_ids):
-    placeable_member_ids = [
+    block_member_ids = [
         ("Dirt", "octaryn.basegame.block.dirt"),
         ("Grass", "octaryn.basegame.block.grass"),
         ("Sand", "octaryn.basegame.block.sand"),
@@ -172,13 +172,13 @@ def render_members(block_ids):
         ("LavaLevelOne", "octaryn.basegame.block.lava_1"),
         ("LavaLevelSeven", "octaryn.basegame.block.lava_7"),
     ]
-    named_block_ids = placeable_member_ids + fluid_member_ids
+    named_block_ids = block_member_ids + fluid_member_ids
     named_ids = {
         name: required_block_id(block_ids, block_id)
         for name, block_id in named_block_ids
     }
     member_lines = []
-    for name, _ in placeable_member_ids:
+    for name, _ in block_member_ids:
         member_lines.extend(["", f"    public static BlockId {name} => new({named_ids[name]});"])
     member_lines.extend([
         "",
