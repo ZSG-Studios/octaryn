@@ -35,8 +35,10 @@ internal static class ServerWorldBlocksProbe
         Require(ChunkConstants.Depth == 32, "chunk depth");
         Require(ChunkConstants.SectionHeight == 32, "chunk section height");
         Require(ChunkConstants.WorldHeight == 512, "world height");
-        Require(ChunkConstants.WorldMinY == -256, "centered world min y");
-        Require(ChunkConstants.WorldMaxYExclusive == 256, "centered world max y");
+        var centeredWorldMinY = -ChunkConstants.WorldHeight / 2;
+        var centeredWorldMaxYExclusive = centeredWorldMinY + ChunkConstants.WorldHeight;
+        Require(ChunkConstants.WorldMinY == centeredWorldMinY, "centered world min y");
+        Require(ChunkConstants.WorldMaxYExclusive == centeredWorldMaxYExclusive, "centered world max y");
         Require(ChunkConstants.WorldMaxYExclusive - ChunkConstants.WorldMinY == ChunkConstants.WorldHeight, "world height span");
         Require(ChunkConstants.SectionBlockCount == ChunkConstants.Width * ChunkConstants.SectionHeight * ChunkConstants.Depth, "section block count");
         Require(ChunkConstants.WorldHeight % ChunkConstants.SectionHeight == 0, "world height section alignment");

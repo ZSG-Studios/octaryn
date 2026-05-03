@@ -49,7 +49,7 @@ internal sealed class ServerTerrainGenerator(IWorldGenerationRules rules)
     private void AddColumnBlocks(TerrainColumnPlan column, ICollection<BlockEdit> blocks)
     {
         var fillTopExclusive = Math.Min(column.TerrainHeight, ServerBlockLimits.WorldMaxYExclusive);
-        for (var y = 0; y < fillTopExclusive; y++)
+        for (var y = ServerBlockLimits.WorldMinY; y < fillTopExclusive; y++)
         {
             AddIfValid(blocks, new BlockEdit(new BlockPosition(column.WorldX, y, column.WorldZ), column.FillBlock));
         }

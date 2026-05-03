@@ -67,6 +67,8 @@ internal static class ServerWorldGenerationProbe
         Require(blocks.Count > ChunkConstants.Width * ChunkConstants.Depth, "generation emits terrain blocks");
         Require(blocks.All(block => block.Position.Y >= ChunkConstants.WorldMinY), "generated blocks stay above min y");
         Require(blocks.All(block => block.Position.Y < ChunkConstants.WorldMaxYExclusive), "generated blocks stay below max y");
+        Require(blocks.Any(block => block.Position.Y == ChunkConstants.WorldMinY), "generation fills centered world floor");
+        Require(blocks.Any(block => block.Position.Y < 0), "generation fills below origin in centered world");
         Require(blocks.Any(block => block.Block.Value is 1 or 3 or 4 or 5), "generation emits terrain surface blocks");
         var waterBlocks = new ServerTerrainGenerator(new FixedLowlandRules()).GenerateChunkColumn(0, 0);
         Require(waterBlocks.Any(block => block.Block.Value == 14), "generation emits water where terrain is below water height");
