@@ -19,6 +19,7 @@ REQUIRED_TARGETS = {
     "octaryn_native_jobs",
     "octaryn_basegame",
     "octaryn_basegame_native",
+    "octaryn_basegame_bundle",
     "octaryn_server",
     "octaryn_server_bundle",
     "octaryn_server_native",

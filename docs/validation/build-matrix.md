@@ -54,7 +54,9 @@ tools/build/cmake_build.sh debug-linux --target octaryn_client_managed_bridge
 tools/build/cmake_build.sh debug-linux --target octaryn_client_camera_matrix
 tools/build/cmake_build.sh debug-linux --target octaryn_client_render_distance
 tools/build/cmake_build.sh debug-linux --target octaryn_server_managed_bridge
+tools/build/cmake_build.sh debug-linux --target octaryn_basegame_bundle
 tools/build/cmake_build.sh debug-linux --target octaryn_server_bundle
+tools/build/cmake_build.sh debug-linux --target octaryn_client_bundle
 tools/build/cmake_build.sh debug-linux --target octaryn_run_client_launch_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_run_server_launch_probe
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_cmake_targets
@@ -125,7 +127,7 @@ python3 tools/validation/validate_owner_launch_probe_logs.py --owner server --lo
 
 ## Notes
 
-- Root CMake currently builds managed owner targets, the shared native ABI library, client/server native bridge facades, native owner aggregate targets, and client/server publish bundles. `octaryn_all` is build-only; `octaryn_validate_all` runs direct module policy validators, bundle payload validation, basegame block catalog validation, .NET owner validation, CMake target inventory validation, scheduler contract validation, server world generation validation, hostfxr bridge validation, and owner launch probe validation.
+- Root CMake currently builds managed owner targets, the shared native ABI library, client/server native bridge facades, native owner aggregate targets, and basegame/client/server publish bundles. `octaryn_all` is build-only; `octaryn_validate_all` runs direct module policy validators, bundle payload validation, basegame block catalog validation, .NET owner validation, CMake target inventory validation, scheduler contract validation, server world generation validation, hostfxr bridge validation, and owner launch probe validation.
 - Debug builds stage first-class root tools through `octaryn_debug_tools`: the PySide workspace control app, Tracy wrapper, shared tool environment, native UI launchers, setup helpers, Podman builder files, and Podman build wrappers under `build/<preset>/tools/`. RenderDoc is intentionally not workspace-managed; use an external RenderDoc install when needed.
 - `Octaryn.DotNet.sln` includes shared/client/server/basegame plus the validation probe projects, so solution restore/build covers the managed validators used by CMake.
 - Owner launch probe validation runs native client/server probe executables, calls valid bridge initialize/tick/command/snapshot/shutdown paths, and writes logs under `logs/client/` and `logs/server/`.
