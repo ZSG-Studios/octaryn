@@ -440,6 +440,7 @@ add_custom_command(
         "${octaryn_client_server_dir}/Octaryn.Server.dll"
         "${octaryn_client_server_dir}/Octaryn.Server.deps.json"
         "${octaryn_client_server_dir}/Octaryn.Server.runtimeconfig.json"
+        "${octaryn_client_server_dir}/Octaryn.Server${CMAKE_EXECUTABLE_SUFFIX}"
         "${octaryn_client_server_dir}/Octaryn.Shared.dll"
         "${octaryn_client_server_dir}/Octaryn.Basegame.dll"
         "${octaryn_client_server_dir}/Data/Module/octaryn.basegame.module.json"

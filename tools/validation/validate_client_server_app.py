@@ -16,6 +16,11 @@ REQUIRED_SERVER_FILES = (
     "Data/Module/octaryn.basegame.module.json",
 )
 
+SERVER_ENTRYPOINT_FILES = (
+    "Octaryn.Server",
+    "Octaryn.Server.exe",
+)
+
 FORBIDDEN_CLIENT_PAYLOADS = (
     "Octaryn.Client.dll",
     "Octaryn.Client.deps.json",
@@ -30,6 +35,14 @@ def relative_files(root):
         for path in root.rglob("*")
         if path.is_file()
     }
+
+
+def existing_entrypoints(root):
+    return [
+        relative
+        for relative in SERVER_ENTRYPOINT_FILES
+        if (root / relative).is_file()
+    ]
 
 
 def validate(client_bundle_root, server_bundle_root):
@@ -50,6 +63,17 @@ def validate(client_bundle_root, server_bundle_root):
             errors.append(f"{server_bundle_root / relative}: required server bundle file is missing")
         if not (payload_root / relative).is_file():
             errors.append(f"{payload_root / relative}: required bundled server file is missing")
+
+    server_entrypoints = existing_entrypoints(server_bundle_root)
+    payload_entrypoints = existing_entrypoints(payload_root)
+    if not server_entrypoints:
+        errors.append(f"{server_bundle_root}: dedicated server bundle has no launchable server entrypoint")
+    if not payload_entrypoints:
+        errors.append(f"{payload_root}: bundled server app has no launchable server entrypoint")
+    if server_entrypoints != payload_entrypoints:
+        errors.append(
+            f"{payload_root}: bundled server entrypoints {payload_entrypoints} "
+            f"do not match server-owned entrypoints {server_entrypoints}")
 
     for relative in FORBIDDEN_CLIENT_PAYLOADS:
         if (server_bundle_root / relative).exists():

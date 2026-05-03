@@ -109,6 +109,7 @@ python3 tools/validation/validate_module_manifest_packages.py --module-root octa
 python3 tools/validation/validate_module_manifest_files.py --module-root octaryn-basegame --manifest-json build/debug-linux/basegame/generated/octaryn.basegame.manifest.json
 python3 tools/validation/validate_bundle_module_payload.py --bundle-root build/debug-linux/client/bundle --module-id octaryn.basegame --expected-manifest build/debug-linux/basegame/generated/octaryn.basegame.manifest.json
 python3 tools/validation/validate_bundle_module_payload.py --bundle-root build/debug-linux/server/bundle --module-id octaryn.basegame --expected-manifest build/debug-linux/basegame/generated/octaryn.basegame.manifest.json
+python3 tools/validation/validate_client_server_app.py --client-bundle-root build/debug-linux/client/bundle --server-bundle-root build/debug-linux/server/bundle
 python3 tools/validation/validate_package_policy_sync.py
 python3 tools/validation/validate_cmake_policy_separation.py --repo-root .
 python3 tools/validation/validate_cmake_dependency_aliases.py --repo-root .
