@@ -73,6 +73,7 @@ tools/build/cmake_build.sh debug-linux --target octaryn_validate_client_shader_b
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_module_binary_sandbox
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_module_layout
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_basegame_block_catalog
+tools/build/cmake_build.sh debug-linux --target octaryn_validate_basegame_worldgen_content
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_dotnet_package_assets
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_native_abi_contracts
 tools/build/cmake_build.sh debug-linux --target octaryn_validate_native_owner_boundaries
@@ -105,6 +106,7 @@ dotnet run --project tools/validation/Octaryn.BasegameInteractionProbe/Octaryn.B
 dotnet run --project tools/validation/Octaryn.ClientWorldPresentationProbe/Octaryn.ClientWorldPresentationProbe.csproj --configuration Debug
 python3 tools/validation/validate_module_layout.py --module-root octaryn-basegame
 python3 tools/validation/validate_basegame_block_catalog.py --catalog octaryn-basegame/Data/Blocks/octaryn.basegame.blocks.json --generated-source octaryn-basegame/Source/Content/Blocks/BasegameBlockCatalog.cs
+python3 tools/validation/validate_basegame_worldgen_content.py --block-catalog octaryn-basegame/Data/Blocks/octaryn.basegame.blocks.json --biomes octaryn-basegame/Data/Biomes/octaryn.basegame.biomes.json --features octaryn-basegame/Data/Features/octaryn.basegame.features.json --terrain-rule octaryn-basegame/Data/Rules/octaryn.basegame.rule.terrain_generation.json
 python3 tools/validation/validate_dotnet_package_assets.py --assets-file build/debug-linux/client/managed-obj/project.assets.json --owner client
 python3 tools/validation/validate_dotnet_package_assets.py --assets-file build/debug-linux/server/managed-obj/project.assets.json --owner server
 python3 tools/validation/validate_dotnet_package_assets.py --assets-file build/debug-linux/basegame/managed-obj/project.assets.json --owner basegame
@@ -129,7 +131,7 @@ python3 tools/validation/validate_owner_launch_probe_logs.py --owner server --lo
 
 ## Notes
 
-- Root CMake currently builds managed owner targets, the shared native ABI library, client/server native bridge facades, native owner aggregate targets, and basegame/client/server publish bundles. `octaryn_all` is build-only; `octaryn_validate_all` runs direct module policy validators, bundle payload validation, client shader bundle validation, basegame block catalog validation, .NET owner validation, CMake target inventory validation, scheduler contract validation, server world generation validation, hostfxr bridge validation, and owner launch probe validation.
+- Root CMake currently builds managed owner targets, the shared native ABI library, client/server native bridge facades, native owner aggregate targets, and basegame/client/server publish bundles. `octaryn_all` is build-only; `octaryn_validate_all` runs direct module policy validators, bundle payload validation, client shader bundle validation, basegame block catalog and worldgen content validation, .NET owner validation, CMake target inventory validation, scheduler contract validation, server world generation validation, hostfxr bridge validation, and owner launch probe validation.
 - Debug builds stage first-class root tools through `octaryn_debug_tools`: the PySide workspace control app, Tracy wrapper, shared tool environment, native UI launchers, setup helpers, Podman builder files, and Podman build wrappers under `build/<preset>/tools/`. RenderDoc is intentionally not workspace-managed; use an external RenderDoc install when needed.
 - `Octaryn.DotNet.sln` includes shared/client/server/basegame plus the validation probe projects, so solution restore/build covers the managed validators used by CMake.
 - Owner launch probe validation runs native client/server probe executables, calls valid bridge initialize/tick/command/snapshot/shutdown paths, and writes logs under `logs/client/` and `logs/server/`.

@@ -238,6 +238,16 @@ add_custom_target(octaryn_validate_basegame_block_catalog
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)
 
+add_custom_target(octaryn_validate_basegame_worldgen_content
+    COMMAND python3
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_basegame_worldgen_content.py"
+        --block-catalog "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Data/Blocks/octaryn.basegame.blocks.json"
+        --biomes "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Data/Biomes/octaryn.basegame.biomes.json"
+        --features "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Data/Features/octaryn.basegame.features.json"
+        --terrain-rule "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-basegame/Data/Rules/octaryn.basegame.rule.terrain_generation.json"
+    WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
+    VERBATIM)
+
 add_custom_target(octaryn_validate_dotnet_package_assets
     COMMAND python3
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_dotnet_package_assets.py"

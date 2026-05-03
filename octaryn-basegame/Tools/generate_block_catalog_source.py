@@ -140,8 +140,18 @@ def render_int_values(values):
 
 
 def render_members(block_ids):
+    dirt_id = required_block_id(block_ids, "octaryn.basegame.block.dirt")
     grass_id = required_block_id(block_ids, "octaryn.basegame.block.grass")
+    sand_id = required_block_id(block_ids, "octaryn.basegame.block.sand")
+    snow_id = required_block_id(block_ids, "octaryn.basegame.block.snow")
+    stone_id = required_block_id(block_ids, "octaryn.basegame.block.stone")
+    log_id = required_block_id(block_ids, "octaryn.basegame.block.log")
     leaves_id = required_block_id(block_ids, "octaryn.basegame.block.leaves")
+    bush_id = required_block_id(block_ids, "octaryn.basegame.block.bush")
+    bluebell_id = required_block_id(block_ids, "octaryn.basegame.block.bluebell")
+    gardenia_id = required_block_id(block_ids, "octaryn.basegame.block.gardenia")
+    rose_id = required_block_id(block_ids, "octaryn.basegame.block.rose")
+    lavender_id = required_block_id(block_ids, "octaryn.basegame.block.lavender")
     yellow_torch_id = required_block_id(block_ids, "octaryn.basegame.block.yellow_torch")
     water_id = required_block_id(block_ids, "octaryn.basegame.block.water")
     water_7_id = required_block_id(block_ids, "octaryn.basegame.block.water_7")
@@ -149,9 +159,29 @@ def render_members(block_ids):
     lava_7_id = required_block_id(block_ids, "octaryn.basegame.block.lava_7")
     return [
         "",
+        f"    public static BlockId Dirt => new({dirt_id});",
+        "",
         f"    public static BlockId Grass => new({grass_id});",
         "",
+        f"    public static BlockId Sand => new({sand_id});",
+        "",
+        f"    public static BlockId Snow => new({snow_id});",
+        "",
+        f"    public static BlockId Stone => new({stone_id});",
+        "",
+        f"    public static BlockId Log => new({log_id});",
+        "",
         f"    public static BlockId Leaves => new({leaves_id});",
+        "",
+        f"    public static BlockId Bush => new({bush_id});",
+        "",
+        f"    public static BlockId Bluebell => new({bluebell_id});",
+        "",
+        f"    public static BlockId Gardenia => new({gardenia_id});",
+        "",
+        f"    public static BlockId Rose => new({rose_id});",
+        "",
+        f"    public static BlockId Lavender => new({lavender_id});",
         "",
         f"    public static BlockId DefaultSelectedBlock => new({yellow_torch_id});",
         "",

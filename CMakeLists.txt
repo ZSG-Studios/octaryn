@@ -53,6 +53,7 @@ add_custom_target(octaryn_validate_all
         octaryn_validate_module_binary_sandbox
         octaryn_validate_module_layout
         octaryn_validate_basegame_block_catalog
+        octaryn_validate_basegame_worldgen_content
         octaryn_validate_dotnet_package_assets
         octaryn_validate_native_abi_contracts
         octaryn_validate_native_owner_boundaries

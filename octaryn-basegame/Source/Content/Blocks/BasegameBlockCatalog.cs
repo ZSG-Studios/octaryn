@@ -227,9 +227,29 @@ public static class BasegameBlockCatalog
         2
     ];
 
+    public static BlockId Dirt => new(2);
+
     public static BlockId Grass => new(1);
 
+    public static BlockId Sand => new(3);
+
+    public static BlockId Snow => new(4);
+
+    public static BlockId Stone => new(5);
+
+    public static BlockId Log => new(6);
+
     public static BlockId Leaves => new(7);
+
+    public static BlockId Bush => new(9);
+
+    public static BlockId Bluebell => new(10);
+
+    public static BlockId Gardenia => new(11);
+
+    public static BlockId Rose => new(12);
+
+    public static BlockId Lavender => new(13);
 
     public static BlockId DefaultSelectedBlock => new(25);
 

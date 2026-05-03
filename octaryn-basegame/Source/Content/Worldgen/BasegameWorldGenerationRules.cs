@@ -1,21 +1,18 @@
 using System.Collections.Generic;
+using Octaryn.Basegame.Content.Blocks;
 using Octaryn.Shared.World;
 
 namespace Octaryn.Basegame.Content.Worldgen;
 
 public sealed class BasegameWorldGenerationRules : IWorldGenerationRules
 {
-    private static readonly BlockId Dirt = new(2);
-    private static readonly BlockId Sand = new(3);
-    private static readonly BlockId Snow = new(4);
-    private static readonly BlockId Stone = new(5);
-    private static readonly BlockId Log = new(6);
-    private static readonly BlockId Bush = new(9);
-    private static readonly BlockId Bluebell = new(10);
-    private static readonly BlockId Gardenia = new(11);
-    private static readonly BlockId Rose = new(12);
-    private static readonly BlockId Lavender = new(13);
-    private static readonly BlockId[] Flowers = [Bluebell, Gardenia, Lavender, Rose];
+    private static readonly BlockId[] Flowers =
+    [
+        BasegameBlockCatalog.Bluebell,
+        BasegameBlockCatalog.Gardenia,
+        BasegameBlockCatalog.Lavender,
+        BasegameBlockCatalog.Rose
+    ];
 
     public int WaterHeight => 30;
 
@@ -68,7 +65,9 @@ public sealed class BasegameWorldGenerationRules : IWorldGenerationRules
 
         if (plant > 0.55f)
         {
-            blocks.Add(new BlockEdit(new BlockPosition(column.WorldX, column.DecorationY + 1, column.WorldZ), Bush));
+            blocks.Add(new BlockEdit(
+                new BlockPosition(column.WorldX, column.DecorationY + 1, column.WorldZ),
+                BasegameBlockCatalog.Bush));
             return;
         }
 
@@ -85,21 +84,33 @@ public sealed class BasegameWorldGenerationRules : IWorldGenerationRules
     {
         if (height + biome < 31.0f)
         {
-            return new TerrainMaterials(Sand, Sand, HasGrassSurface: false);
+            return new TerrainMaterials(
+                BasegameBlockCatalog.Sand,
+                BasegameBlockCatalog.Sand,
+                HasGrassSurface: false);
         }
 
         biome = global::System.Math.Clamp(biome * 8.0f, -5.0f, 5.0f);
         if (height + biome < 61.0f)
         {
-            return new TerrainMaterials(new BlockId(1), Dirt, HasGrassSurface: true);
+            return new TerrainMaterials(
+                BasegameBlockCatalog.Grass,
+                BasegameBlockCatalog.Dirt,
+                HasGrassSurface: true);
         }
 
         if (height + biome < 132.0f)
         {
-            return new TerrainMaterials(Stone, Stone, HasGrassSurface: false);
+            return new TerrainMaterials(
+                BasegameBlockCatalog.Stone,
+                BasegameBlockCatalog.Stone,
+                HasGrassSurface: false);
         }
 
-        return new TerrainMaterials(Snow, Stone, HasGrassSurface: false);
+        return new TerrainMaterials(
+            BasegameBlockCatalog.Snow,
+            BasegameBlockCatalog.Stone,
+            HasGrassSurface: false);
     }
 
     private static void AddTreeBlocks(TerrainColumnPlan column, float plant, ICollection<BlockEdit> blocks)
@@ -109,7 +120,7 @@ public sealed class BasegameWorldGenerationRules : IWorldGenerationRules
         {
             blocks.Add(new BlockEdit(
                 new BlockPosition(column.WorldX, column.DecorationY + dy + 1, column.WorldZ),
-                Log));
+                BasegameBlockCatalog.Log));
         }
 
         for (var dx = -1; dx <= 1; dx++)
@@ -123,7 +134,7 @@ public sealed class BasegameWorldGenerationRules : IWorldGenerationRules
 
             blocks.Add(new BlockEdit(
                 new BlockPosition(column.WorldX + dx, column.DecorationY + logHeight + dy, column.WorldZ + dz),
-                new BlockId(7)));
+                BasegameBlockCatalog.Leaves));
         }
     }
 

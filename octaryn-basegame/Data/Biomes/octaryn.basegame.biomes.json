@@ -3,7 +3,7 @@
   "biomes": [
     {
       "id": "octaryn.basegame.biome.lowland",
-      "surface": "grass",
+      "surface": "octaryn.basegame.block.grass",
       "features": [
         "octaryn.basegame.feature.flowers",
         "octaryn.basegame.feature.bushes",
@@ -12,17 +12,17 @@
     },
     {
       "id": "octaryn.basegame.biome.beach",
-      "surface": "sand",
+      "surface": "octaryn.basegame.block.sand",
       "features": []
     },
     {
       "id": "octaryn.basegame.biome.highland",
-      "surface": "stone",
+      "surface": "octaryn.basegame.block.stone",
       "features": []
     },
     {
       "id": "octaryn.basegame.biome.snowcap",
-      "surface": "snow",
+      "surface": "octaryn.basegame.block.snow",
       "features": []
     }
   ]
