@@ -14,6 +14,7 @@ ASSET_DECLARATION = re.compile(
     re.DOTALL)
 IGNORABLE_BLOCK_TEXT = re.compile(r"[\s,]*")
 MODULE_DESCRIPTOR_PATTERN = re.compile(r"^Data/Module/[^/]+\.module\.json$")
+PLACEHOLDER_TEXT = re.compile(r"\bplaceholder\b", re.IGNORECASE)
 
 def source_files(module_root):
     yield from sorted((module_root / "Source").rglob("*.cs"))
@@ -100,6 +101,27 @@ def validate_supported_block(path, block_name, block, declaration_pattern):
     ]
 
 
+def validate_declared_content_file(path):
+    if path.suffix.lower() != ".json":
+        return []
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        return [f"{path}: declared JSON content file must be UTF-8 text: {error}"]
+
+    errors = []
+    try:
+        json.loads(text)
+    except json.JSONDecodeError as error:
+        errors.append(f"{path}: declared JSON content file is invalid: {error}")
+
+    if PLACEHOLDER_TEXT.search(text):
+        errors.append(f"{path}: declared content file still contains placeholder text")
+
+    return errors
+
+
 def validate(module_root, manifest_json=None):
     module_root = module_root.resolve()
     if manifest_json is None:
@@ -140,6 +162,8 @@ def validate(module_root, manifest_json=None):
             errors.append(f"{content_id}: declared content file is missing: {path}")
         elif path.stat().st_size == 0:
             errors.append(f"{path}: declared content file is empty")
+        else:
+            errors.extend(validate_declared_content_file(path))
 
     for asset_id, _asset_kind, relative_path in assets:
         if relative_path.startswith(("/", "\\")) or ".." in relative_path or ":" in relative_path:
