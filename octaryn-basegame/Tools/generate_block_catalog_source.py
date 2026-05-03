@@ -152,10 +152,21 @@ def render_members(block_ids):
     gardenia_id = required_block_id(block_ids, "octaryn.basegame.block.gardenia")
     rose_id = required_block_id(block_ids, "octaryn.basegame.block.rose")
     lavender_id = required_block_id(block_ids, "octaryn.basegame.block.lavender")
+    cloud_id = required_block_id(block_ids, "octaryn.basegame.block.cloud")
+    red_torch_id = required_block_id(block_ids, "octaryn.basegame.block.red_torch")
+    green_torch_id = required_block_id(block_ids, "octaryn.basegame.block.green_torch")
+    blue_torch_id = required_block_id(block_ids, "octaryn.basegame.block.blue_torch")
     yellow_torch_id = required_block_id(block_ids, "octaryn.basegame.block.yellow_torch")
+    cyan_torch_id = required_block_id(block_ids, "octaryn.basegame.block.cyan_torch")
+    magenta_torch_id = required_block_id(block_ids, "octaryn.basegame.block.magenta_torch")
+    white_torch_id = required_block_id(block_ids, "octaryn.basegame.block.white_torch")
+    planks_id = required_block_id(block_ids, "octaryn.basegame.block.planks")
+    glass_id = required_block_id(block_ids, "octaryn.basegame.block.glass")
     water_id = required_block_id(block_ids, "octaryn.basegame.block.water")
+    water_1_id = required_block_id(block_ids, "octaryn.basegame.block.water_1")
     water_7_id = required_block_id(block_ids, "octaryn.basegame.block.water_7")
     lava_id = required_block_id(block_ids, "octaryn.basegame.block.lava")
+    lava_1_id = required_block_id(block_ids, "octaryn.basegame.block.lava_1")
     lava_7_id = required_block_id(block_ids, "octaryn.basegame.block.lava_7")
     return [
         "",
@@ -173,6 +184,8 @@ def render_members(block_ids):
         "",
         f"    public static BlockId Leaves => new({leaves_id});",
         "",
+        f"    public static BlockId Cloud => new({cloud_id});",
+        "",
         f"    public static BlockId Bush => new({bush_id});",
         "",
         f"    public static BlockId Bluebell => new({bluebell_id});",
@@ -183,11 +196,37 @@ def render_members(block_ids):
         "",
         f"    public static BlockId Lavender => new({lavender_id});",
         "",
+        f"    public static BlockId RedTorch => new({red_torch_id});",
+        "",
+        f"    public static BlockId GreenTorch => new({green_torch_id});",
+        "",
+        f"    public static BlockId BlueTorch => new({blue_torch_id});",
+        "",
+        f"    public static BlockId YellowTorch => new({yellow_torch_id});",
+        "",
+        f"    public static BlockId CyanTorch => new({cyan_torch_id});",
+        "",
+        f"    public static BlockId MagentaTorch => new({magenta_torch_id});",
+        "",
+        f"    public static BlockId WhiteTorch => new({white_torch_id});",
+        "",
+        f"    public static BlockId Planks => new({planks_id});",
+        "",
+        f"    public static BlockId Glass => new({glass_id});",
+        "",
         f"    public static BlockId DefaultSelectedBlock => new({yellow_torch_id});",
         "",
         f"    public static BlockId WaterSource => new({water_id});",
         "",
+        f"    public static BlockId WaterLevelOne => new({water_1_id});",
+        "",
+        f"    public static BlockId WaterLevelSeven => new({water_7_id});",
+        "",
         f"    public static BlockId LavaSource => new({lava_id});",
+        "",
+        f"    public static BlockId LavaLevelOne => new({lava_1_id});",
+        "",
+        f"    public static BlockId LavaLevelSeven => new({lava_7_id});",
         "",
         "    public static bool IsKnown(BlockId block)",
         "    {",

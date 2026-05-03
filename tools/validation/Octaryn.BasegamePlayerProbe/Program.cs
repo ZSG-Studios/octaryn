@@ -1,3 +1,4 @@
+using Octaryn.Basegame.Content.Blocks;
 using Octaryn.Basegame.Gameplay.Player;
 using Octaryn.Shared.World;
 
@@ -7,35 +8,35 @@ internal static class BasegamePlayerProbe
 {
     public static int Run()
     {
-        Require(PlayerBlockSelectionState.Default.SelectedBlock.Value == 25, "default selected block is yellow torch");
-        Require(PlayerBlockSelectionRules.IsPlaceable(new BlockId(1)), "grass is placeable");
-        Require(PlayerBlockSelectionRules.IsPlaceable(new BlockId(14)), "water source is placeable");
+        Require(PlayerBlockSelectionState.Default.SelectedBlock == BasegameBlockCatalog.YellowTorch, "default selected block is yellow torch");
+        Require(PlayerBlockSelectionRules.IsPlaceable(BasegameBlockCatalog.Grass), "grass is placeable");
+        Require(PlayerBlockSelectionRules.IsPlaceable(BasegameBlockCatalog.WaterSource), "water source is placeable");
         Require(!PlayerBlockSelectionRules.IsPlaceable(BlockId.Air), "air is not placeable");
-        Require(!PlayerBlockSelectionRules.IsPlaceable(new BlockId(8)), "cloud is not placeable");
-        Require(!PlayerBlockSelectionRules.IsPlaceable(new BlockId(15)), "flowing water is not placeable");
-        Require(!PlayerBlockSelectionRules.IsPlaceable(new BlockId(32)), "flowing lava is not placeable");
+        Require(!PlayerBlockSelectionRules.IsPlaceable(BasegameBlockCatalog.Cloud), "cloud is not placeable");
+        Require(!PlayerBlockSelectionRules.IsPlaceable(BasegameBlockCatalog.WaterLevelOne), "flowing water is not placeable");
+        Require(!PlayerBlockSelectionRules.IsPlaceable(BasegameBlockCatalog.LavaLevelOne), "flowing lava is not placeable");
 
-        var selected = new PlayerBlockSelectionState(new BlockId(25));
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(selected, 1).SelectedBlock.Value == 26, "change block forward");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(selected, -1).SelectedBlock.Value == 24, "change block backward");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(7)), 1).SelectedBlock.Value == 9, "change skips cloud");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(7)), 2).SelectedBlock.Value == 9, "change raw block offset skips cloud");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(8)), 1).SelectedBlock.Value == 9, "change from cloud advances to bush");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(8)), -1).SelectedBlock.Value == 7, "change from cloud retreats to leaves");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(14)), 1).SelectedBlock.Value == 22, "change skips flowing water");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(15)), -1).SelectedBlock.Value == 14, "change from flowing water retreats to source");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(31)), 1).SelectedBlock.Value == 1, "change wraps forward");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(38)), -1).SelectedBlock.Value == 31, "change from flowing lava retreats to source");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(1)), -1).SelectedBlock.Value == 31, "change wraps backward");
-        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(8)), 0).SelectedBlock.Value == 25, "zero change from invalid block returns default");
+        var selected = new PlayerBlockSelectionState(BasegameBlockCatalog.YellowTorch);
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(selected, 1).SelectedBlock == BasegameBlockCatalog.CyanTorch, "change block forward");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(selected, -1).SelectedBlock == BasegameBlockCatalog.BlueTorch, "change block backward");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.Leaves), 1).SelectedBlock == BasegameBlockCatalog.Bush, "change skips cloud");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.Leaves), 2).SelectedBlock == BasegameBlockCatalog.Bush, "change raw block offset skips cloud");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.Cloud), 1).SelectedBlock == BasegameBlockCatalog.Bush, "change from cloud advances to bush");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.Cloud), -1).SelectedBlock == BasegameBlockCatalog.Leaves, "change from cloud retreats to leaves");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.WaterSource), 1).SelectedBlock == BasegameBlockCatalog.RedTorch, "change skips flowing water");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.WaterLevelOne), -1).SelectedBlock == BasegameBlockCatalog.WaterSource, "change from flowing water retreats to source");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.LavaSource), 1).SelectedBlock == BasegameBlockCatalog.Grass, "change wraps forward");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.LavaLevelSeven), -1).SelectedBlock == BasegameBlockCatalog.LavaSource, "change from flowing lava retreats to source");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.Grass), -1).SelectedBlock == BasegameBlockCatalog.LavaSource, "change wraps backward");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(BasegameBlockCatalog.Cloud), 0).SelectedBlock == BasegameBlockCatalog.YellowTorch, "zero change from invalid block returns default");
 
         Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BlockId.Air) == selected, "select ignores air");
-        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, new BlockId(8)) == selected, "select ignores cloud");
-        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, new BlockId(14)) == selected, "select ignores water source");
-        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, new BlockId(15)) == selected, "select ignores flowing water");
-        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, new BlockId(31)) == selected, "select ignores lava source");
-        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, new BlockId(5)).SelectedBlock.Value == 5, "select target block");
-        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, new BlockId(9)).SelectedBlock.Value == 9, "select target sprite block");
+        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BasegameBlockCatalog.Cloud) == selected, "select ignores cloud");
+        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BasegameBlockCatalog.WaterSource) == selected, "select ignores water source");
+        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BasegameBlockCatalog.WaterLevelOne) == selected, "select ignores flowing water");
+        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BasegameBlockCatalog.LavaSource) == selected, "select ignores lava source");
+        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BasegameBlockCatalog.Stone).SelectedBlock == BasegameBlockCatalog.Stone, "select target block");
+        Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BasegameBlockCatalog.Bush).SelectedBlock == BasegameBlockCatalog.Bush, "select target sprite block");
         return 0;
     }
 

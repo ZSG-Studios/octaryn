@@ -241,6 +241,8 @@ public static class BasegameBlockCatalog
 
     public static BlockId Leaves => new(7);
 
+    public static BlockId Cloud => new(8);
+
     public static BlockId Bush => new(9);
 
     public static BlockId Bluebell => new(10);
@@ -251,11 +253,37 @@ public static class BasegameBlockCatalog
 
     public static BlockId Lavender => new(13);
 
+    public static BlockId RedTorch => new(22);
+
+    public static BlockId GreenTorch => new(23);
+
+    public static BlockId BlueTorch => new(24);
+
+    public static BlockId YellowTorch => new(25);
+
+    public static BlockId CyanTorch => new(26);
+
+    public static BlockId MagentaTorch => new(27);
+
+    public static BlockId WhiteTorch => new(28);
+
+    public static BlockId Planks => new(29);
+
+    public static BlockId Glass => new(30);
+
     public static BlockId DefaultSelectedBlock => new(25);
 
     public static BlockId WaterSource => new(14);
 
+    public static BlockId WaterLevelOne => new(15);
+
+    public static BlockId WaterLevelSeven => new(21);
+
     public static BlockId LavaSource => new(31);
+
+    public static BlockId LavaLevelOne => new(32);
+
+    public static BlockId LavaLevelSeven => new(38);
 
     public static bool IsKnown(BlockId block)
     {
