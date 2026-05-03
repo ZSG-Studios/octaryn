@@ -59,6 +59,10 @@ internal static class OwnerModuleValidationProbe
             ServerModuleValidation.Validate(Module(ValidManifest(requestedHostApis: [HostApiIds.Frame]))),
             "server.module.host_api.required");
         ExpectInvalid(
+            "shared validator rejects missing commands API for command write",
+            ServerModuleValidation.Validate(Module(ValidManifest(requestedHostApis: [HostApiIds.Frame]))),
+            "module.schedule.commands.host_api.required");
+        ExpectInvalid(
             "server rejects client commands API",
             ServerModuleValidation.Validate(Module(ValidManifest(requestedHostApis:
             [
@@ -188,7 +192,7 @@ internal static class OwnerModuleValidationProbe
                     [
                         new ScheduledResourceAccess("host.frame", ScheduledAccessMode.Read)
                     ],
-                    Writes: ScheduleWrites(hostApis, includeCommandWrite),
+                    Writes: ScheduleWrites(includeCommandWrite),
                     RunsAfter: [],
                     RunsBefore: [],
                     Flags: HostWorkScheduleFlags.DeterministicOrder | HostWorkScheduleFlags.RequiresTickBarrier,
@@ -201,15 +205,13 @@ internal static class OwnerModuleValidationProbe
                 SupportsMultiplayer: supportsMultiplayer));
     }
 
-    private static IReadOnlyList<ScheduledResourceAccess> ScheduleWrites(
-        IReadOnlyList<string> hostApis,
-        bool includeCommandWrite)
+    private static IReadOnlyList<ScheduledResourceAccess> ScheduleWrites(bool includeCommandWrite)
     {
         var writes = new List<ScheduledResourceAccess>
         {
             new("octaryn.test.state", ScheduledAccessMode.Write)
         };
-        if (includeCommandWrite && hostApis.Contains(HostApiIds.Commands, StringComparer.Ordinal))
+        if (includeCommandWrite)
         {
             writes.Add(new ScheduledResourceAccess(HostApiIds.Commands, ScheduledAccessMode.Write));
         }

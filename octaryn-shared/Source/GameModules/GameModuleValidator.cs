@@ -201,6 +201,14 @@ public static class GameModuleValidator
                 $"Requested command access must be declared as a scheduled write resource: {HostApiIds.Commands}");
         }
 
+        if (HasScheduledWrite(scheduledSystems, HostApiIds.Commands) &&
+            !requestedHostApis.Contains(HostApiIds.Commands, StringComparer.Ordinal))
+        {
+            report.AddError(
+                "module.schedule.commands.host_api.required",
+                $"Scheduled command writes require host API: {HostApiIds.Commands}");
+        }
+
         if ((requestedHostApis.Contains(HostApiIds.Commands, StringComparer.Ordinal) ||
              HasScheduledWrite(scheduledSystems, HostApiIds.Commands)) &&
             !requiredCapabilities.Contains(ModuleCapabilityIds.WorldBlockEdits, StringComparer.Ordinal))
