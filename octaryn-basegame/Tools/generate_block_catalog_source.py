@@ -140,93 +140,54 @@ def render_int_values(values):
 
 
 def render_members(block_ids):
-    dirt_id = required_block_id(block_ids, "octaryn.basegame.block.dirt")
-    grass_id = required_block_id(block_ids, "octaryn.basegame.block.grass")
-    sand_id = required_block_id(block_ids, "octaryn.basegame.block.sand")
-    snow_id = required_block_id(block_ids, "octaryn.basegame.block.snow")
-    stone_id = required_block_id(block_ids, "octaryn.basegame.block.stone")
-    log_id = required_block_id(block_ids, "octaryn.basegame.block.log")
-    leaves_id = required_block_id(block_ids, "octaryn.basegame.block.leaves")
-    bush_id = required_block_id(block_ids, "octaryn.basegame.block.bush")
-    bluebell_id = required_block_id(block_ids, "octaryn.basegame.block.bluebell")
-    gardenia_id = required_block_id(block_ids, "octaryn.basegame.block.gardenia")
-    rose_id = required_block_id(block_ids, "octaryn.basegame.block.rose")
-    lavender_id = required_block_id(block_ids, "octaryn.basegame.block.lavender")
-    cloud_id = required_block_id(block_ids, "octaryn.basegame.block.cloud")
-    red_torch_id = required_block_id(block_ids, "octaryn.basegame.block.red_torch")
-    green_torch_id = required_block_id(block_ids, "octaryn.basegame.block.green_torch")
-    blue_torch_id = required_block_id(block_ids, "octaryn.basegame.block.blue_torch")
-    yellow_torch_id = required_block_id(block_ids, "octaryn.basegame.block.yellow_torch")
-    cyan_torch_id = required_block_id(block_ids, "octaryn.basegame.block.cyan_torch")
-    magenta_torch_id = required_block_id(block_ids, "octaryn.basegame.block.magenta_torch")
-    white_torch_id = required_block_id(block_ids, "octaryn.basegame.block.white_torch")
-    planks_id = required_block_id(block_ids, "octaryn.basegame.block.planks")
-    glass_id = required_block_id(block_ids, "octaryn.basegame.block.glass")
-    water_id = required_block_id(block_ids, "octaryn.basegame.block.water")
-    water_1_id = required_block_id(block_ids, "octaryn.basegame.block.water_1")
-    water_7_id = required_block_id(block_ids, "octaryn.basegame.block.water_7")
-    lava_id = required_block_id(block_ids, "octaryn.basegame.block.lava")
-    lava_1_id = required_block_id(block_ids, "octaryn.basegame.block.lava_1")
-    lava_7_id = required_block_id(block_ids, "octaryn.basegame.block.lava_7")
-    return [
+    placeable_member_ids = [
+        ("Dirt", "octaryn.basegame.block.dirt"),
+        ("Grass", "octaryn.basegame.block.grass"),
+        ("Sand", "octaryn.basegame.block.sand"),
+        ("Snow", "octaryn.basegame.block.snow"),
+        ("Stone", "octaryn.basegame.block.stone"),
+        ("Log", "octaryn.basegame.block.log"),
+        ("Leaves", "octaryn.basegame.block.leaves"),
+        ("Cloud", "octaryn.basegame.block.cloud"),
+        ("Bush", "octaryn.basegame.block.bush"),
+        ("Bluebell", "octaryn.basegame.block.bluebell"),
+        ("Gardenia", "octaryn.basegame.block.gardenia"),
+        ("Rose", "octaryn.basegame.block.rose"),
+        ("Lavender", "octaryn.basegame.block.lavender"),
+        ("RedTorch", "octaryn.basegame.block.red_torch"),
+        ("GreenTorch", "octaryn.basegame.block.green_torch"),
+        ("BlueTorch", "octaryn.basegame.block.blue_torch"),
+        ("YellowTorch", "octaryn.basegame.block.yellow_torch"),
+        ("CyanTorch", "octaryn.basegame.block.cyan_torch"),
+        ("MagentaTorch", "octaryn.basegame.block.magenta_torch"),
+        ("WhiteTorch", "octaryn.basegame.block.white_torch"),
+        ("Planks", "octaryn.basegame.block.planks"),
+        ("Glass", "octaryn.basegame.block.glass"),
+    ]
+    fluid_member_ids = [
+        ("WaterSource", "octaryn.basegame.block.water"),
+        ("WaterLevelOne", "octaryn.basegame.block.water_1"),
+        ("WaterLevelSeven", "octaryn.basegame.block.water_7"),
+        ("LavaSource", "octaryn.basegame.block.lava"),
+        ("LavaLevelOne", "octaryn.basegame.block.lava_1"),
+        ("LavaLevelSeven", "octaryn.basegame.block.lava_7"),
+    ]
+    named_block_ids = placeable_member_ids + fluid_member_ids
+    named_ids = {
+        name: required_block_id(block_ids, block_id)
+        for name, block_id in named_block_ids
+    }
+    member_lines = []
+    for name, _ in placeable_member_ids:
+        member_lines.extend(["", f"    public static BlockId {name} => new({named_ids[name]});"])
+    member_lines.extend([
         "",
-        f"    public static BlockId Dirt => new({dirt_id});",
-        "",
-        f"    public static BlockId Grass => new({grass_id});",
-        "",
-        f"    public static BlockId Sand => new({sand_id});",
-        "",
-        f"    public static BlockId Snow => new({snow_id});",
-        "",
-        f"    public static BlockId Stone => new({stone_id});",
-        "",
-        f"    public static BlockId Log => new({log_id});",
-        "",
-        f"    public static BlockId Leaves => new({leaves_id});",
-        "",
-        f"    public static BlockId Cloud => new({cloud_id});",
-        "",
-        f"    public static BlockId Bush => new({bush_id});",
-        "",
-        f"    public static BlockId Bluebell => new({bluebell_id});",
-        "",
-        f"    public static BlockId Gardenia => new({gardenia_id});",
-        "",
-        f"    public static BlockId Rose => new({rose_id});",
-        "",
-        f"    public static BlockId Lavender => new({lavender_id});",
-        "",
-        f"    public static BlockId RedTorch => new({red_torch_id});",
-        "",
-        f"    public static BlockId GreenTorch => new({green_torch_id});",
-        "",
-        f"    public static BlockId BlueTorch => new({blue_torch_id});",
-        "",
-        f"    public static BlockId YellowTorch => new({yellow_torch_id});",
-        "",
-        f"    public static BlockId CyanTorch => new({cyan_torch_id});",
-        "",
-        f"    public static BlockId MagentaTorch => new({magenta_torch_id});",
-        "",
-        f"    public static BlockId WhiteTorch => new({white_torch_id});",
-        "",
-        f"    public static BlockId Planks => new({planks_id});",
-        "",
-        f"    public static BlockId Glass => new({glass_id});",
-        "",
-        f"    public static BlockId DefaultSelectedBlock => new({yellow_torch_id});",
-        "",
-        f"    public static BlockId WaterSource => new({water_id});",
-        "",
-        f"    public static BlockId WaterLevelOne => new({water_1_id});",
-        "",
-        f"    public static BlockId WaterLevelSeven => new({water_7_id});",
-        "",
-        f"    public static BlockId LavaSource => new({lava_id});",
-        "",
-        f"    public static BlockId LavaLevelOne => new({lava_1_id});",
-        "",
-        f"    public static BlockId LavaLevelSeven => new({lava_7_id});",
+        f"    public static BlockId DefaultSelectedBlock => new({named_ids['YellowTorch']});",
+    ])
+    for name, _ in fluid_member_ids:
+        member_lines.extend(["", f"    public static BlockId {name} => new({named_ids[name]});"])
+
+    return member_lines + [
         "",
         "    public static bool IsKnown(BlockId block)",
         "    {",
@@ -287,12 +248,12 @@ def render_members(block_ids):
         "",
         "    public static BlockId MakeWater(int level)",
         "    {",
-        f"        return new BlockId(ClampedFluidBlockId({water_id}, {water_7_id}, level));",
+        f"        return new BlockId(ClampedFluidBlockId({named_ids['WaterSource']}, {named_ids['WaterLevelSeven']}, level));",
         "    }",
         "",
         "    public static BlockId MakeLava(int level)",
         "    {",
-        f"        return new BlockId(ClampedFluidBlockId({lava_id}, {lava_7_id}, level));",
+        f"        return new BlockId(ClampedFluidBlockId({named_ids['LavaSource']}, {named_ids['LavaLevelSeven']}, level));",
         "    }",
         "",
         "    public static BlockId MakeFluid(BasegameFluidKind kind, int level)",
