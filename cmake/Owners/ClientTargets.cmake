@@ -451,6 +451,7 @@ add_custom_command(
     COMMAND "${CMAKE_COMMAND}" -E touch "${octaryn_client_server_app_stamp}"
     DEPENDS
         "${octaryn_client_app_bundle_stamp}"
+        "${octaryn_bundled_server_app_source_stamp}"
         ${octaryn_bundled_server_app_source_target}
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)

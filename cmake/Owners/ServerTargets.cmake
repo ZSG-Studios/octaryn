@@ -11,6 +11,7 @@ set(octaryn_server_bundle_stamp "${server_build_root}/stamps/octaryn_server_bund
 set(octaryn_server_bundle_output "${octaryn_server_bundle_dir}/Octaryn.Server.dll")
 set(octaryn_bundled_server_app_source_dir "${octaryn_server_bundle_dir}")
 set(octaryn_bundled_server_app_source_target octaryn_server_bundle)
+set(octaryn_bundled_server_app_source_stamp "${octaryn_server_bundle_stamp}")
 
 octaryn_add_native_owner(octaryn_server_native)
 add_dependencies(octaryn_server_native octaryn_shared_native)
