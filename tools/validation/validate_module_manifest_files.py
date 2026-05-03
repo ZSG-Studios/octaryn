@@ -101,7 +101,7 @@ def validate_supported_block(path, block_name, block, declaration_pattern):
     ]
 
 
-def validate_declared_content_file(path):
+def validate_declared_content_file(path, content_id, content_kind):
     if path.suffix.lower() != ".json":
         return []
 
@@ -112,9 +112,22 @@ def validate_declared_content_file(path):
 
     errors = []
     try:
-        json.loads(text)
+        document = json.loads(text)
     except json.JSONDecodeError as error:
         errors.append(f"{path}: declared JSON content file is invalid: {error}")
+        document = None
+
+    if isinstance(document, dict):
+        declared_id = document.get("id")
+        declared_kind = document.get("kind")
+        if declared_id != content_id:
+            errors.append(
+                f"{path}: declared JSON content id {declared_id!r} does not match manifest content id {content_id!r}")
+        if declared_kind != content_kind:
+            errors.append(
+                f"{path}: declared JSON content kind {declared_kind!r} does not match manifest content kind {content_kind!r}")
+    elif document is not None:
+        errors.append(f"{path}: declared JSON content file must be an object with id and kind fields")
 
     if PLACEHOLDER_TEXT.search(text):
         errors.append(f"{path}: declared content file still contains placeholder text")
@@ -146,7 +159,7 @@ def validate(module_root, manifest_json=None):
     declared_content_paths = set()
     declared_asset_paths = set()
 
-    for content_id, _content_kind, relative_path in content:
+    for content_id, content_kind, relative_path in content:
         if relative_path.startswith(("/", "\\")) or ".." in relative_path or ":" in relative_path:
             errors.append(f"{content_id}: content path is not a safe relative path: {relative_path}")
             continue
@@ -163,7 +176,7 @@ def validate(module_root, manifest_json=None):
         elif path.stat().st_size == 0:
             errors.append(f"{path}: declared content file is empty")
         else:
-            errors.extend(validate_declared_content_file(path))
+            errors.extend(validate_declared_content_file(path, content_id, content_kind))
 
     for asset_id, _asset_kind, relative_path in assets:
         if relative_path.startswith(("/", "\\")) or ".." in relative_path or ":" in relative_path:

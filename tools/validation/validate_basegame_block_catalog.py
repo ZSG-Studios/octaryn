@@ -62,7 +62,7 @@ REQUIRED_BOOL_FIELDS = (
 
 ATLAS_DIRECTIONS = ("north", "south", "east", "west", "up", "down")
 
-ALLOWED_TOP_LEVEL_FIELDS = {"schema", "blocks"}
+ALLOWED_TOP_LEVEL_FIELDS = {"id", "kind", "schema", "blocks"}
 
 ALLOWED_BLOCK_FIELDS = {
     "id",
@@ -133,6 +133,10 @@ def validate(path):
     catalog = json.loads(path.read_text(encoding="utf-8"))
     validate_canonical_catalog_file(errors, path)
     validate_top_level_fields(errors, path, catalog)
+    if catalog.get("id") != "octaryn.basegame.blocks":
+        errors.append(f"{path}: id must be octaryn.basegame.blocks")
+    if catalog.get("kind") != "block":
+        errors.append(f"{path}: kind must be block")
     if catalog.get("schema") != "octaryn.basegame.blocks.v1":
         errors.append(f"{path}: schema must be octaryn.basegame.blocks.v1")
     blocks = catalog.get("blocks")

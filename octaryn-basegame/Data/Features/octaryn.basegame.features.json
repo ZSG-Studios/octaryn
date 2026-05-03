@@ -1,4 +1,6 @@
 {
+  "id": "octaryn.basegame.features",
+  "kind": "feature",
   "schema": "octaryn.basegame.features.v1",
   "features": [
     {

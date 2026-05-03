@@ -1,4 +1,6 @@
 {
+  "id": "octaryn.basegame.blocks",
+  "kind": "block",
   "schema": "octaryn.basegame.blocks.v1",
   "blocks": [
     {"id":"octaryn.basegame.block.air","displayName":"Air","opaque":false,"sprite":false,"solid":false,"occlusion":false,"placeable":false,"targetable":false,"requiresGrass":false,"requiresSolidBase":false,"skylightOpacity":0,"fluidKind":"none","fluidLevel":-1,"fluidSource":false,"atlas":{"north":0,"south":0,"east":0,"west":0,"up":0,"down":0}},

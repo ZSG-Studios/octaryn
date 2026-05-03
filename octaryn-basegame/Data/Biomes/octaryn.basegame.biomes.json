@@ -1,4 +1,6 @@
 {
+  "id": "octaryn.basegame.biomes",
+  "kind": "biome",
   "schema": "octaryn.basegame.biomes.v1",
   "biomes": [
     {

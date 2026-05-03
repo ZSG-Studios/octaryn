@@ -5,9 +5,13 @@ import pathlib
 import sys
 
 
+BIOME_DOCUMENT_FIELDS = {"id", "kind", "schema", "biomes"}
 BIOME_FIELDS = {"id", "surface", "features"}
+FEATURE_DOCUMENT_FIELDS = {"id", "kind", "schema", "features"}
 FEATURE_FIELDS = {"id", "noiseThreshold", "blocks", "trunk", "leaves"}
 TERRAIN_RULE_FIELDS = {
+    "id",
+    "kind",
     "schema",
     "waterHeight",
     "waterBlock",
@@ -58,6 +62,10 @@ def collect_block_ids(errors, path):
 
 def collect_feature_ids(errors, path, block_ids):
     document = load_json(path)
+    validate_document_identity(errors, path, document, "octaryn.basegame.features", "feature")
+    unknown_document_fields = sorted(set(document) - FEATURE_DOCUMENT_FIELDS)
+    for field in unknown_document_fields:
+        errors.append(f"{path}: features document has unknown field {field!r}")
     if document.get("schema") != "octaryn.basegame.features.v1":
         errors.append(f"{path}: schema must be octaryn.basegame.features.v1")
     features = document.get("features")
@@ -104,6 +112,10 @@ def collect_feature_ids(errors, path, block_ids):
 
 def validate_biomes(errors, path, block_ids, feature_ids):
     document = load_json(path)
+    validate_document_identity(errors, path, document, "octaryn.basegame.biomes", "biome")
+    unknown_document_fields = sorted(set(document) - BIOME_DOCUMENT_FIELDS)
+    for field in unknown_document_fields:
+        errors.append(f"{path}: biomes document has unknown field {field!r}")
     if document.get("schema") != "octaryn.basegame.biomes.v1":
         errors.append(f"{path}: schema must be octaryn.basegame.biomes.v1")
     biomes = document.get("biomes")
@@ -144,6 +156,7 @@ def validate_biomes(errors, path, block_ids, feature_ids):
 
 def validate_terrain_rule(errors, path, block_ids):
     document = load_json(path)
+    validate_document_identity(errors, path, document, "octaryn.basegame.rule.terrain_generation", "rule")
     unknown = sorted(set(document) - TERRAIN_RULE_FIELDS)
     for field in unknown:
         errors.append(f"{path}: terrain generation rule has unknown field {field!r}")
@@ -154,10 +167,17 @@ def validate_terrain_rule(errors, path, block_ids):
     if document.get("schema") != "octaryn.basegame.terrain_generation_rule.v1":
         errors.append(f"{path}: schema must be octaryn.basegame.terrain_generation_rule.v1")
     validate_block_reference(errors, path, "terrain_generation", "waterBlock", document.get("waterBlock"), block_ids)
-    for field in TERRAIN_RULE_FIELDS - {"schema", "waterBlock"}:
+    for field in TERRAIN_RULE_FIELDS - {"id", "kind", "schema", "waterBlock"}:
         value = document.get(field)
         if not is_number(value):
             errors.append(f"{path}: terrain generation rule field {field} must be numeric")
+
+
+def validate_document_identity(errors, path, document, expected_id, expected_kind):
+    if document.get("id") != expected_id:
+        errors.append(f"{path}: id must be {expected_id}")
+    if document.get("kind") != expected_kind:
+        errors.append(f"{path}: kind must be {expected_kind}")
 
 
 def validate_block_reference(errors, path, owner_id, field, block_id, block_ids):

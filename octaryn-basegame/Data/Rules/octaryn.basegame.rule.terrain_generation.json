@@ -1,4 +1,6 @@
 {
+  "id": "octaryn.basegame.rule.terrain_generation",
+  "kind": "rule",
   "schema": "octaryn.basegame.terrain_generation_rule.v1",
   "waterHeight": 30,
   "waterBlock": "octaryn.basegame.block.water",

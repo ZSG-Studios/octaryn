@@ -312,6 +312,28 @@ internal static class ModuleManifestProbe
             root => WriteFile(root, "Data/Rules/octaryn.test.rule.json", string.Empty));
         ExpectFileGraphInvalid(
             errors,
+            "missing declared content identity",
+            ValidManifest(),
+            "declared content id mismatch",
+            root => WriteFile(root, "Data/Rules/octaryn.test.rule.json", "{}"));
+        ExpectFileGraphInvalid(
+            errors,
+            "mismatched declared content id",
+            ValidManifest(),
+            "declared content id mismatch",
+            root => WriteFile(root, "Data/Rules/octaryn.test.rule.json", """
+                {"id":"octaryn.test.other","kind":"rule"}
+                """));
+        ExpectFileGraphInvalid(
+            errors,
+            "mismatched declared content kind",
+            ValidManifest(),
+            "declared content kind mismatch",
+            root => WriteFile(root, "Data/Rules/octaryn.test.rule.json", """
+                {"id":"octaryn.test.content","kind":"item"}
+                """));
+        ExpectFileGraphInvalid(
+            errors,
             "undeclared data file",
             ValidManifest(),
             "undeclared content file",
@@ -438,7 +460,9 @@ internal static class ModuleManifestProbe
 
     private static void WriteValidManifestFiles(string moduleRoot)
     {
-        WriteFile(moduleRoot, "Data/Rules/octaryn.test.rule.json", "{}");
+        WriteFile(moduleRoot, "Data/Rules/octaryn.test.rule.json", """
+            {"id":"octaryn.test.content","kind":"rule"}
+            """);
         WriteFile(moduleRoot, "Assets/Textures/octaryn.test.texture.txt", "asset");
     }
 
@@ -502,6 +526,7 @@ internal static class ModuleManifestProbe
                 moduleRoot,
                 declaredContent,
                 content.ContentId,
+                content.ContentKind,
                 content.RelativePath,
                 ["Data/"]);
         }
@@ -514,6 +539,7 @@ internal static class ModuleManifestProbe
                 moduleRoot,
                 declaredAssets,
                 asset.AssetId,
+                null,
                 asset.RelativePath,
                 ["Assets/", "Shaders/"]);
         }
@@ -529,6 +555,7 @@ internal static class ModuleManifestProbe
         string moduleRoot,
         HashSet<string> declaredPaths,
         string declarationId,
+        string? declarationKind,
         string relativePath,
         IReadOnlyList<string> allowedPrefixes)
     {
@@ -564,6 +591,53 @@ internal static class ModuleManifestProbe
         if (new FileInfo(path).Length == 0)
         {
             errors.Add($"{declarationId}: declared file is empty at {relativePath}");
+            return;
+        }
+
+        if (declarationKind is not null && Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            ValidateDeclaredJsonContentIdentity(errors, path, declarationId, declarationKind);
+        }
+    }
+
+    private static void ValidateDeclaredJsonContentIdentity(
+        List<string> errors,
+        string path,
+        string declarationId,
+        string declarationKind)
+    {
+        JsonDocument document;
+        try
+        {
+            document = JsonDocument.Parse(File.ReadAllText(path));
+        }
+        catch (JsonException error)
+        {
+            errors.Add($"{declarationId}: declared JSON content is invalid at {Path.GetFileName(path)}: {error.Message}");
+            return;
+        }
+
+        using (document)
+        {
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                errors.Add($"{declarationId}: declared JSON content must be an object at {Path.GetFileName(path)}");
+                return;
+            }
+
+            if (!document.RootElement.TryGetProperty("id", out var idElement) ||
+                idElement.ValueKind != JsonValueKind.String ||
+                !string.Equals(idElement.GetString(), declarationId, StringComparison.Ordinal))
+            {
+                errors.Add($"{declarationId}: declared content id mismatch at {Path.GetFileName(path)}");
+            }
+
+            if (!document.RootElement.TryGetProperty("kind", out var kindElement) ||
+                kindElement.ValueKind != JsonValueKind.String ||
+                !string.Equals(kindElement.GetString(), declarationKind, StringComparison.Ordinal))
+            {
+                errors.Add($"{declarationId}: declared content kind mismatch at {Path.GetFileName(path)}");
+            }
         }
     }
 
