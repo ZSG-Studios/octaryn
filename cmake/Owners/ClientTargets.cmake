@@ -19,9 +19,17 @@ set(octaryn_client_shader_stage_stamp "${client_build_root}/stamps/octaryn_clien
 octaryn_add_native_owner(octaryn_client_native)
 add_dependencies(octaryn_client_native octaryn_shared_native)
 
-file(GLOB octaryn_client_shader_sources CONFIGURE_DEPENDS
+file(GLOB_RECURSE octaryn_client_shader_sources CONFIGURE_DEPENDS
     "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Shaders/*")
 list(FILTER octaryn_client_shader_sources EXCLUDE REGEX "/\\.gitkeep$")
+set(octaryn_client_shader_bundle_outputs)
+foreach(octaryn_client_shader_source IN LISTS octaryn_client_shader_sources)
+    file(RELATIVE_PATH octaryn_client_shader_file
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Shaders"
+        "${octaryn_client_shader_source}")
+    list(APPEND octaryn_client_shader_bundle_outputs
+        "${octaryn_client_bundle_dir}/Client/Shaders/${octaryn_client_shader_file}")
+endforeach()
 
 add_custom_command(
     OUTPUT "${octaryn_client_shader_stage_stamp}"
@@ -379,7 +387,7 @@ add_custom_command(
         "${octaryn_client_bundle_dir}/Data/Items/octaryn.basegame.item.hand.json"
         "${octaryn_client_bundle_dir}/Data/Rules/octaryn.basegame.rule.default_interaction.json"
         "${octaryn_client_bundle_dir}/Data/Rules/octaryn.basegame.rule.terrain_generation.json"
-        "${octaryn_client_bundle_dir}/Client/Shaders/opaque.frag.glsl"
+        ${octaryn_client_shader_bundle_outputs}
         "${octaryn_client_bundle_dir}/Octaryn.Shared.dll"
         "${octaryn_client_bundle_dir}/Octaryn.Client.pdb"
         "${octaryn_client_bundle_dir}/Octaryn.Basegame.pdb"
@@ -425,7 +433,8 @@ add_custom_command(
         "${octaryn_client_bundle_dir}/Client/Shaders"
     COMMAND "${CMAKE_COMMAND}" -E touch "${octaryn_client_app_bundle_stamp}"
     DEPENDS
-        octaryn_client_shaders
+        "${octaryn_client_shader_stage_stamp}"
+        ${octaryn_client_shader_sources}
         octaryn_basegame_bundle
         "${octaryn_client_managed_STAMP}"
         "${octaryn_shared_STAMP}"

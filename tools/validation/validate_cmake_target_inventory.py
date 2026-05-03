@@ -67,6 +67,7 @@ REQUIRED_TARGETS = {
     "octaryn_validate_module_manifest_probe",
     "octaryn_validate_bundle_module_payload",
     "octaryn_validate_client_server_app",
+    "octaryn_validate_client_shader_bundle",
     "octaryn_validate_module_source_api",
     "octaryn_validate_module_binary_sandbox",
     "octaryn_validate_module_layout",
@@ -259,6 +260,7 @@ HOSTFXR_SKIP_MESSAGES = (
 REQUIRED_BUILD_COMMAND_SNIPPETS = (
     "validate_bundle_module_payload.py",
     "validate_client_server_app.py",
+    "validate_client_shader_bundle.py",
     "--expected-manifest",
     "validate_native_owner_boundaries.py",
     "validate_native_abi_contracts.py",

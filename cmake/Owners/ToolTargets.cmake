@@ -292,6 +292,16 @@ add_custom_target(octaryn_validate_client_server_app
     WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
     VERBATIM)
 
+add_custom_target(octaryn_validate_client_shader_bundle
+    COMMAND python3
+        "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_client_shader_bundle.py"
+        --source-root "${OCTARYN_WORKSPACE_ROOT_DIR}/octaryn-client/Shaders"
+        --bundle-shader-root "${octaryn_tool_client_bundle_dir}/Client/Shaders"
+    DEPENDS
+        octaryn_client_bundle
+    WORKING_DIRECTORY "${OCTARYN_WORKSPACE_ROOT_DIR}"
+    VERBATIM)
+
 add_custom_target(octaryn_validate_native_abi_contracts
     COMMAND python3
         "${OCTARYN_WORKSPACE_ROOT_DIR}/tools/validation/validate_native_abi_contracts.py"
