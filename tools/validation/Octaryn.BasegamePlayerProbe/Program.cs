@@ -19,9 +19,15 @@ internal static class BasegamePlayerProbe
         Require(PlayerBlockSelectionRules.ChangeSelectedBlock(selected, 1).SelectedBlock.Value == 26, "change block forward");
         Require(PlayerBlockSelectionRules.ChangeSelectedBlock(selected, -1).SelectedBlock.Value == 24, "change block backward");
         Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(7)), 1).SelectedBlock.Value == 9, "change skips cloud");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(7)), 2).SelectedBlock.Value == 9, "change raw block offset skips cloud");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(8)), 1).SelectedBlock.Value == 9, "change from cloud advances to bush");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(8)), -1).SelectedBlock.Value == 7, "change from cloud retreats to leaves");
         Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(14)), 1).SelectedBlock.Value == 22, "change skips flowing water");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(15)), -1).SelectedBlock.Value == 14, "change from flowing water retreats to source");
         Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(31)), 1).SelectedBlock.Value == 1, "change wraps forward");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(38)), -1).SelectedBlock.Value == 31, "change from flowing lava retreats to source");
         Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(1)), -1).SelectedBlock.Value == 31, "change wraps backward");
+        Require(PlayerBlockSelectionRules.ChangeSelectedBlock(new PlayerBlockSelectionState(new BlockId(8)), 0).SelectedBlock.Value == 25, "zero change from invalid block returns default");
 
         Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, BlockId.Air) == selected, "select ignores air");
         Require(PlayerBlockSelectionRules.SelectTargetBlock(selected, new BlockId(8)) == selected, "select ignores cloud");

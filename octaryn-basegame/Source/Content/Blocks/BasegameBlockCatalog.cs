@@ -5,7 +5,7 @@ namespace Octaryn.Basegame.Content.Blocks;
 
 public static class BasegameBlockCatalog
 {
-    private const ushort KnownBlockCount = 39;
+    public const ushort KnownBlockCount = 39;
 
     private static readonly ushort[] GrassSupportedBlockIds =
     [
@@ -237,8 +237,6 @@ public static class BasegameBlockCatalog
 
     public static BlockId LavaSource => new(31);
 
-    public static int PlaceableCount => PlaceableBlockIds.Length;
-
     public static bool IsKnown(BlockId block)
     {
         return block.Value < KnownBlockCount;
@@ -324,16 +322,6 @@ public static class BasegameBlockCatalog
     public static bool RequiresSolidBase(BlockId block)
     {
         return IndexOf(SolidBaseSupportedBlockIds, block.Value) >= 0;
-    }
-
-    public static BlockId PlaceableAt(int index)
-    {
-        return new BlockId(PlaceableBlockIds[index]);
-    }
-
-    public static int PlaceableIndexOf(BlockId block)
-    {
-        return IndexOf(PlaceableBlockIds, block.Value);
     }
 
     private static ushort ClampedFluidBlockId(ushort sourceId, ushort maxLevelId, int level)

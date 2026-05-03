@@ -20,15 +20,25 @@ public static class PlayerBlockSelectionRules
         PlayerBlockSelectionState current,
         int delta)
     {
-        var currentIndex = BasegameBlockCatalog.PlaceableIndexOf(current.SelectedBlock);
-        if (currentIndex < 0)
+        if (delta == 0)
         {
-            currentIndex = 0;
-            delta--;
+            return IsPlaceable(current.SelectedBlock)
+                ? current
+                : PlayerBlockSelectionState.Default;
         }
 
-        var nextIndex = PositiveModulo(currentIndex + delta, BasegameBlockCatalog.PlaceableCount);
-        return new PlayerBlockSelectionState(BasegameBlockCatalog.PlaceableAt(nextIndex));
+        var candidate = current.SelectedBlock;
+        var maxAttempts = global::System.Math.Max(1, BasegameBlockCatalog.KnownBlockCount - 1);
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            candidate = OffsetKnownBlock(candidate, delta);
+            if (IsPlaceable(candidate))
+            {
+                return new PlayerBlockSelectionState(candidate);
+            }
+        }
+
+        return PlayerBlockSelectionState.Default;
     }
 
     public static bool IsPlaceable(BlockId block)
@@ -36,9 +46,16 @@ public static class PlayerBlockSelectionRules
         return BasegameBlockCatalog.IsPlaceable(block);
     }
 
-    private static int PositiveModulo(int value, int divisor)
+    private static BlockId OffsetKnownBlock(BlockId block, int delta)
+    {
+        var selectableCount = BasegameBlockCatalog.KnownBlockCount - 1;
+        var zeroBased = PositiveModulo((long)block.Value - 1 + delta, selectableCount);
+        return new BlockId((ushort)(zeroBased + 1));
+    }
+
+    private static int PositiveModulo(long value, int divisor)
     {
         var result = value % divisor;
-        return result < 0 ? result + divisor : result;
+        return (int)(result < 0 ? result + divisor : result);
     }
 }
