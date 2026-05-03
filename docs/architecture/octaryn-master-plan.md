@@ -1079,6 +1079,7 @@ octaryn_native_profiling
 octaryn_native_jobs
 octaryn_basegame
 octaryn_basegame_native
+octaryn_basegame_bundle
 octaryn_server
 octaryn_server_bundle
 octaryn_server_native
@@ -1126,6 +1127,7 @@ octaryn_validate_module_manifest_files
 octaryn_validate_module_manifest_probe
 octaryn_validate_bundle_module_payload
 octaryn_validate_client_server_app
+octaryn_validate_client_shader_bundle
 octaryn_validate_module_source_api
 octaryn_validate_module_binary_sandbox
 octaryn_validate_module_layout
