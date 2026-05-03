@@ -2,6 +2,7 @@
 import argparse
 import filecmp
 import pathlib
+import stat
 import sys
 
 
@@ -45,6 +46,17 @@ def existing_entrypoints(root):
     ]
 
 
+def validate_entrypoint_permissions(root, entrypoints, label, errors):
+    for relative in entrypoints:
+        entrypoint = root / relative
+        if relative.endswith(".exe"):
+            continue
+        mode = entrypoint.stat().st_mode
+        if not mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH):
+            errors.append(
+                f"{entrypoint}: {label} server entrypoint is not executable")
+
+
 def validate(client_bundle_root, server_bundle_root):
     payload_root = client_bundle_root / PAYLOAD_DIR
     errors = []
@@ -74,6 +86,10 @@ def validate(client_bundle_root, server_bundle_root):
         errors.append(
             f"{payload_root}: bundled server entrypoints {payload_entrypoints} "
             f"do not match server-owned entrypoints {server_entrypoints}")
+    validate_entrypoint_permissions(
+        server_bundle_root, server_entrypoints, "dedicated", errors)
+    validate_entrypoint_permissions(
+        payload_root, payload_entrypoints, "bundled", errors)
 
     for relative in FORBIDDEN_CLIENT_PAYLOADS:
         if (server_bundle_root / relative).exists():
